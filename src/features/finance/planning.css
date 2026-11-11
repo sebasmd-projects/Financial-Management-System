@@ -1,0 +1,97 @@
+/* FMS-1b: pausas y ventanas de pago, Resumen, calendario, avisos, conciliación y parámetros. Mobile first; solo tokens de `ui/tokens.css`. */
+
+/* ---------- Meses, pausas y ventanas ---------- */
+.fin-months, .fin-ranges { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: var(--space-8); }
+.fin-months__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4) var(--space-8); }
+@media (min-width: 480px) { .fin-months__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.fin-months__item { display: flex; align-items: center; gap: var(--space-8); min-height: var(--target-min); cursor: pointer; }
+.fin-months__item input { flex: none; width: 24px; height: 24px; margin: 0; accent-color: var(--color-primary); }
+.fin-range { display: grid; gap: var(--space-8); padding: var(--space-12); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.fin-window { display: grid; gap: var(--space-12); padding: var(--space-12); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.fin-quote { display: grid; gap: var(--space-8); }
+.fin-quote__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-8); }
+.fin-unsplit { display: grid; gap: var(--space-4); }
+
+/* ---------- Resumen (diseño §2): una columna en el teléfono, dos en escritorio ---------- */
+.summary__grid { display: grid; gap: var(--space-16); }
+@media (min-width: 1024px) {
+  .summary__grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: start; }
+  .summary__kpi { grid-column: 1 / -1; }
+}
+.summary__past { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
+.summary__dim { opacity: 0.55; }
+.summary__kpis { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-8) var(--space-16); }
+.summary__kpi-main, .summary__kpi-side { display: grid; gap: var(--space-2); min-height: var(--target-min); padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.summary__kpi-side { text-align: right; }
+.summary__label { font: var(--text-label); color: var(--color-text-secondary); }
+.summary__big { display: inline-flex; align-items: center; gap: var(--space-8); font: var(--text-kpi); font-size: 1.75rem; line-height: 2.125rem; font-weight: 600; overflow-wrap: anywhere; }
+.summary__big--negative { color: var(--color-negative); }
+.summary__mid { font: var(--text-kpi); font-size: 1.25rem; line-height: 1.75rem; }
+.summary__bar { display: flex; height: 6px; margin-block: var(--space-8); border-radius: var(--radius-full); background: var(--color-track); overflow: hidden; }
+.summary__bar-spent { background: var(--color-primary); }
+.summary__bar-committed { background: repeating-linear-gradient(45deg, var(--color-primary) 0 3px, var(--color-track) 3px 6px); }
+.summary__bar-free { background: var(--color-positive); }
+.summary__liquidity { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); min-height: var(--target-min); padding: 0; border: 0; background: none; color: var(--color-text-secondary); font: var(--text-body-s); text-align: left; cursor: pointer; }
+.summary__link { display: inline-flex; align-items: center; min-height: var(--target-min); color: var(--color-primary); font: var(--text-label); text-decoration: none; }
+.summary__rail-list { display: flex; gap: var(--space-8); margin: 0; padding: 0 0 var(--space-8); list-style: none; overflow-x: auto; scroll-snap-type: x proximity; }
+.summary__rail-list > li { flex: none; scroll-snap-align: start; }
+.summary__rail-card { display: grid; gap: var(--space-4); width: 168px; min-height: 96px; padding: var(--space-8); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); color: inherit; text-decoration: none; }
+.summary__rail-card--soon, .summary__rail-card--today { border-color: var(--color-warning); }
+.summary__rail-card--overdue { background: var(--color-negative-container); border-color: var(--color-negative); }
+.summary__rail-name { display: flex; align-items: center; gap: var(--space-4); font: var(--text-label); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.summary__rail-amount { font: var(--text-kpi); font-size: 1rem; font-weight: 600; }
+.summary__rail-date { font: var(--text-caption); }
+.summary__fixed { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8); margin: var(--space-8) 0 0; padding: 0; list-style: none; }
+.summary__tile { display: grid; gap: var(--space-2); height: 100%; min-height: 64px; padding: var(--space-8); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: inherit; text-decoration: none; }
+.summary__tile--soon { border-color: var(--color-warning); }
+.summary__tile--paid, .summary__tile--skipped { background: var(--color-surface-2); }
+.summary__tile--overdue { background: var(--color-negative-container); border-color: var(--color-negative); }
+.summary__tile--more { place-content: center; text-align: center; color: var(--color-primary); font: var(--text-label); }
+.summary__tile-name { font: var(--text-label); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.summary__tile-line { font: var(--text-caption); }
+.summary__shortcuts { margin-top: var(--space-4); }
+.summary__shortcuts .fin-chips { margin: 0; padding: 0; list-style: none; flex-wrap: nowrap; overflow-x: auto; }
+.summary__alert { display: flex; align-items: center; gap: var(--space-8); margin-top: var(--space-12); padding: var(--space-8) var(--space-12); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.summary__alert--critical { background: var(--color-negative-container); border-color: var(--color-negative); color: var(--color-on-negative-container); }
+.summary__alert--warning { background: var(--color-warning-container); border-color: var(--color-warning); color: var(--color-on-warning-container); }
+.summary__alert--ok { color: var(--color-positive); }
+.summary__alert-text { flex: 1 1 auto; min-width: 0; color: inherit; text-decoration: none; }
+.summary__alert-pager { display: inline-flex; align-items: center; gap: var(--space-4); flex: none; font: var(--text-caption); }
+
+/* ---------- Calendario financiero (diseño §3.11) ---------- */
+.calendar__grid { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 2px; }
+.calendar__grid th { padding: var(--space-4) 0; font: var(--text-label); color: var(--color-text-secondary); text-align: center; }
+.calendar__cell { padding: 0; height: 56px; vertical-align: top; }
+.calendar__day { display: grid; align-content: space-between; justify-items: center; width: 100%; height: 100%; min-height: var(--target-min); padding: var(--space-4) 0; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: inherit; font: var(--text-body-s); cursor: pointer; }
+.calendar__day--today { border-color: var(--color-primary); font-weight: 600; }
+.calendar__day--selected { background: var(--color-primary-container); color: var(--color-on-primary-container); border-color: var(--color-primary); }
+.calendar__day--negative .calendar__num { color: var(--color-negative); text-decoration: underline; }
+.calendar__holiday { font: var(--text-caption); color: var(--color-info, var(--color-primary)); }
+.calendar__dots { display: inline-flex; align-items: center; gap: 2px; }
+.calendar__dot { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-negative); }
+.calendar__dot--in { background: var(--color-positive); }
+.calendar__dot--info { background: transparent; border: 2px solid var(--color-text-secondary); }
+.calendar__more { font: var(--text-caption); }
+.calendar__detail { display: grid; gap: var(--space-8); }
+.calendar__needed { font: var(--text-label); }
+.calendar__negative { color: var(--color-negative); }
+.calendar__shortfall { color: var(--color-negative); }
+
+/* ---------- Avisos ---------- */
+.topbar__bell { position: relative; }
+.topbar__count { position: absolute; top: 2px; right: 2px; min-width: 18px; padding: 0 4px; border-radius: var(--radius-full); background: var(--color-negative-container); color: var(--color-on-negative-container); border: 1px solid var(--color-negative); font: var(--text-caption); line-height: 16px; text-align: center; }
+.notice { align-items: flex-start; flex-wrap: wrap; }
+.notice--unread { border-left: 3px solid var(--color-primary); }
+.notice__dot { display: inline-block; width: 8px; height: 8px; margin-right: var(--space-8); border-radius: var(--radius-full); background: var(--color-primary); }
+.notice__actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+
+/* ---------- Conciliación (diseño §3.6) ---------- */
+.recon { display: grid; gap: var(--space-16); }
+.recon__summary { position: sticky; top: 0; z-index: 1; }
+.recon__row { display: flex; align-items: center; gap: var(--space-12); min-height: var(--target-min); padding: var(--space-8) 0; cursor: pointer; }
+.recon__row input { flex: none; width: 24px; height: 24px; margin: 0; accent-color: var(--color-primary); }
+.recon__row .fin-row__main { flex: 1 1 auto; }
+.recon__nonzero { display: inline-flex; align-items: center; gap: var(--space-4); }
+
+/* ---------- Parámetros ---------- */
+.params__row { width: 100%; text-align: left; cursor: pointer; }

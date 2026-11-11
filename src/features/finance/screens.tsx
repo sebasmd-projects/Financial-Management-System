@@ -5,11 +5,14 @@ import type { RouteId } from "@/nav/routes";
 import { Loading } from "./kit";
 import { AccountDetail } from "./accounts/account-detail";
 import { AccountsScreen } from "./accounts/accounts-screen";
+import { CalendarScreen } from "./calendar/calendar-screen";
 import { CardDetail } from "./cards/card-detail";
 import { CardPay } from "./cards/card-pay";
 import { CardSimulateScreen } from "./cards/card-purchase";
 import { CardStatement } from "./cards/card-statement";
 import { CategoriesScreen, TagsScreen } from "./catalog/catalog-screens";
+import { NotificationsScreen } from "./notifications/notifications-screen";
+import { RulesScreen } from "./notifications/rules-screen";
 import { LoanDetail } from "./loans/loan-detail";
 import { LoanTable } from "./loans/loan-table";
 import { LoansScreen } from "./loans/loans-screen";
@@ -20,11 +23,16 @@ import { FixedExpensesScreen } from "./payments/fixed-expenses";
 import { OccurrencePay } from "./payments/occurrence-pay";
 import { RecurrenceDetail } from "./payments/recurrence-detail";
 import { RecurrenceForm } from "./payments/recurrence-form";
+import { ParametersScreen } from "./parameters/parameters-screen";
+import { ReconcileScreen } from "./reconcile/reconcile-screen";
 import { SubscriptionsScreen } from "./payments/subscriptions";
+import { SummaryScreen } from "./summary/summary-screen";
 
 function render(routeId: RouteId, params: readonly string[]): ReactNode {
   const [first = "", second = ""] = params;
   switch (routeId) {
+    case "resumen":
+      return <SummaryScreen />;
     case "cuentas":
       return <AccountsScreen tab="todas" />;
     case "cuentas-bancos":
@@ -37,6 +45,8 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <AccountsScreen tab="credito" />;
     case "cuenta":
       return <AccountDetail id={first} />;
+    case "cuenta-conciliar":
+      return <ReconcileScreen id={first} />;
     case "movimientos":
     case "movimientos-historial":
       return <MovementsScreen preset="all" routeId={routeId} />;
@@ -65,6 +75,8 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <FixedExpensesScreen />;
     case "pagos-fijo-pagar":
       return <OccurrencePay id={first} />;
+    case "pagos-calendario":
+      return <CalendarScreen />;
     case "pagos-suscripciones":
       return <SubscriptionsScreen />;
     case "pagos-recurrencia-nueva":
@@ -81,6 +93,12 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <CategoriesScreen />;
     case "config-etiquetas":
       return <TagsScreen />;
+    case "config-parametros":
+      return <ParametersScreen />;
+    case "config-reglas":
+      return <RulesScreen />;
+    case "notificaciones":
+      return <NotificationsScreen />;
     default:
       return null;
   }

@@ -3,16 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 import { api } from "@/api";
-import type { Account, Occurrence, OccurrencePaid } from "@/api/models";
+import type { Account, AmountDue, Occurrence, OccurrencePaid } from "@/api/models";
 import { paths } from "@/api/paths";
 import { parsePositiveAmount } from "@/lib/amount-input";
-import { daysBetween, formatDate, todayBogota } from "@/lib/dates";
+import { daysBetween, formatDate, isBusinessDate, todayBogota } from "@/lib/dates";
 import { compareAmounts, formatCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { fill, movementAccounts, relativeDays } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Banner, ErrorState, FormActions, Loading, Money, Progress, ScreenHeader, Segmented, SelectField, TextArea, TextField } from "../kit";
 import { warningText } from "../movements/movement-form";
+import { LateRateMissing, QuotePanel } from "./quote-panel";
+import { SplitSheet, UnsplitButton } from "./split-actions";
 
 type How = "remaining" | "partial" | "final";
 
@@ -33,6 +35,10 @@ export function OccurrencePay({ id }: { id: string }) {
   const [skipping, setSkipping] = useState(false);
   const [result, setResult] = useState<OccurrencePaid | null>(null);
   const [skipped, setSkipped] = useState(false);
+  const [splitting, setSplitting] = useState(false);
+  const [splitDone, setSplitDone] = useState(false);
+  const [unsplitDone, setUnsplitDone] = useState(false);
+  const quote = useResource<AmountDue>(isBusinessDate(date) && occurrence.data?.status === "open" && result === null ? paths.occurrenceQuote(id, date) : null);
 
   const back = { href: href("pagos-fijos"), label: dict.screens["pagos-fijos"] };
   const o = occurrence.data;
@@ -68,8 +74,9 @@ export function OccurrencePay({ id }: { id: string }) {
   }
 
   const today = todayBogota();
-  const done = result !== null || skipped;
+  const done = result !== null || skipped || splitDone || unsplitDone;
   const live = result?.occurrence ?? o;
+  const lateRateMissing = submit.errorCode === "late_rate_missing";
   return (
     <div className="screen screen--form">
       <ScreenHeader title={o.name} eyebrow={dict.screens["pagos-fijo-pagar"]} back={back} />
@@ -83,6 +90,24 @@ export function OccurrencePay({ id }: { id: string }) {
         </p>
       </section>
 
+      {splitDone && (
+        <Banner tone="positive">
+          <p>{dict.fin.split.done}</p>
+        </Banner>
+      )}
+      {unsplitDone && (
+        <Banner tone="positive">
+          <p>{dict.fin.split.undone}</p>
+        </Banner>
+      )}
+      {!done && live.status === "split" && (
+        <>
+          <Banner tone="warning">
+            <p>{dict.fin.split.parentBanner}</p>
+          </Banner>
+          <UnsplitButton occurrenceId={id} onDone={() => setUnsplitDone(true)} />
+        </>
+      )}
       {skipped && (
         <Banner tone="positive">
           <p>{t.skippedDone}</p>
@@ -91,6 +116,18 @@ export function OccurrencePay({ id }: { id: string }) {
       {result && (
         <Banner tone="positive">
           <p>{t.paidDone}</p>
+          {result.state && dict.fin.occ.paidState[result.state] && <p>{dict.fin.occ.paidState[result.state]}</p>}
+          {compareAmounts(result.discount, "0") > 0 && (
+            <p>
+              {dict.fin.occ.paidDiscount} <Money value={result.discount} />
+            </p>
+          )}
+          {compareAmounts(result.surcharge, "0") > 0 && (
+            <p>
+              {dict.fin.occ.paidSurcharge} <Money value={result.surcharge} />
+            </p>
+          )}
+          {(compareAmounts(result.discount, "0") > 0 || compareAmounts(result.surcharge, "0") > 0) && <p className="hint">{dict.fin.occ.undoNote}</p>}
           {compareAmounts(result.overpaid, "0") > 0 && (
             <p>
               {t.overpaid} <Money value={result.overpaid} />
@@ -112,6 +149,10 @@ export function OccurrencePay({ id }: { id: string }) {
       {!done && live.status !== "open" && <Banner tone="warning">{live.status === "paid" ? t.alreadyPaid : t.alreadySkipped}</Banner>}
 
       {!done && live.status === "open" && !skipping && (
+        <QuotePanel quote={quote.data} failureCode={quote.failure?.code ?? null} loading={quote.loading} onRetry={quote.reload} />
+      )}
+
+      {!done && live.status === "open" && !skipping && (
         <form onSubmit={onSubmit} className="fin-form" noValidate>
           <Segmented
             legend={t.how}
@@ -126,7 +167,8 @@ export function OccurrencePay({ id }: { id: string }) {
           {how !== "remaining" && <AmountField label={t.otherAmount} hint={how === "partial" ? t.partialHint : t.finalHint} value={amountText} onChange={setAmountText} required error={amountText && !amount ? dict.fin.common.invalidAmount : null} preview={amount ? formatCop(amount) : null} />}
           <SelectField label={t.payFrom} value={from} onChange={setFromAccount} options={sources.map((a) => ({ value: a.id, label: a.name }))} />
           <TextField label={dict.fin.form.date} type="date" value={date} onChange={setDate} required />
-          {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
+          {lateRateMissing && <LateRateMissing />}
+          {submit.error && !lateRateMissing && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
           <FormActions>
             <button type="submit" className="button button--primary" disabled={submit.pending || !valid}>
               {submit.pending ? dict.fin.common.saving : t.pay}
@@ -134,6 +176,11 @@ export function OccurrencePay({ id }: { id: string }) {
             <button type="button" className="button button--ghost" onClick={() => setSkipping(true)}>
               {t.skip}
             </button>
+            {compareAmounts(live.paid, "0") === 0 && (
+              <button type="button" className="button button--ghost" onClick={() => setSplitting(true)}>
+                {dict.fin.split.action}
+              </button>
+            )}
           </FormActions>
         </form>
       )}
@@ -153,6 +200,7 @@ export function OccurrencePay({ id }: { id: string }) {
           </FormActions>
         </form>
       )}
+      <SplitSheet occurrence={live} open={splitting} onClose={() => setSplitting(false)} onDone={() => { setSplitting(false); setSplitDone(true); }} />
     </div>
   );
 }

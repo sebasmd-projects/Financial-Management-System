@@ -75,6 +75,7 @@ describe("next.config: reescrituras", () => {
     expect(map["/_fms/healthz"]).toBe("/healthz");
     expect(map["/_fms/sitemap.xml"]).toBe("/fms-sitemap");
     expect(map["/_fms/robots.txt"]).toBe("/fms-robots");
+    expect(map["/_fms/sw.js"]).toBe("/fms-sw");
   });
   it("sin FMS_BACKEND_PROXY_URL no hay reescritura hacia Django", async () => {
     const rewrites = (await nextConfig.rewrites!()) as { afterFiles: unknown[] };

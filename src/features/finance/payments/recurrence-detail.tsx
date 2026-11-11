@@ -7,10 +7,17 @@ import { paths } from "@/api/paths";
 import { formatDate } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import { useHref, useResource, useSubmit } from "../hooks";
-import { Badge, Banner, DefinitionList, ErrorState, Loading, Money, ScreenHeader, Section } from "../kit";
+import { Badge, Banner, DefinitionList, ErrorState, Loading, Modal, Money, ScreenHeader, Section } from "../kit";
+import { ConditionsEditor } from "./conditions-editor";
+import { termsSummary } from "./conditions-fields";
 import { OccurrenceList } from "./fixed-expenses";
 
 type Status = "active" | "paused" | "cancelled";
+
+function pauseText(r: Pick<Recurrence, "skip_months" | "skip_ranges">, monthNames: readonly string[], none: string): string {
+  const parts = [...(r.skip_months ?? []).map((m) => monthNames[m - 1]), ...(r.skip_ranges ?? []).map((x) => `${formatDate(x.start)} – ${formatDate(x.end)}`)];
+  return parts.length > 0 ? parts.join(", ") : none;
+}
 
 /** Una recurrencia (`/pagos/recurrencias/[id]`): sus datos, próximas fechas, ocurrencias del mes y pausar / reanudar / cancelar. */
 export function RecurrenceDetail({ id }: { id: string }) {
@@ -21,6 +28,8 @@ export function RecurrenceDetail({ id }: { id: string }) {
   const recurrence = useResource<Recurrence>(paths.recurrence(id));
   const occurrences = useResource<Page<Occurrence>>(paths.occurrences({ recurrence: id }));
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saved, setSaved] = useState(false);
   const back = { href: href("pagos-fijos"), label: dict.screens["pagos-fijos"] };
 
   if (recurrence.loading && !recurrence.data) return <div className="screen"><ScreenHeader title={dict.screens["pagos-recurrencia"]} back={back} /><Loading /></div>;
@@ -104,8 +113,44 @@ export function RecurrenceDetail({ id }: { id: string }) {
         {occurrences.loading && !occurrences.data && <Loading />}
         {occurrences.failure && <ErrorState message={dict.fin.errors.generic} onRetry={occurrences.reload} />}
         {occurrences.data && occurrences.data.results.length === 0 && <p className="muted">{t.noOccurrences}</p>}
-        {occurrences.data && occurrences.data.results.length > 0 && <OccurrenceList items={occurrences.data.results} />}
+        {occurrences.data && occurrences.data.results.length > 0 && <OccurrenceList items={occurrences.data.results} onChanged={occurrences.reload} />}
       </Section>
+
+      <Section
+        title={dict.fin.terms.pausesTitle + " · " + dict.fin.terms.windowsTitle}
+        aside={
+          r.status !== "cancelled" ? (
+            <button type="button" className="button button--ghost" onClick={() => setEditing(true)}>
+              {dict.fin.terms.editConditions}
+            </button>
+          ) : undefined
+        }
+      >
+        {saved && (
+          <Banner tone="positive">
+            <p>{dict.fin.terms.conditionsSaved}</p>
+          </Banner>
+        )}
+        <DefinitionList
+          rows={[
+            ...((r.months ?? []).length > 0 ? [{ label: dict.fin.terms.monthsTitle, value: (r.months ?? []).map((m) => dict.fin.months[m - 1]).join(", ") }] : []),
+            { label: dict.fin.terms.pausesTitle, value: pauseText(r, dict.fin.months, dict.fin.terms.noPauses) },
+            { label: dict.fin.terms.windowsTitle, value: termsSummary(r, { ...dict.fin.terms, lateKinds: dict.fin.terms.lateKinds }).join(" · ") },
+          ]}
+        />
+      </Section>
+      <Modal open={editing} title={dict.fin.terms.editConditions} onClose={() => setEditing(false)}>
+        <ConditionsEditor
+          recurrence={r}
+          onCancel={() => setEditing(false)}
+          onSaved={() => {
+            setEditing(false);
+            setSaved(true);
+            recurrence.reload();
+            occurrences.reload();
+          }}
+        />
+      </Modal>
 
       <Section title={t.data}>
         <DefinitionList

@@ -31,6 +31,8 @@ const nextConfig: NextConfig = {
         // El mapa del sitio y las reglas de robots del FMS: fragmentos que el CV incluye en los suyos (README).
         { source: `${ASSET_PREFIX}/sitemap.xml`, destination: "/fms-sitemap" },
         { source: `${ASSET_PREFIX}/robots.txt`, destination: "/fms-robots" },
+        // El service worker de los avisos Web Push (solo muestra avisos; no guarda nada).
+        { source: `${ASSET_PREFIX}/sw.js`, destination: "/fms-sw" },
       ],
       // SOLO desarrollo local: en producción nginx enruta `/api/fms/` y `/_allauth/` a Django y Next no los ve. Con la
       // variable, `next dev` los reenvía al backend del CV para que el navegador siga hablando con un solo origen.

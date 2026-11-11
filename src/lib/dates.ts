@@ -150,3 +150,26 @@ export function relativeDay(date: string, today: string): string | null {
   if (days > 1) return `en ${days} días`;
   return days === -1 ? "hace 1 día" : `hace ${-days} días`;
 }
+
+/** La fecha de negocio `months` meses después; si el día no existe en el mes destino cae el último (31 ene + 1 = 28/29 feb). */
+export function addMonths(value: string, months: number): string {
+  const { year, month, day } = parseBusinessDate(value);
+  const index = year * 12 + (month - 1) + months;
+  const targetYear = Math.floor(index / 12);
+  const targetMonth = (index % 12) + 1;
+  const last = new Date(Date.UTC(targetYear, targetMonth, 0)).getUTCDate();
+  return `${targetYear}-${two(targetMonth)}-${two(Math.min(day, last))}`;
+}
+
+/** La fecha de negocio `days` días después (o antes, si es negativo). Aritmética en UTC: sin horario de verano. */
+export function addDays(value: string, days: number): string {
+  const { year, month, day } = parseBusinessDate(value);
+  const date = new Date(Date.UTC(year, month - 1, day + days));
+  return `${date.getUTCFullYear()}-${two(date.getUTCMonth() + 1)}-${two(date.getUTCDate())}`;
+}
+
+/** Día de la semana de una fecha de negocio con el lunes en 0 (0 = lunes … 6 = domingo), como en la tabla de `weekdays`. */
+export function weekdayMonday(value: string): number {
+  const { year, month, day } = parseBusinessDate(value);
+  return (new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7;
+}

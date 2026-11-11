@@ -302,6 +302,59 @@ paths:
               schema:
                 $ref: '#/components/schemas/FmsError'
           description: Sin sesión.
+  /api/fms/v1/calendar:
+    get:
+      operationId: fmsCalendar
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'El calendario financiero: mes, semana, día o los próximos 7, 15 o
+        30 días, con festivos, lo que se necesita cada día y el saldo proyectado'
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+        description: '`YYYY-MM-DD` ancla de la vista; por defecto hoy.'
+      - in: query
+        name: range
+        schema:
+          type: integer
+        description: '`7`, `15` o `30` días desde hoy (sustituye a `view`).'
+      - in: query
+        name: view
+        schema:
+          type: string
+        description: '`month` (defecto), `week` o `day`.'
+      tags:
+      - calendar
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Calendar'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/cards:
     get:
       operationId: fmsCards
@@ -1602,6 +1655,49 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/dashboard:
+    get:
+      operationId: fmsDashboard
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'El Resumen: «Te queda», «Gastado», disponible, liquidez a 15/30/60/90
+        días, próximos pagos, gastos fijos, atajos y alertas'
+      parameters:
+      - in: query
+        name: period
+        schema:
+          type: string
+        description: '`YYYY-MM`; por defecto el mes en curso.'
+      tags:
+      - dashboard
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/entries:
     get:
       operationId: fmsEntries
@@ -3401,6 +3497,326 @@ paths:
               schema:
                 $ref: '#/components/schemas/FmsError'
           description: Sin sesión.
+  /api/fms/v1/notification-prefs:
+    get:
+      operationId: fmsNotificationPrefs
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Tus preferencias de avisos: horas de silencio, correo, push y montos
+        fuera de la aplicación'
+      tags:
+      - notification-prefs
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prefs'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    patch:
+      operationId: fmsNotificationPrefsPatch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cambiar tus preferencias de avisos
+      tags:
+      - notification-prefs
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPrefsPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prefs'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/notification-rules:
+    get:
+      operationId: fmsNotificationRules
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Las reglas predefinidas: interruptor, anticipación en días, hora de
+        envío y canales'
+      tags:
+      - notification-rules
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rule'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    patch:
+      operationId: fmsNotificationRulesPatch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Cambiar reglas (por `key`): encender o apagar, anticipación, hora
+        y canales'
+      tags:
+      - notification-rules
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRulesPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Rule'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/notifications:
+    get:
+      operationId: fmsNotifications
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'El centro de avisos (los que ya se ven; las horas de silencio retrasan
+        los de la noche): grupos hoy, esta semana y anteriores'
+      parameters:
+      - in: query
+        name: rule
+        schema:
+          type: string
+      - in: query
+        name: unread
+        schema:
+          type: boolean
+      tags:
+      - notifications
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/notifications/{id}/snooze:
+    post:
+      operationId: fmsNotificationSnooze
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Posponer un aviso: vuelve a verse mañana a la hora de su regla'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - notifications
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/notifications/evaluate:
+    post:
+      operationId: fmsNotificationsEvaluate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: '«Probar ahora»: evalúa tus reglas ya (el proceso horario hace lo mismo;
+        es idempotente)'
+      tags:
+      - notifications
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluateResult'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/notifications/read:
+    post:
+      operationId: fmsNotificationsRead
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Marcar avisos como leídos (sin `ids`, todos)
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationsRead'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationsReadResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/occurrences:
     get:
       operationId: fmsOccurrences
@@ -3643,6 +4059,73 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/occurrences/{id}/quote:
+    get:
+      operationId: fmsOccurrenceQuote
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Lo que se debe pagar de una ocurrencia abierta en una fecha: estado
+        (pronto, regular, extemporáneo), descuento, recargo y total'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: 'on'
+        schema:
+          type: string
+        description: '`YYYY-MM-DD`; por defecto hoy (Bogotá).'
+      tags:
+      - occurrences
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AmountDue'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/occurrences/{id}/skip:
     post:
       operationId: fmsOccurrenceSkip
@@ -3710,6 +4193,123 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/occurrences/{id}/split:
+    post:
+      operationId: fmsOccurrenceSplit
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Dividir una obligación abierta y sin pagos en cuotas con fecha (el
+        predial anual en trimestres)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - occurrences
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Split'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SplitResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/occurrences/{id}/unsplit:
+    post:
+      operationId: fmsOccurrenceUnsplit
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Deshacer el plan de cuotas si ninguna cuota tiene pagos
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - occurrences
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Occurrence'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
   /api/fms/v1/parameters:
     get:
       operationId: fmsParameters
@@ -3736,6 +4336,39 @@ paths:
                 items:
                   $ref: '#/components/schemas/Parameter'
           description: ''
+  /api/fms/v1/parameters/catalog:
+    get:
+      operationId: fmsParameterCatalog
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Parámetros de Colombia: valor vigente hoy, fuente y hueco de vigencia
+        (tuyo, o el global)'
+      tags:
+      - parameters
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParameterCatalog'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/payment-methods:
     get:
       operationId: fmsPaymentMethods
@@ -3878,6 +4511,436 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
+  /api/fms/v1/push-subscription:
+    post:
+      operationId: fmsPushSubscribe
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Registrar la suscripción de Web Push de este navegador (necesita VAPID
+        en el servidor)
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - push-subscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PushSubscribe'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsPushUnsubscribe
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Borrar la suscripción de Web Push de este navegador
+      tags:
+      - push-subscription
+      security:
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/reconciliations:
+    get:
+      operationId: fmsReconciliations
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: El historial de conciliaciones (la más reciente primero)
+      parameters:
+      - in: query
+        name: account
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - reconciliations
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconciliationPage'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsReconcile
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Conciliar: con diferencia 0 los asientos marcados pasan a conciliado
+        (inmutables) y queda el registro'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - reconciliations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReconcileInput'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reconciliation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/reconciliations/{id}:
+    get:
+      operationId: fmsReconciliation
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Una conciliación con sus asientos
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reconciliations
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reconciliation'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/reconciliations/{id}/reopen:
+    post:
+      operationId: fmsReconciliationReopen
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Reabrir la última conciliación de la cuenta: sus asientos vuelven
+        a confirmados (con motivo; queda en la auditoría)'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - reconciliations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Reopen'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Reconciliation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/reconciliations/adjust:
+    post:
+      operationId: fmsReconcileAdjust
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: '«Crear ajuste de $45.000»: un movimiento visible y auditable en «Ajustes
+        de conciliación» por la diferencia'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - reconciliations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReconcileInput'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Adjustment'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/reconciliations/preview:
+    post:
+      operationId: fmsReconcilePreview
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Pasos 2 y 3: los candidatos, lo marcado y la diferencia contra el
+        extracto. No escribe nada'
+      tags:
+      - reconciliations
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReconcileInput'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconcilePreview'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/recurrences:
     get:
       operationId: fmsRecurrences
@@ -4485,6 +5548,205 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/user-parameters:
+    get:
+      operationId: fmsUserParameters
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Tus vigencias de parámetros (las que escribiste tú)
+      parameters:
+      - in: query
+        name: key
+        schema:
+          type: string
+      tags:
+      - user-parameters
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserParameter'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsUserParameterCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Agregar una vigencia: clave del catálogo, valor, fechas y fuente.
+        La anterior sin fin se cierra el día antes'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - user-parameters
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserParameterCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserParameter'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/user-parameters/{id}:
+    patch:
+      operationId: fmsUserParameterClose
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Cerrar una vigencia en una fecha (no se cambia su valor: se agrega
+        otra vigencia)'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - user-parameters
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserParameterClose'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserParameter'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsUserParameterDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Borrar una vigencia que aún no empieza (lo vigente o pasado se cierra,
+        no se borra)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - user-parameters
+      security:
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
 components:
   schemas:
     Account:
@@ -4697,6 +5959,31 @@ components:
       - account_id
       - amount
       - side
+    Adjustment:
+      type: object
+      properties:
+        movement_id:
+          type: string
+          format: uuid
+        entry_id:
+          type: string
+          format: uuid
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        type:
+          $ref: '#/components/schemas/AmountTypeEnum'
+        preview:
+          allOf:
+          - $ref: '#/components/schemas/ReconcilePreview'
+          description: 'Con el ajuste ya listado: márcalo y concilia.'
+      required:
+      - amount
+      - entry_id
+      - movement_id
+      - preview
+      - type
     Advance:
       type: object
       properties:
@@ -4732,6 +6019,51 @@ components:
       required:
       - advance
       - fee
+    Alert:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/AlertKindEnum'
+        severity:
+          $ref: '#/components/schemas/SeverityEnum'
+        name:
+          type: string
+        amount:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        date:
+          type: string
+          format: date
+        ref_kind:
+          type: string
+        ref_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+      required:
+      - amount
+      - date
+      - kind
+      - name
+      - ref_id
+      - ref_kind
+      - severity
+    AlertKindEnum:
+      enum:
+      - overdue
+      - due_today
+      - insufficient_funds
+      - confirm_subscription
+      type: string
+      description: |-
+        * `overdue` - overdue
+        * `due_today` - due_today
+        * `insufficient_funds` - insufficient_funds
+        * `confirm_subscription` - confirm_subscription
     AmortizationSystemEnum:
       enum:
       - french
@@ -4740,6 +6072,63 @@ components:
       description: |-
         * `french` - french
         * `constant_capital` - constant_capital
+    AmountDue:
+      type: object
+      properties:
+        'on':
+          type: string
+          format: date
+        state:
+          $ref: '#/components/schemas/AmountDueStateEnum'
+        principal:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que falta de la obligación.
+        discount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        surcharge:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Capital menos descuento + recargo.
+        days_late:
+          type: integer
+        early_deadline:
+          type:
+          - string
+          - 'null'
+          format: date
+        due:
+          type: string
+          format: date
+          description: El vencimiento ya ajustado por festivos.
+      required:
+      - days_late
+      - discount
+      - due
+      - early_deadline
+      - 'on'
+      - principal
+      - state
+      - surcharge
+      - total
+    AmountDueStateEnum:
+      enum:
+      - early
+      - regular
+      - late
+      type: string
+      description: |-
+        * `early` - early
+        * `regular` - regular
+        * `late` - late
     AmountTypeEnum:
       enum:
       - income
@@ -4849,9 +6238,199 @@ components:
       - posted_before
       - projected_after
       - projected_before
+    Bar:
+      type: object
+      properties:
+        spent:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        committed:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        free:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - committed
+      - free
+      - spent
     BlankEnum:
       enum:
       - ''
+    Calendar:
+      type: object
+      properties:
+        mode:
+          type: string
+          description: '`month`, `week`, `day`, `range_7`, `range_15` o `range_30`.'
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/CalendarDay'
+        overdue:
+          $ref: '#/components/schemas/Overdue'
+      required:
+      - days
+      - end
+      - mode
+      - overdue
+      - start
+    CalendarDay:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        holiday:
+          type:
+          - string
+          - 'null'
+          description: Nombre del festivo de Colombia («F»).
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CalendarItem'
+        needed:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: «Necesitas $550.000 disponibles».
+        expected_income:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        balance_before:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        balance_after:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        negative:
+          type: boolean
+      required:
+      - balance_after
+      - balance_before
+      - date
+      - expected_income
+      - holiday
+      - items
+      - needed
+      - negative
+    CalendarItem:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        original_date:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: «Movido del 16/11 (festivo)».
+        moved_reason:
+          oneOf:
+          - $ref: '#/components/schemas/MovedReasonEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        kind:
+          type: string
+        name:
+          type: string
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        direction:
+          $ref: '#/components/schemas/DirectionEnum'
+        ref_kind:
+          type: string
+        ref_id:
+          type: string
+          format: uuid
+        account_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        overdue:
+          type: boolean
+        estimated:
+          type: boolean
+        balance_after:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Saldo proyectado (cuentas líquidas) tras este compromiso.
+        shortfall:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'El primero que deja una cuenta en negativo: «No alcanza: faltan
+            $80.000».'
+      required:
+      - account_id
+      - amount
+      - balance_after
+      - date
+      - direction
+      - estimated
+      - kind
+      - moved_reason
+      - name
+      - original_date
+      - overdue
+      - ref_id
+      - ref_kind
+      - shortfall
+    Candidate:
+      type: object
+      properties:
+        entry_id:
+          type: string
+          format: uuid
+        number:
+          type: integer
+        date:
+          type: string
+          format: date
+        movement_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        description:
+          type:
+          - string
+          - 'null'
+        effect:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Efecto sobre el saldo de la cuenta (negativo = sale plata).
+      required:
+      - date
+      - description
+      - effect
+      - entry_id
+      - movement_id
+      - number
     Card:
       type: object
       properties:
@@ -5170,6 +6749,16 @@ components:
       - id
       - name
       - path
+    ChannelsEnum:
+      enum:
+      - app
+      - email
+      - push
+      type: string
+      description: |-
+        * `app` - app
+        * `email` - email
+        * `push` - push
     Charge:
       type: object
       properties:
@@ -5214,6 +6803,65 @@ components:
         * `mfa_required` - mfa_required
         * `account_blocked` - account_blocked
         * `consent_mismatch` - consent_mismatch
+    Dashboard:
+      type: object
+      properties:
+        period:
+          type: string
+          format: date
+        is_current:
+          type: boolean
+          description: '`false`: «Viendo octubre 2026 · Volver a hoy».'
+        today:
+          type: string
+          format: date
+        kpi:
+          $ref: '#/components/schemas/Kpi'
+        bar:
+          $ref: '#/components/schemas/Bar'
+        liquidity:
+          $ref: '#/components/schemas/Liquidity'
+        rail:
+          type: array
+          items:
+            $ref: '#/components/schemas/RailItem'
+        fixed_expenses:
+          $ref: '#/components/schemas/FixedGrid'
+        shortcuts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shortcut'
+        alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Alert'
+        all_clear_days:
+          type:
+          - integer
+          - 'null'
+          description: 'Sin alertas: días al próximo pago.'
+      required:
+      - alerts
+      - all_clear_days
+      - bar
+      - fixed_expenses
+      - is_current
+      - kpi
+      - liquidity
+      - period
+      - rail
+      - shortcuts
+      - today
+    DirectionEnum:
+      enum:
+      - out
+      - in
+      - info
+      type: string
+      description: |-
+        * `out` - out
+        * `in` - in
+        * `info` - info
     Duplicate:
       type: object
       properties:
@@ -5235,6 +6883,14 @@ components:
             $ref: '#/components/schemas/Duplicate'
       required:
       - duplicates
+    EarlyKindEnum:
+      enum:
+      - percent
+      - fixed
+      type: string
+      description: |-
+        * `percent` - percent
+        * `fixed` - fixed
     EditApplied:
       type: object
       properties:
@@ -5562,6 +7218,14 @@ components:
       required:
       - code
       - detail
+    EvaluateResult:
+      type: object
+      properties:
+        created:
+          type: integer
+          description: 'Avisos nuevos (0 si ya estaban: idempotente).'
+      required:
+      - created
     FixedExpenses:
       type: object
       properties:
@@ -5603,6 +7267,96 @@ components:
       - progress
       - skipped
       - to_pay
+    FixedGrid:
+      type: object
+      properties:
+        paid_count:
+          type: integer
+        total_count:
+          type: integer
+        paid:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        percent:
+          type: integer
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FixedItem'
+          description: Hasta 8 (7 y «Ver todos» si hay más), en el orden de la pantalla.
+        more:
+          type: integer
+      required:
+      - items
+      - more
+      - paid
+      - paid_count
+      - percent
+      - total
+      - total_count
+    FixedItem:
+      type: object
+      properties:
+        occurrence_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/FixedItemStatusEnum'
+        due_date:
+          type: string
+          format: date
+        expected:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        paid:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        pending:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        percent:
+          type: integer
+        days_left:
+          type: integer
+        estimated:
+          type: boolean
+      required:
+      - days_left
+      - due_date
+      - estimated
+      - expected
+      - name
+      - occurrence_id
+      - paid
+      - pending
+      - percent
+      - status
+    FixedItemStatusEnum:
+      enum:
+      - overdue
+      - partial
+      - soon
+      - pending
+      - paid
+      - skipped
+      type: string
+      description: |-
+        * `overdue` - overdue
+        * `partial` - partial
+        * `soon` - soon
+        * `pending` - pending
+        * `paid` - paid
+        * `skipped` - skipped
     FmsActivationRefused:
       type: object
       properties:
@@ -5851,6 +7605,16 @@ components:
       required:
       - after
       - before
+    GroupEnum:
+      enum:
+      - today
+      - this_week
+      - earlier
+      type: string
+      description: |-
+        * `today` - today
+        * `this_week` - this_week
+        * `earlier` - earlier
     HolidayRuleEnum:
       enum:
       - none
@@ -5861,6 +7625,20 @@ components:
         * `none` - none
         * `next` - next
         * `previous` - previous
+    Horizon:
+      type: object
+      properties:
+        days:
+          type: integer
+        balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Disponible + ingresos pendientes - egresos de caja pendientes
+            hasta ese día.
+      required:
+      - balance
+      - days
     InstallmentEffect:
       type: object
       properties:
@@ -5871,6 +7649,19 @@ components:
       required:
       - after
       - before
+    InstallmentInput:
+      type: object
+      properties:
+        due_date:
+          type: string
+          format: date
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Todas con monto o ninguna (partes iguales).
+      required:
+      - due_date
     InstallmentPurchase:
       type: object
       properties:
@@ -5964,6 +7755,98 @@ components:
           description: Cuántos cargos de interés se hicieron (0 si ya estaban).
       required:
       - posted
+    KeyEnum:
+      enum:
+      - card_payment
+      - card_cut
+      - fixed_due
+      - overdue
+      - loan_due
+      - subscription_confirm
+      - low_balance
+      - renewal
+      - period_start
+      type: string
+      description: |-
+        * `card_payment` - card_payment
+        * `card_cut` - card_cut
+        * `fixed_due` - fixed_due
+        * `overdue` - overdue
+        * `loan_due` - loan_due
+        * `subscription_confirm` - subscription_confirm
+        * `low_balance` - low_balance
+        * `renewal` - renewal
+        * `period_start` - period_start
+    Kpi:
+      type: object
+      properties:
+        remaining:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: '«Te queda»: ingresos - gastado - abonos a capital - compromisos
+            pendientes del periodo.'
+        spent:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: '«Gastado»: gastos confirmados del periodo (una compra a cuotas
+            cuenta completa el día de la compra).'
+        income:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        committed:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Gastos fijos y cuotas de préstamo pendientes del periodo.
+        loan_capital_paid:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        goal_contributions:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'Aportes planeados a metas (ahorro primero): 0 hasta que existan
+            las metas (v2).'
+        available_today:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Saldo confirmado de las cuentas de activo líquidas.
+        owed:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: '«Debes»: saldo de los pasivos.'
+        overdue_total:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - available_today
+      - committed
+      - goal_contributions
+      - income
+      - loan_capital_paid
+      - overdue_total
+      - owed
+      - remaining
+      - spent
+    LateKindEnum:
+      enum:
+      - none
+      - fixed
+      - percent
+      - daily
+      type: string
+      description: |-
+        * `none` - none
+        * `fixed` - fixed
+        * `percent` - percent
+        * `daily` - daily
     LineAccount:
       type: object
       properties:
@@ -5981,6 +7864,28 @@ components:
       - kind
       - name
       - type
+    Liquidity:
+      type: object
+      properties:
+        horizons:
+          type: array
+          items:
+            $ref: '#/components/schemas/Horizon'
+        first_negative_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        missing:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - first_negative_date
+      - horizons
+      - missing
     Loan:
       type: object
       properties:
@@ -6235,6 +8140,14 @@ components:
       description: |-
         * `active` - Active
         * `paid` - Paid off
+    MovedReasonEnum:
+      enum:
+      - holiday
+      - weekend
+      type: string
+      description: |-
+        * `holiday` - holiday
+        * `weekend` - weekend
     Movement:
       type: object
       properties:
@@ -6690,6 +8603,82 @@ components:
       description: |-
         * `fixed` - Fixed
         * `variable` - Variable
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        rule_key:
+          type: string
+        severity:
+          $ref: '#/components/schemas/SeverityEnum'
+        title:
+          type: string
+        body:
+          type: string
+        object_kind:
+          type: string
+        object_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: 'Para la acción «Marcar pagado»: la ocurrencia, cuota o tarjeta.'
+        due_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        visible_at:
+          type: string
+          format: date-time
+        is_read:
+          type: boolean
+        group:
+          $ref: '#/components/schemas/GroupEnum'
+      required:
+      - body
+      - due_date
+      - group
+      - id
+      - is_read
+      - object_id
+      - object_kind
+      - rule_key
+      - severity
+      - title
+      - visible_at
+    NotificationList:
+      type: object
+      properties:
+        unread:
+          type: integer
+          description: Para la campana («9+» lo pone el cliente).
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+      required:
+      - results
+      - unread
+    NotificationsRead:
+      type: object
+      properties:
+        ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Sin `ids`, todas.
+          maxItems: 200
+    NotificationsReadResult:
+      type: object
+      properties:
+        updated:
+          type: integer
+      required:
+      - updated
     NullEnum:
       type: 'null'
     Occurrence:
@@ -6749,18 +8738,49 @@ components:
           type:
           - string
           - 'null'
+        installment:
+          type: integer
+          description: 0 = la de la regla; 1..N = cuota de un plan.
+        parent_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        early_deadline:
+          type:
+          - string
+          - 'null'
+          format: date
+        payment_state:
+          type:
+          - string
+          - 'null'
+          description: '`early`, `regular` o `late` hoy; `null` si no está abierta.'
+        amount_due:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que se paga hoy por lo que falta (con descuento o recargo);
+            `null` si no está abierta o falta la tasa de mora.
       required:
       - adjusted_date
+      - amount_due
       - due_date
+      - early_deadline
       - estimated
       - expected
       - id
+      - installment
       - kind
       - moved
       - movement_id
       - name
       - overdue
       - paid
+      - parent_id
+      - payment_state
       - pending
       - percent
       - period
@@ -6812,13 +8832,29 @@ components:
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '180000'
           description: '«Pagaste $9.000 más de lo esperado»: lo que superó lo esperado.'
+        state:
+          type: string
+          description: '`early`, `regular`, `late` o vacío si no hay condiciones.'
+        discount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Descuento por pronto pago escrito como línea propia del asiento.
+        surcharge:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Recargo extemporáneo escrito como línea propia del asiento.
         warnings:
           type: array
           items:
             $ref: '#/components/schemas/Warning'
       required:
+      - discount
       - occurrence
       - overpaid
+      - state
+      - surcharge
       - warnings
     OccurrencePay:
       type: object
@@ -6849,11 +8885,58 @@ components:
       - open
       - paid
       - skipped
+      - split
       type: string
       description: |-
         * `open` - Open
         * `paid` - Paid
         * `skipped` - Skipped
+        * `split` - Split in installments
+    Overdue:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OverdueItem'
+          description: Del más antiguo al más reciente.
+        total:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El total adeudado.
+      required:
+      - items
+      - total
+    OverdueItem:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        name:
+          type: string
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        kind:
+          type: string
+        ref_kind:
+          type: string
+        ref_id:
+          type: string
+          format: uuid
+        days_late:
+          type: integer
+      required:
+      - amount
+      - date
+      - days_late
+      - kind
+      - name
+      - ref_id
+      - ref_kind
     Parameter:
       type: object
       properties:
@@ -6876,6 +8959,67 @@ components:
       required:
       - key
       - source
+      - valid_from
+      - valid_to
+      - value
+    ParameterCatalog:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        unit:
+          $ref: '#/components/schemas/UnitEnum'
+        description:
+          type: string
+        seeded:
+          type: boolean
+          description: '`true`: el proyecto siembra valores (contrástalos); `false`:
+            los escribes tú.'
+        scope:
+          allOf:
+          - $ref: '#/components/schemas/ScopeEnum'
+          description: |-
+            `user` si tu valor gana sobre el global.
+
+            * `global` - global
+            * `user` - user
+        value:
+          type:
+          - string
+          - 'null'
+          description: Vigente hoy; `null` = sin valor vigente.
+        valid_from:
+          type:
+          - string
+          - 'null'
+          format: date
+        valid_to:
+          type:
+          - string
+          - 'null'
+          format: date
+        source:
+          type:
+          - string
+          - 'null'
+        gap_from:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: '«Sin valor vigente desde …»: la primera fecha sin valor; `null`
+            si no hay hueco.'
+      required:
+      - description
+      - gap_from
+      - key
+      - label
+      - scope
+      - seeded
+      - source
+      - unit
       - valid_from
       - valid_to
       - value
@@ -7051,11 +9195,71 @@ components:
           maxLength: 4
         active:
           type: boolean
+    PatchedPrefsPatch:
+      type: object
+      properties:
+        quiet_start:
+          type: string
+          format: time
+        quiet_end:
+          type: string
+          format: time
+        email_enabled:
+          type: boolean
+        push_enabled:
+          type: boolean
+        show_amounts_outside_app:
+          type: boolean
     PatchedRecurrencePatch:
       type: object
       description: Todo opcional. Cambiar la regla o el monto afecta desde el periodo
         siguiente; «solo este mes» edita el movimiento pendiente.
       properties:
+        early_days_before:
+          type:
+          - integer
+          - 'null'
+          maximum: 366
+          minimum: 0
+          description: Días antes del vencimiento en que termina el pronto pago.
+        early_kind:
+          description: |-
+            `percent` o `fixed`.
+
+            * `percent` - percent
+            * `fixed` - fixed
+          oneOf:
+          - $ref: '#/components/schemas/EarlyKindEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        early_value:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Porcentaje (`10`) o monto del descuento.
+        late_kind:
+          allOf:
+          - $ref: '#/components/schemas/LateKindEnum'
+          description: |-
+            `fixed`, `percent` o `daily` (interés de mora diario de la tasa vigente `late_rate_key`).
+
+            * `none` - none
+            * `fixed` - fixed
+            * `percent` - percent
+            * `daily` - daily
+        late_value:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Monto o porcentaje del recargo.
+        late_rate_key:
+          type: string
+          description: Clave del parámetro con vigencia (tasa efectiva anual, fracción)
+            para `daily`.
+          maxLength: 40
         name:
           type: string
           maxLength: 80
@@ -7170,6 +9374,50 @@ components:
           minimum: 0
         holiday_rule:
           $ref: '#/components/schemas/HolidayRuleEnum'
+        months:
+          type: array
+          items:
+            type: integer
+            maximum: 12
+            minimum: 1
+          maxItems: 12
+        skip_months:
+          type: array
+          items:
+            type: integer
+            maximum: 12
+            minimum: 1
+          maxItems: 12
+        skip_ranges:
+          type: array
+          items:
+            $ref: '#/components/schemas/PauseRange'
+    PatchedRulesPatch:
+      type: object
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/RulePatch'
+    PatchedUserParameterClose:
+      type: object
+      properties:
+        valid_to:
+          type: string
+          format: date
+    PauseRange:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+          description: Incluida.
+      required:
+      - end
+      - start
     PayModeEnum:
       enum:
       - remaining
@@ -7366,6 +9614,40 @@ components:
       - purchase_value
       - total_interest
       - total_real_cost
+    Prefs:
+      type: object
+      properties:
+        quiet_start:
+          type: string
+          format: time
+          description: 21:00 por defecto.
+        quiet_end:
+          type: string
+          format: time
+          description: '07:00 por defecto: lo que cae en silencio se entrega aquí.'
+        email_enabled:
+          type: boolean
+        push_enabled:
+          type: boolean
+          description: Requiere Web Push configurado en el servidor y una suscripción.
+        show_amounts_outside_app:
+          type: boolean
+          description: 'Apagado por defecto: el push y el correo no llevan cifras.'
+        push_available:
+          type: boolean
+          readOnly: true
+          description: El servidor tiene VAPID configurado.
+        vapid_public_key:
+          type: string
+          readOnly: true
+      required:
+      - email_enabled
+      - push_available
+      - push_enabled
+      - quiet_end
+      - quiet_start
+      - show_amounts_outside_app
+      - vapid_public_key
     Preview:
       type: object
       properties:
@@ -7380,6 +9662,29 @@ components:
       type: object
       description: La regla de fechas (diseño §3.10).
       properties:
+        months:
+          type: array
+          items:
+            type: integer
+            maximum: 12
+            minimum: 1
+          description: Meses del año en que ocurre (p. ej. `[2, 8]` la matrícula);
+            sustituye el paso de la frecuencia.
+          maxItems: 12
+        skip_months:
+          type: array
+          items:
+            type: integer
+            maximum: 12
+            minimum: 1
+          description: Meses sin ocurrencias cada año (p. ej. `[12, 1]` el transporte
+            escolar).
+          maxItems: 12
+        skip_ranges:
+          type: array
+          items:
+            $ref: '#/components/schemas/PauseRange'
+          description: Rangos de fechas sin ocurrencias (vacaciones).
         frequency:
           $ref: '#/components/schemas/FrequencyEnum'
         start_date:
@@ -7576,6 +9881,80 @@ components:
       required:
       - amount
       - date
+    PushSubscribe:
+      type: object
+      properties:
+        endpoint:
+          type: string
+          format: uri
+          maxLength: 1000
+        p256dh:
+          type: string
+          maxLength: 200
+        auth:
+          type: string
+          maxLength: 100
+      required:
+      - auth
+      - endpoint
+      - p256dh
+    RailItem:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/RailItemKindEnum'
+        name:
+          type: string
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        date:
+          type: string
+          format: date
+        days_left:
+          type: integer
+          description: Negativo = vencido.
+        state:
+          $ref: '#/components/schemas/RailItemStateEnum'
+        ref_kind:
+          type: string
+        ref_id:
+          type: string
+          format: uuid
+      required:
+      - amount
+      - date
+      - days_left
+      - kind
+      - name
+      - ref_id
+      - ref_kind
+      - state
+    RailItemKindEnum:
+      enum:
+      - card_payment
+      - card_cut
+      - loan_installment
+      type: string
+      description: |-
+        * `card_payment` - card_payment
+        * `card_cut` - card_cut
+        * `loan_installment` - loan_installment
+    RailItemStateEnum:
+      enum:
+      - normal
+      - soon
+      - today
+      - overdue
+      - cut
+      type: string
+      description: |-
+        * `normal` - normal
+        * `soon` - soon
+        * `today` - today
+        * `overdue` - overdue
+        * `cut` - cut
     RateConventionEnum:
       enum:
       - EA
@@ -7594,10 +9973,204 @@ components:
         * `NMV` - NMV
         * `NTV` - NTV
         * `NAV` - NAV
+    ReconcileInput:
+      type: object
+      properties:
+        account_id:
+          type: string
+          format: uuid
+        cutoff:
+          type: string
+          format: date
+          description: Fecha de corte del extracto.
+        statement_balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Saldo final del extracto (puede ser negativo).
+        entry_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 5000
+      required:
+      - account_id
+      - cutoff
+      - statement_balance
+    ReconcileLast:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        cutoff:
+          type: string
+          format: date
+        statement_balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - cutoff
+      - id
+      - statement_balance
+    ReconcilePreview:
+      type: object
+      properties:
+        account_id:
+          type: string
+          format: uuid
+        cutoff:
+          type: string
+          format: date
+        statement_balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: «Saldo del extracto».
+        reconciled_balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo ya conciliado de la cuenta (parte de la conciliación anterior).
+        marked:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: «Marcado en FMS».
+        difference:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Extracto - marcado. Con 0 se puede conciliar.
+        can_reconcile:
+          type: boolean
+        candidates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Candidate'
+          description: Confirmados, no conciliados, con fecha <= corte.
+        last:
+          oneOf:
+          - $ref: '#/components/schemas/ReconcileLast'
+          - type: 'null'
+      required:
+      - account_id
+      - can_reconcile
+      - candidates
+      - cutoff
+      - difference
+      - last
+      - marked
+      - reconciled_balance
+      - statement_balance
+    Reconciliation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        cutoff:
+          type: string
+          format: date
+        statement_balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        marked_balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        entry_count:
+          type: integer
+        status:
+          $ref: '#/components/schemas/ReconciliationStatusEnum'
+        closed_at:
+          type: string
+          format: date-time
+        reopened_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        reopen_reason:
+          type:
+          - string
+          - 'null'
+        entry_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - account_id
+      - closed_at
+      - cutoff
+      - entry_count
+      - entry_ids
+      - id
+      - marked_balance
+      - reopen_reason
+      - reopened_at
+      - statement_balance
+      - status
+    ReconciliationPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reconciliation'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    ReconciliationStatusEnum:
+      enum:
+      - closed
+      - reopened
+      type: string
+      description: |-
+        * `closed` - closed
+        * `reopened` - reopened
     Recurrence:
       type: object
       description: La regla de fechas (diseño §3.10).
       properties:
+        months:
+          type: array
+          items:
+            type: integer
+            maximum: 12
+            minimum: 1
+          description: Meses del año en que ocurre (p. ej. `[2, 8]` la matrícula);
+            sustituye el paso de la frecuencia.
+          maxItems: 12
+        skip_months:
+          type: array
+          items:
+            type: integer
+            maximum: 12
+            minimum: 1
+          description: Meses sin ocurrencias cada año (p. ej. `[12, 1]` el transporte
+            escolar).
+          maxItems: 12
+        skip_ranges:
+          type: array
+          items:
+            $ref: '#/components/schemas/PauseRange'
+          description: Rangos de fechas sin ocurrencias (vacaciones).
         frequency:
           $ref: '#/components/schemas/FrequencyEnum'
         start_date:
@@ -7669,6 +10242,51 @@ components:
             * `none` - none
             * `next` - next
             * `previous` - previous
+        early_days_before:
+          type:
+          - integer
+          - 'null'
+          maximum: 366
+          minimum: 0
+          description: Días antes del vencimiento en que termina el pronto pago.
+        early_kind:
+          description: |-
+            `percent` o `fixed`.
+
+            * `percent` - percent
+            * `fixed` - fixed
+          oneOf:
+          - $ref: '#/components/schemas/EarlyKindEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        early_value:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Porcentaje (`10`) o monto del descuento.
+        late_kind:
+          allOf:
+          - $ref: '#/components/schemas/LateKindEnum'
+          description: |-
+            `fixed`, `percent` o `daily` (interés de mora diario de la tasa vigente `late_rate_key`).
+
+            * `none` - none
+            * `fixed` - fixed
+            * `percent` - percent
+            * `daily` - daily
+        late_value:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Monto o porcentaje del recargo.
+        late_rate_key:
+          type: string
+          description: Clave del parámetro con vigencia (tasa efectiva anual, fracción)
+            para `daily`.
+          maxLength: 40
         id:
           type: string
           format: uuid
@@ -7758,6 +10376,29 @@ components:
       type: object
       description: La regla de fechas (diseño §3.10).
       properties:
+        months:
+          type: array
+          items:
+            type: integer
+            maximum: 12
+            minimum: 1
+          description: Meses del año en que ocurre (p. ej. `[2, 8]` la matrícula);
+            sustituye el paso de la frecuencia.
+          maxItems: 12
+        skip_months:
+          type: array
+          items:
+            type: integer
+            maximum: 12
+            minimum: 1
+          description: Meses sin ocurrencias cada año (p. ej. `[12, 1]` el transporte
+            escolar).
+          maxItems: 12
+        skip_ranges:
+          type: array
+          items:
+            $ref: '#/components/schemas/PauseRange'
+          description: Rangos de fechas sin ocurrencias (vacaciones).
         frequency:
           $ref: '#/components/schemas/FrequencyEnum'
         start_date:
@@ -7829,6 +10470,51 @@ components:
             * `none` - none
             * `next` - next
             * `previous` - previous
+        early_days_before:
+          type:
+          - integer
+          - 'null'
+          maximum: 366
+          minimum: 0
+          description: Días antes del vencimiento en que termina el pronto pago.
+        early_kind:
+          description: |-
+            `percent` o `fixed`.
+
+            * `percent` - percent
+            * `fixed` - fixed
+          oneOf:
+          - $ref: '#/components/schemas/EarlyKindEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        early_value:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Porcentaje (`10`) o monto del descuento.
+        late_kind:
+          allOf:
+          - $ref: '#/components/schemas/LateKindEnum'
+          description: |-
+            `fixed`, `percent` o `daily` (interés de mora diario de la tasa vigente `late_rate_key`).
+
+            * `none` - none
+            * `fixed` - fixed
+            * `percent` - percent
+            * `daily` - daily
+        late_value:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Monto o porcentaje del recargo.
+        late_rate_key:
+          type: string
+          description: Clave del parámetro con vigencia (tasa efectiva anual, fracción)
+            para `daily`.
+          maxLength: 40
         kind:
           allOf:
           - $ref: '#/components/schemas/RecurrenceKindEnum'
@@ -7950,6 +10636,102 @@ components:
       required:
       - id
       - name
+    Reopen:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 200
+      required:
+      - reason
+    Rule:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/KeyEnum'
+        enabled:
+          type: boolean
+        offsets:
+          type: array
+          items:
+            type: integer
+            maximum: 60
+            minimum: 0
+          description: Días de anticipación (o de atraso en `overdue`).
+          maxItems: 6
+        send_time:
+          type: string
+          format: time
+        channels:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelsEnum'
+          description: '`app` siempre.'
+      required:
+      - channels
+      - enabled
+      - key
+      - offsets
+      - send_time
+    RulePatch:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/KeyEnum'
+        enabled:
+          type: boolean
+        offsets:
+          type: array
+          items:
+            type: integer
+            maximum: 60
+            minimum: 0
+          maxItems: 6
+        send_time:
+          type: string
+          format: time
+        channels:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChannelsEnum'
+      required:
+      - key
+    ScopeEnum:
+      enum:
+      - global
+      - user
+      type: string
+      description: |-
+        * `global` - global
+        * `user` - user
+    SeverityEnum:
+      enum:
+      - info
+      - warning
+      - critical
+      type: string
+      description: |-
+        * `info` - info
+        * `warning` - warning
+        * `critical` - critical
+    Shortcut:
+      type: object
+      properties:
+        name:
+          type: string
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        category_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+      required:
+      - amount
+      - category_id
+      - name
     SideEnum:
       enum:
       - debit
@@ -8057,6 +10839,27 @@ components:
       - after
       - before
       - period
+    Split:
+      type: object
+      properties:
+        installments:
+          type: array
+          items:
+            $ref: '#/components/schemas/InstallmentInput'
+      required:
+      - installments
+    SplitResult:
+      type: object
+      properties:
+        parent:
+          $ref: '#/components/schemas/Occurrence'
+        installments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Occurrence'
+      required:
+      - installments
+      - parent
     Statement:
       type: object
       properties:
@@ -8305,6 +11108,71 @@ components:
       - date
       - from_account_id
       - to_account_id
+    UnitEnum:
+      enum:
+      - fraction
+      - amount
+      - count
+      type: string
+      description: |-
+        * `fraction` - fraction
+        * `amount` - amount
+        * `count` - count
+    UserParameter:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        key:
+          type: string
+        value:
+          type: string
+        valid_from:
+          type: string
+          format: date
+        valid_to:
+          type:
+          - string
+          - 'null'
+          format: date
+        source:
+          type: string
+      required:
+      - id
+      - key
+      - source
+      - valid_from
+      - valid_to
+      - value
+    UserParameterCreate:
+      type: object
+      properties:
+        key:
+          type: string
+          maxLength: 40
+        value:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: Una tasa como fracción (`0.2345`), un monto o un conteo.
+        valid_from:
+          type: string
+          format: date
+        valid_to:
+          type:
+          - string
+          - 'null'
+          format: date
+        source:
+          type: string
+          description: De dónde sale el valor (obligatoria).
+          maxLength: 500
+      required:
+      - key
+      - source
+      - valid_from
+      - value
     Verify:
       type: object
       properties:

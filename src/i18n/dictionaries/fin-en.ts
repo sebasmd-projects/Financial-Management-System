@@ -1,3 +1,4 @@
+import { finBEn } from "./fin-b-en";
 import type { FinDictionary } from "./fin-es";
 
 /** English strings for the FMS-1 finance screens. Must satisfy the same type as Spanish. */
@@ -18,6 +19,24 @@ export const finEn: FinDictionary = {
     account_blocked: "Your account is blocked.",
     idempotency_in_flight: "This action is already being processed. Wait a moment and check the list.",
     idempotency_key_reused: "This action changed while it was being sent. Please try again.",
+    late_rate_missing: "The late-payment rate with validity is missing. Register it in Colombia parameters and try again.",
+    account_not_reconcilable: "Only asset accounts are reconciled.",
+    cutoff_in_future: "The cut-off cannot be a future date.",
+    invalid_statement_balance: "The statement balance is not valid.",
+    cutoff_before_last_reconciliation: "The cut-off cannot be earlier than this account's last reconciliation.",
+    entry_not_reconcilable: "One of the ticked transactions can no longer be reconciled. Review again.",
+    nothing_to_reconcile: "Tick at least one transaction to reconcile.",
+    difference_not_zero: "The difference is not zero: it cannot be reconciled yet.",
+    adjust_asset_accounts_only: "The adjustment only applies to asset accounts.",
+    no_difference: "There is no difference to adjust.",
+    reason_required: "Tell us why you are reopening the reconciliation.",
+    source_required: "The source is required.",
+    overlapping_validity: "That date range overlaps another value of the same parameter.",
+    invalid_validity: "The end date cannot be before the start date.",
+    invalid_parameter_value: "The value is not valid for this parameter (a rate is a percentage and cannot be negative).",
+    unknown_parameter: "We do not know that parameter.",
+    parameter_already_in_force: "That validity has already started and may have been used in estimates: it is not deleted, it is closed with an end date.",
+    parameter_not_found: "We could not find that value.",
   },
   common: {
     required: "required",
@@ -515,4 +534,5 @@ export const finEn: FinDictionary = {
     noOccurrences: "Nothing due this month.",
     data: "Details",
   },
+  ...finBEn,
 };

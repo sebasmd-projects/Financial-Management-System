@@ -165,3 +165,39 @@ export function compareAmounts(a: string, b: string): number {
 export function isNegativeAmount(value: string): boolean {
   return parse(value).negative;
 }
+
+/**
+ * Reparte un monto en `parts` partes iguales al centavo; la última lleva la diferencia (igual que el servidor al dividir una
+ * obligación en cuotas). Solo para MOSTRAR la vista previa: lo que vale es lo que calcula el servidor.
+ */
+export function splitEqual(total: string, parts: number): string[] {
+  if (parts % 1 !== 0 || parts < 1) throw new RangeError("Partes inválidas");
+  const { negative, cents } = parse(total);
+  const each = cents / BigInt(parts);
+  const out: string[] = [];
+  let used = 0n;
+  for (let i = 0; i < parts; i++) {
+    const part = i === parts - 1 ? cents - used : each;
+    used += part;
+    const body = `${part / 100n}.${(part % 100n).toString().padStart(2, "0")}`;
+    out.push(negative && part !== 0n ? `-${body}` : body);
+  }
+  return out;
+}
+
+/**
+ * Qué porcentaje entero (0 a 100, hacia abajo) es `part` de `total`, para anchos de barras. Sobre centavos con BigInt; un total
+ * en cero o negativo da 0 y una parte negativa cuenta como 0.
+ */
+export function percentOfTotal(part: string, total: string): number {
+  const p = parse(part);
+  const t = parse(total);
+  if (t.negative || t.cents === 0n || p.negative || p.cents === 0n) return 0;
+  const percent = (p.cents * 100n) / t.cents;
+  return percent > 100n ? 100 : parseInt10(percent);
+}
+
+/** `bigint` pequeño → número de pantalla (0..100); no es dinero. */
+function parseInt10(value: bigint): number {
+  return +value.toString();
+}

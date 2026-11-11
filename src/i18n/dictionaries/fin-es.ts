@@ -1,3 +1,5 @@
+import { finBEs } from "./fin-b-es";
+
 /** Textos de las pantallas financieras de FMS-1 (español, es-CO). `fin-en.ts` tiene que cumplir el mismo tipo. */
 export const finEs = {
   currentPeriodParam: "actual",
@@ -16,6 +18,24 @@ export const finEs = {
     account_blocked: "Tu cuenta está bloqueada.",
     idempotency_in_flight: "Esta acción ya se está procesando. Espera un momento y revisa la lista.",
     idempotency_key_reused: "Esta acción cambió mientras se enviaba. Vuelve a intentarlo.",
+    late_rate_missing: "Falta registrar la tasa de mora con vigencia. Regístrala en Parámetros Colombia y vuelve a intentarlo.",
+    account_not_reconcilable: "Solo se concilian cuentas de activo.",
+    cutoff_in_future: "El corte no puede ser una fecha futura.",
+    invalid_statement_balance: "El saldo del extracto no es válido.",
+    cutoff_before_last_reconciliation: "El corte no puede ser anterior al de la última conciliación de esta cuenta.",
+    entry_not_reconcilable: "Uno de los movimientos marcados ya no se puede conciliar. Revisa de nuevo.",
+    nothing_to_reconcile: "Marca al menos un movimiento para conciliar.",
+    difference_not_zero: "La diferencia no es cero: no se puede conciliar todavía.",
+    adjust_asset_accounts_only: "El ajuste solo aplica a cuentas de activo.",
+    no_difference: "No hay diferencia que ajustar.",
+    reason_required: "Cuenta por qué reabres la conciliación.",
+    source_required: "La fuente es obligatoria.",
+    overlapping_validity: "Ese rango de fechas se cruza con otro valor del mismo parámetro.",
+    invalid_validity: "La fecha final no puede ser anterior a la inicial.",
+    invalid_parameter_value: "El valor no es válido para este parámetro (una tasa va como porcentaje y no puede ser negativa).",
+    unknown_parameter: "No conocemos ese parámetro.",
+    parameter_already_in_force: "Esa vigencia ya empezó y pudo usarse en estimaciones: no se borra, se cierra con una fecha final.",
+    parameter_not_found: "No encontramos ese valor.",
   },
   common: {
     required: "obligatorio",
@@ -513,6 +533,7 @@ export const finEs = {
     noOccurrences: "No toca este mes.",
     data: "Datos",
   },
+  ...finBEs,
 };
 
 export type FinDictionary = typeof finEs;

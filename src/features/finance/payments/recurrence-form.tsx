@@ -14,7 +14,9 @@ import { useI18n } from "@/i18n/provider";
 import { movementAccounts } from "../helpers";
 import { useAll, useHref, useSubmit } from "../hooks";
 import { AmountField, Banner, Checkbox, Empty, FormActions, Loading, ScreenHeader, SelectField, TextField } from "../kit";
-import { FREQUENCIES, scheduleFields, usesDay, usesInterval, usesMonth, usesWeekday } from "./schedule";
+import { EMPTY_PAUSES, EMPTY_TERMS, pauseFields, termsFields, type PausesState, type TermsState } from "./conditions";
+import { MonthChecks, PauseFields, TermsFields } from "./conditions-fields";
+import { FREQUENCIES, scheduleFields, usesDay, usesInterval, usesMonth, usesMonths, usesWeekday } from "./schedule";
 
 interface PreviewDates {
   dates: { original: string; adjusted: string; moved: boolean }[];
@@ -47,17 +49,21 @@ export function RecurrenceForm() {
   const [provider, setProvider] = useState("");
   const [renewal, setRenewal] = useState("");
   const [autoRenews, setAutoRenews] = useState(false);
+  const [months, setMonths] = useState<number[]>([]);
+  const [pauses, setPauses] = useState<PausesState>(EMPTY_PAUSES);
+  const [terms, setTerms] = useState<TermsState>(EMPTY_TERMS);
   const [touched, setTouched] = useState(false);
   const [saved, setSaved] = useState<Recurrence | null>(null);
 
   const sources = movementAccounts(accounts.items);
   const account = accountId || sources[0]?.id || "";
   const amount = normalizeAmountInput(amountText);
-  const schedule = scheduleFields({ frequency, startDate, endDate, day, lastDay, weekday, month, interval, holidayRule });
+  const schedule = scheduleFields({ frequency, startDate, endDate, day, lastDay, weekday, month, interval, holidayRule, months });
   const isIncome = kind === "income";
+  const pausesBody = pauseFields(pauses);
 
   // Vista previa de las próximas fechas (el motor es del servidor): espera 350 ms tras el último cambio.
-  const previewKey = schedule ? JSON.stringify({ ...schedule, count: 3 }) : null;
+  const previewKey = schedule && pausesBody.valid ? JSON.stringify({ ...schedule, ...(pauses.months.length > 0 ? { skip_months: pausesBody.fields.skip_months } : {}), ...(pauses.ranges.length > 0 ? { skip_ranges: pausesBody.fields.skip_ranges } : {}), count: 3 }) : null;
   const [preview, setPreview] = useState<{ key: string; result: ApiResult<PreviewDates> } | null>(null);
   useEffect(() => {
     if (previewKey === null) return;
@@ -74,7 +80,8 @@ export function RecurrenceForm() {
   }, [previewKey]);
   const current = previewKey !== null && preview?.key === previewKey ? preview.result : null;
 
-  const valid = name.trim() !== "" && amount !== null && schedule !== null && account !== "";
+  const termsBody = isIncome ? { fields: {}, problems: {} } : termsFields(terms);
+  const valid = name.trim() !== "" && amount !== null && schedule !== null && account !== "" && pausesBody.valid && Object.keys(termsBody.problems).length === 0;
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -88,6 +95,9 @@ export function RecurrenceForm() {
       is_estimate: estimate,
       account_id: account,
       auto_confirm: autoConfirm,
+      ...(pauses.months.length > 0 ? { skip_months: pausesBody.fields.skip_months } : {}),
+      ...(pauses.ranges.length > 0 ? { skip_ranges: pausesBody.fields.skip_ranges } : {}),
+      ...termsBody.fields,
       ...(categoryId ? { category_id: categoryId } : {}),
       ...(kind === "subscription"
         ? { ...(provider.trim() ? { provider: provider.trim() } : {}), ...(renewal ? { renewal_date: renewal } : {}), auto_renews: autoRenews }
@@ -143,7 +153,8 @@ export function RecurrenceForm() {
               <Checkbox label={t.lastDay} checked={lastDay} onChange={setLastDay} />
             </>
           )}
-          {usesMonth(frequency) && <SelectField label={t.month} value={month} onChange={setMonth} options={dict.fin.months.map((label, index) => ({ value: String(index + 1), label }))} />}
+          {usesMonths(frequency) && <MonthChecks legend={dict.fin.terms.monthsLegend} hint={dict.fin.terms.monthsHint} value={months} onChange={setMonths} />}
+          {usesMonth(frequency) && months.length === 0 && <SelectField label={t.month} value={month} onChange={setMonth} options={dict.fin.months.map((label, index) => ({ value: String(index + 1), label }))} />}
           {usesWeekday(frequency) && <SelectField label={t.weekday} value={weekday} onChange={setWeekday} options={dict.fin.weekdays.map((label, index) => ({ value: String(index), label }))} />}
           {usesInterval(frequency) && <TextField label={t.interval} value={interval} onChange={setInterval_} inputMode="numeric" maxLength={3} error={toInt(interval, 1, 365) === null ? t.intervalInvalid : null} />}
           <SelectField
@@ -182,6 +193,16 @@ export function RecurrenceForm() {
               <TextField label={t.renewalDate} type="date" value={renewal} onChange={setRenewal} />
               <Checkbox label={t.autoRenews} checked={autoRenews} onChange={setAutoRenews} />
             </>
+          )}
+          <details className="fin-details">
+            <summary>{dict.fin.terms.pausesTitle}</summary>
+            <PauseFields value={pauses} onChange={setPauses} />
+          </details>
+          {!isIncome && (
+            <details className="fin-details">
+              <summary>{dict.fin.terms.windowsTitle}</summary>
+              <TermsFields value={terms} onChange={setTerms} problems={termsBody.problems} touched={touched} />
+            </details>
           )}
           <Checkbox label={t.autoConfirm} hint={t.autoConfirmHint} checked={autoConfirm} onChange={setAutoConfirm} />
 

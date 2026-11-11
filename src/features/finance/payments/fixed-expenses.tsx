@@ -10,6 +10,7 @@ import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
 import { fill, relativeDays } from "../helpers";
 import { useHref, useResource } from "../hooks";
+import { UnsplitButton } from "./split-actions";
 import { Badge, Empty, ErrorState, Loading, Money, Progress, ScreenHeader, Section } from "../kit";
 
 /** Gastos fijos del mes (`/pagos/fijos`, diseño §3.4): atrasados, por pagar, pagados, omitidos y los que no tocan este mes. */
@@ -74,22 +75,22 @@ export function FixedExpensesScreen() {
       )}
       {f && f.overdue.length > 0 && (
         <Section title={t.overdue}>
-          <OccurrenceList items={f.overdue} />
+          <OccurrenceList items={f.overdue} onChanged={data.reload} />
         </Section>
       )}
       {f && f.to_pay.length > 0 && (
         <Section title={t.toPay}>
-          <OccurrenceList items={f.to_pay} />
+          <OccurrenceList items={f.to_pay} onChanged={data.reload} />
         </Section>
       )}
       {f && f.paid.length > 0 && (
         <Section title={t.paid}>
-          <OccurrenceList items={f.paid} />
+          <OccurrenceList items={f.paid} onChanged={data.reload} />
         </Section>
       )}
       {f && f.skipped.length > 0 && (
         <Section title={t.skipped}>
-          <OccurrenceList items={f.skipped} />
+          <OccurrenceList items={f.skipped} onChanged={data.reload} />
         </Section>
       )}
       {f && f.not_this_month.length > 0 && (
@@ -113,19 +114,19 @@ export function FixedExpensesScreen() {
   );
 }
 
-export function OccurrenceList({ items }: { items: readonly Occurrence[] }) {
+export function OccurrenceList({ items, onChanged }: { items: readonly Occurrence[]; onChanged?: () => void }) {
   return (
     <ul className="fin-list">
       {items.map((occurrence) => (
         <li key={occurrence.id}>
-          <OccurrenceRow occurrence={occurrence} />
+          <OccurrenceRow occurrence={occurrence} onChanged={onChanged} />
         </li>
       ))}
     </ul>
   );
 }
 
-export function OccurrenceRow({ occurrence: o }: { occurrence: Occurrence }) {
+export function OccurrenceRow({ occurrence: o, onChanged }: { occurrence: Occurrence; onChanged?: () => void }) {
   const { dict } = useI18n();
   const t = dict.fin.fixed;
   const href = useHref();
@@ -162,7 +163,16 @@ export function OccurrenceRow({ occurrence: o }: { occurrence: Occurrence }) {
           {o.overdue && <Badge tone="negative">{t.overdueBadge}</Badge>}
           {o.status === "paid" && <Badge tone="positive">{t.paidBadge}</Badge>}
           {o.status === "skipped" && <Badge>{t.skippedBadge}</Badge>}
+          {o.installment > 0 && <Badge>{fill(dict.fin.occ.installment, { n: String(o.installment) })}</Badge>}
+          {o.status === "split" && <Badge tone="info">{dict.fin.occ.splitBadge}</Badge>}
+          {open && o.payment_state === "early" && <Badge tone="positive">{o.early_deadline ? fill(dict.fin.occ.earlyUntil, { date: formatDate(o.early_deadline) }) : dict.fin.occ.stateEarly}</Badge>}
+          {open && o.payment_state === "late" && <Badge tone="negative">{dict.fin.occ.stateLate}</Badge>}
         </span>
+        {open && o.amount_due && o.payment_state !== "regular" && compareAmounts(o.amount_due, o.pending) !== 0 && (
+          <span className="fin-row__sub muted">
+            {dict.fin.occ.dueToday} <Money value={o.amount_due} />
+          </span>
+        )}
       </Link>
       {open && (
         <Link className="button button--primary" href={href("pagos-fijo-pagar", [o.id])}>
@@ -170,6 +180,7 @@ export function OccurrenceRow({ occurrence: o }: { occurrence: Occurrence }) {
           <span className="visually-hidden"> {o.name}</span>
         </Link>
       )}
+      {o.status === "split" && <UnsplitButton occurrenceId={o.id} onDone={() => onChanged?.()} />}
     </div>
   );
 }

@@ -7,6 +7,8 @@ import {
   isDecimalString,
   isNegativeAmount,
   isValidAmountInput,
+  percentOfTotal,
+  splitEqual,
   spokenCop,
 } from "./money";
 
@@ -157,5 +159,36 @@ describe("captura", () => {
     expect(isDecimalString("1.5")).toBe(true);
     expect(isDecimalString(1.5)).toBe(false);
     expect(isDecimalString(null)).toBe(false);
+  });
+});
+
+describe("splitEqual", () => {
+  it("partes iguales al centavo y la última lleva la diferencia", () => {
+    expect(splitEqual("1200000", 4)).toEqual(["300000.00", "300000.00", "300000.00", "300000.00"]);
+    expect(splitEqual("100.00", 3)).toEqual(["33.33", "33.33", "33.34"]);
+    expect(splitEqual("0.10", 3)).toEqual(["0.03", "0.03", "0.04"]);
+  });
+  it("siempre suma el total", () => {
+    for (const [total, n] of [["1234567.89", 7], ["5.00", 24], ["999999999.99", 11]] as const) {
+      expect(addAmounts(...splitEqual(total, n))).toBe(addAmounts(total));
+    }
+  });
+  it("rechaza un número de partes inválido", () => {
+    expect(() => splitEqual("10", 0)).toThrow();
+    expect(() => splitEqual("10", 1.5)).toThrow();
+  });
+});
+
+describe("percentOfTotal", () => {
+  it("entero hacia abajo, acotado a 0..100", () => {
+    expect(percentOfTotal("2310000", "5200000")).toBe(44);
+    expect(percentOfTotal("5200000", "5200000")).toBe(100);
+    expect(percentOfTotal("9000000", "5200000")).toBe(100);
+  });
+  it("totales o partes en cero o negativos dan 0", () => {
+    expect(percentOfTotal("10", "0")).toBe(0);
+    expect(percentOfTotal("-10", "100")).toBe(0);
+    expect(percentOfTotal("10", "-100")).toBe(0);
+    expect(percentOfTotal("0", "100")).toBe(0);
   });
 });

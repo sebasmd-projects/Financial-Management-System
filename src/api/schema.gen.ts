@@ -947,6 +947,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/movements/{id}/edit/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aplicar una edición con el token de la vista previa: anula y recrea de forma atómica (auditoría viejo → nuevo)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsMovementEditApply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/movements/{id}/edit/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Vista previa de editar un movimiento confirmado: qué asientos se anulan y nacen, y qué valores derivados cambian. No escribe
+         * @description Un cambio de **una cifra** sin encadenamientos es un asiento de ajuste (`mode: adjustment`); varios campos o algo encadenado (cuotas, GMF, otra pierna, ocurrencia) es anular y recrear (`annul_and_recreate`). El `token` es de un solo uso, atado a la versión actual del movimiento y caduca (`FMS_EDIT_TOKEN_SECONDS`).
+         */
+        post: operations["fmsMovementEditPreview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/movements/{id}/entries": {
         parameters: {
             query?: never;
@@ -1444,7 +1485,7 @@ export interface components {
             /** Format: uuid */
             parent_id: string | null;
             currency: string;
-            exempt_gmf: boolean;
+            gmf_exempt: boolean;
             liquid: boolean;
             enforce_funds: boolean;
             status: components["schemas"]["AccountStatusEnum"];
@@ -1478,7 +1519,7 @@ export interface components {
             parent_id?: string | null;
             last4?: string | null;
             /** @default false */
-            exempt_gmf: boolean;
+            gmf_exempt: boolean;
             liquid?: boolean | null;
             /** @default false */
             enforce_funds: boolean;
@@ -1600,6 +1641,19 @@ export interface components {
          * @enum {string}
          */
         AuditActionEnum: "add" | "change" | "delete" | "confirm" | "discard" | "annul" | "reconcile" | "reopen" | "adjust" | "alert";
+        BalanceEffect: {
+            /** Format: uuid */
+            account_id: string;
+            name: string;
+            /** @example 180000 */
+            posted_before: string | null;
+            /** @example 180000 */
+            posted_after: string | null;
+            /** @example 180000 */
+            projected_before: string | null;
+            /** @example 180000 */
+            projected_after: string | null;
+        };
         /** @enum {unknown} */
         BlankEnum: "";
         Card: {
@@ -1639,14 +1693,14 @@ export interface components {
             next_payment_date: string;
             /**
              * @description Fracción decimal (`0.24` = 24 %) en su convención.
-             * @example 180000
+             * @example 0.24
              */
             rate: string;
             rate_convention: components["schemas"]["RateConventionEnum"];
             installment_system: components["schemas"]["AmortizationSystemEnum"];
             /** @example 180000 */
             handling_fee: string;
-            /** @example 180000 */
+            /** @example 0.24 */
             min_payment_rate: string;
         };
         CardCreate: {
@@ -1658,7 +1712,7 @@ export interface components {
             issuer_id?: number | null;
             /**
              * @default 0
-             * @example 180000
+             * @example 0.24
              */
             rate: string;
             /** @default EA */
@@ -1672,7 +1726,7 @@ export interface components {
             handling_fee: string;
             /**
              * @default 0.05
-             * @example 180000
+             * @example 0.24
              */
             min_payment_rate: string;
             last4?: string | null;
@@ -1803,6 +1857,53 @@ export interface components {
         Duplicates: {
             duplicates: components["schemas"]["Duplicate"][];
         };
+        EditApplied: {
+            movement: components["schemas"]["Movement"];
+            effects: components["schemas"]["EditEffects"];
+        };
+        EditApply: {
+            token: string;
+            reason: string;
+        };
+        EditEffects: {
+            /**
+             * @description `in_place`: solo clasificación. `adjustment`: un asiento de ajuste (una cifra, sin encadenar). `annul_and_recreate`: reverso + movimiento nuevo.
+             *
+             *     * `in_place` - in_place
+             *     * `adjustment` - adjustment
+             *     * `annul_and_recreate` - annul_and_recreate
+             */
+            mode: components["schemas"]["EditEffectsModeEnum"];
+            changed_fields: string[];
+            /** @description Qué más toca: `transfer_other_leg`, `gmf`, `installments`, `recurrence_occurrence`, `adjustments`. */
+            chained: string[];
+            entries_annulled: components["schemas"]["EntryRef"][];
+            /** @description Los reversos y el asiento nuevo (con su número). */
+            entries_created: components["schemas"]["EntryRef"][];
+            /** @description Solo las cuentas cuyo saldo cambia. */
+            balances: components["schemas"]["BalanceEffect"][];
+            /** @description «Gastado» de los meses afectados. */
+            spent: components["schemas"]["SpentEffect"][];
+            gmf: components["schemas"]["GmfEffect"];
+            installments: components["schemas"]["InstallmentEffect"] | null;
+            notes: string[];
+        };
+        /**
+         * @description * `in_place` - in_place
+         *     * `adjustment` - adjustment
+         *     * `annul_and_recreate` - annul_and_recreate
+         * @enum {string}
+         */
+        EditEffectsModeEnum: "in_place" | "adjustment" | "annul_and_recreate";
+        EditPreview: {
+            /** @description De un solo uso; se manda a `edit/apply`. Solo se muestra aquí. */
+            token: string;
+            /** Format: date-time */
+            expires_at: string;
+            /** @description La versión del movimiento a la que está atado el token. */
+            version: string;
+            effects: components["schemas"]["EditEffects"];
+        };
         /** @description Un asiento con sus líneas («Ver asientos»): el único lugar donde aparecen «Debe» y «Haber». */
         Entry: {
             /** Format: uuid */
@@ -1870,6 +1971,17 @@ export interface components {
             page: number;
             page_size: number;
             results: components["schemas"]["Entry"][];
+        };
+        EntryRef: {
+            /** Format: uuid */
+            id: string;
+            number: number;
+            kind: string;
+            /** Format: date */
+            date: string;
+            status: string;
+            /** @example 180000 */
+            total: string;
         };
         /**
          * @description * `pendiente` - Pending
@@ -1994,6 +2106,12 @@ export interface components {
             /** @description Confirmados solos, solo en recurrencias con `auto_confirm`. */
             confirmed: number;
         };
+        GmfEffect: {
+            /** @example 180000 */
+            before: string | null;
+            /** @example 180000 */
+            after: string | null;
+        };
         /**
          * @description * `none` - none
          *     * `next` - next
@@ -2001,6 +2119,10 @@ export interface components {
          * @enum {string}
          */
         HolidayRuleEnum: "none" | "next" | "previous";
+        InstallmentEffect: {
+            before: components["schemas"]["InstallmentSnapshot"];
+            after: components["schemas"]["InstallmentSnapshot"];
+        };
         InstallmentPurchase: {
             /** Format: uuid */
             movement_id: string;
@@ -2019,6 +2141,17 @@ export interface components {
              * @example 180000
              */
             total_real_cost: string;
+        };
+        InstallmentSnapshot: {
+            installments?: number;
+            /** @example 180000 */
+            purchase_value?: string;
+            /** @example 180000 */
+            total_interest?: string;
+            /** @example 180000 */
+            total_real_cost?: string;
+            /** @example 180000 */
+            first_payment?: string | null;
         };
         /**
          * @description * `pending` - Pending
@@ -2062,7 +2195,7 @@ export interface components {
              */
             balance: string;
             paid_percent: number;
-            /** @example 180000 */
+            /** @example 0.24 */
             rate: string;
             rate_convention: components["schemas"]["RateConventionEnum"];
             system: components["schemas"]["AmortizationSystemEnum"];
@@ -2078,7 +2211,7 @@ export interface components {
             name: string;
             /** @example 180000 */
             principal: string;
-            /** @example 180000 */
+            /** @example 0.24 */
             rate: string;
             rate_convention: components["schemas"]["RateConventionEnum"];
             term: number;
@@ -2208,6 +2341,11 @@ export interface components {
             /** Format: uuid */
             refund_of_id: string | null;
             /**
+             * Format: uuid
+             * @description Si nació de editar otro confirmado (anular y recrear): el movimiento viejo.
+             */
+            replaces_id: string | null;
+            /**
              * @description El 4x1000 que se cargó en el mismo asiento.
              * @example 180000
              */
@@ -2275,6 +2413,38 @@ export interface components {
              * @description Reembolso o devolución del movimiento original.
              */
             refund_of_id?: string | null;
+        };
+        /** @description Los cambios de una edición de un movimiento **confirmado** (todo opcional, al menos uno). */
+        MovementEdit: {
+            /** @example 180000 */
+            amount?: string;
+            /** Format: date */
+            date?: string;
+            /** Format: uuid */
+            account_id?: string;
+            /** Format: uuid */
+            to_account_id?: string | null;
+            /** Format: uuid */
+            category_id?: string | null;
+            apply_gmf?: boolean | null;
+            description?: string | null;
+            notes?: string | null;
+            counterparty?: string | null;
+            nature?: components["schemas"]["NatureEnum"] | components["schemas"]["BlankEnum"];
+            classification?: components["schemas"]["ClassificationEnum"] | components["schemas"]["BlankEnum"];
+            tags?: string[];
+            /** Format: uuid */
+            cost_center_id?: string | null;
+            /** Format: uuid */
+            payment_method_id?: string | null;
+            /** @description Solo una compra con tarjeta. */
+            installments?: number;
+            /**
+             * @description Solo una compra con tarjeta.
+             * @example 0.24
+             */
+            rate?: string;
+            rate_convention?: string;
         };
         MovementEntries: {
             /** Format: uuid */
@@ -2429,7 +2599,7 @@ export interface components {
         PatchedAccountPatch: {
             name?: string;
             last4?: string | null;
-            exempt_gmf?: boolean;
+            gmf_exempt?: boolean;
             liquid?: boolean;
             enforce_funds?: boolean;
             status?: components["schemas"]["AccountStatusEnum"];
@@ -2440,13 +2610,13 @@ export interface components {
             limit?: string;
             cut_day?: number;
             pay_day?: number;
-            /** @example 180000 */
+            /** @example 0.24 */
             rate?: string;
             rate_convention?: components["schemas"]["RateConventionEnum"];
             installment_system?: components["schemas"]["AmortizationSystemEnum"];
             /** @example 180000 */
             handling_fee?: string;
-            /** @example 180000 */
+            /** @example 0.24 */
             min_payment_rate?: string;
             last4?: string | null;
             /**
@@ -2590,7 +2760,7 @@ export interface components {
             total_real_cost: string;
             /**
              * @description Fracción mensual efectiva con que se calculó (puede traer 10 decimales).
-             * @example 180000
+             * @example 0.24
              */
             monthly_rate: string;
             system: string;
@@ -2691,7 +2861,7 @@ export interface components {
             installments: number;
             /**
              * @description Por defecto, la de la tarjeta.
-             * @example 180000
+             * @example 0.24
              */
             rate?: string | null;
             rate_convention?: components["schemas"]["RateConventionEnum"] | components["schemas"]["NullEnum"];
@@ -2881,7 +3051,7 @@ export interface components {
             installments: number;
             /** Format: date */
             date?: string;
-            /** @example 180000 */
+            /** @example 0.24 */
             rate?: string | null;
             rate_convention?: components["schemas"]["RateConventionEnum"] | components["schemas"]["NullEnum"];
         };
@@ -2907,6 +3077,17 @@ export interface components {
         };
         Skip: {
             reason: string;
+        };
+        SpentEffect: {
+            /**
+             * Format: date
+             * @description Primer día del mes.
+             */
+            period: string;
+            /** @example 180000 */
+            before: string;
+            /** @example 180000 */
+            after: string;
         };
         Statement: {
             /** Format: date */
@@ -6356,6 +6537,164 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Movement"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsMovementEditApply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditApply"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditApplied"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsMovementEditPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MovementEdit"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditPreview"];
                 };
             };
             /** @description Cuerpo inválido o falta `Idempotency-Key`. */

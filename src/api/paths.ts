@@ -39,6 +39,7 @@ export const paths = {
   movements: (params: Record<string, QueryValue>) => `/movements${query(params)}`,
   movement: (movementId: string) => `/movements/${id(movementId)}`,
   movementAction: (movementId: string, action: "confirm" | "annul" | "adjust") => `/movements/${id(movementId)}/${action}`,
+  movementEdit: (movementId: string, step: "preview" | "apply") => `/movements/${id(movementId)}/edit/${step}`,
   movementEntries: (movementId: string) => `/movements/${id(movementId)}/entries`,
   transfers: () => "/transfers",
   categories: (params: Record<string, QueryValue> = {}) => `/categories${query({ page_size: 200, ...params })}`,

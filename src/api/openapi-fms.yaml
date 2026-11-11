@@ -3080,6 +3080,142 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/movements/{id}/edit/apply:
+    post:
+      operationId: fmsMovementEditApply
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Aplicar una edición con el token de la vista previa: anula y recrea
+        de forma atómica (auditoría viejo → nuevo)'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - movements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditApply'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EditApplied'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/movements/{id}/edit/preview:
+    post:
+      operationId: fmsMovementEditPreview
+      description: 'Un cambio de **una cifra** sin encadenamientos es un asiento de
+        ajuste (`mode: adjustment`); varios campos o algo encadenado (cuotas, GMF,
+        otra pierna, ocurrencia) es anular y recrear (`annul_and_recreate`). El `token`
+        es de un solo uso, atado a la versión actual del movimiento y caduca (`FMS_EDIT_TOKEN_SECONDS`).'
+      summary: 'Vista previa de editar un movimiento confirmado: qué asientos se anulan
+        y nacen, y qué valores derivados cambian. No escribe'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - movements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovementEdit'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EditPreview'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/movements/{id}/entries:
     get:
       operationId: fmsMovementEntries
@@ -4381,7 +4517,7 @@ components:
           format: uuid
         currency:
           type: string
-        exempt_gmf:
+        gmf_exempt:
           type: boolean
         liquid:
           type: boolean
@@ -4403,7 +4539,7 @@ components:
       required:
       - currency
       - enforce_funds
-      - exempt_gmf
+      - gmf_exempt
       - id
       - institution
       - kind
@@ -4448,7 +4584,7 @@ components:
           - string
           - 'null'
           maxLength: 4
-        exempt_gmf:
+        gmf_exempt:
           type: boolean
           default: false
         liquid:
@@ -4674,6 +4810,45 @@ components:
         * `reopen` - reopen
         * `adjust` - adjust
         * `alert` - alert
+    BalanceEffect:
+      type: object
+      properties:
+        account_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        posted_before:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        posted_after:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        projected_before:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        projected_after:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - account_id
+      - name
+      - posted_after
+      - posted_before
+      - projected_after
+      - projected_before
     BlankEnum:
       enum:
       - ''
@@ -4730,7 +4905,7 @@ components:
         rate:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
-          example: '180000'
+          example: '0.24'
           description: Fracción decimal (`0.24` = 24 %) en su convención.
         rate_convention:
           $ref: '#/components/schemas/RateConventionEnum'
@@ -4743,7 +4918,7 @@ components:
         min_payment_rate:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
-          example: '180000'
+          example: '0.24'
       required:
       - account_id
       - available
@@ -4789,7 +4964,7 @@ components:
         rate:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
-          example: '180000'
+          example: '0.24'
           default: '0'
         rate_convention:
           allOf:
@@ -4807,7 +4982,7 @@ components:
         min_payment_rate:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
-          example: '180000'
+          example: '0.24'
           default: '0.05'
         last4:
           type:
@@ -5060,6 +5235,119 @@ components:
             $ref: '#/components/schemas/Duplicate'
       required:
       - duplicates
+    EditApplied:
+      type: object
+      properties:
+        movement:
+          $ref: '#/components/schemas/Movement'
+        effects:
+          $ref: '#/components/schemas/EditEffects'
+      required:
+      - effects
+      - movement
+    EditApply:
+      type: object
+      properties:
+        token:
+          type: string
+          maxLength: 100
+        reason:
+          type: string
+          maxLength: 200
+      required:
+      - reason
+      - token
+    EditEffects:
+      type: object
+      properties:
+        mode:
+          allOf:
+          - $ref: '#/components/schemas/EditEffectsModeEnum'
+          description: |-
+            `in_place`: solo clasificación. `adjustment`: un asiento de ajuste (una cifra, sin encadenar). `annul_and_recreate`: reverso + movimiento nuevo.
+
+            * `in_place` - in_place
+            * `adjustment` - adjustment
+            * `annul_and_recreate` - annul_and_recreate
+        changed_fields:
+          type: array
+          items:
+            type: string
+        chained:
+          type: array
+          items:
+            type: string
+          description: 'Qué más toca: `transfer_other_leg`, `gmf`, `installments`,
+            `recurrence_occurrence`, `adjustments`.'
+        entries_annulled:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntryRef'
+        entries_created:
+          type: array
+          items:
+            $ref: '#/components/schemas/EntryRef'
+          description: Los reversos y el asiento nuevo (con su número).
+        balances:
+          type: array
+          items:
+            $ref: '#/components/schemas/BalanceEffect'
+          description: Solo las cuentas cuyo saldo cambia.
+        spent:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpentEffect'
+          description: «Gastado» de los meses afectados.
+        gmf:
+          $ref: '#/components/schemas/GmfEffect'
+        installments:
+          oneOf:
+          - $ref: '#/components/schemas/InstallmentEffect'
+          - type: 'null'
+        notes:
+          type: array
+          items:
+            type: string
+      required:
+      - balances
+      - chained
+      - changed_fields
+      - entries_annulled
+      - entries_created
+      - gmf
+      - installments
+      - mode
+      - notes
+      - spent
+    EditEffectsModeEnum:
+      enum:
+      - in_place
+      - adjustment
+      - annul_and_recreate
+      type: string
+      description: |-
+        * `in_place` - in_place
+        * `adjustment` - adjustment
+        * `annul_and_recreate` - annul_and_recreate
+    EditPreview:
+      type: object
+      properties:
+        token:
+          type: string
+          description: De un solo uso; se manda a `edit/apply`. Solo se muestra aquí.
+        expires_at:
+          type: string
+          format: date-time
+        version:
+          type: string
+          description: La versión del movimiento a la que está atado el token.
+        effects:
+          $ref: '#/components/schemas/EditEffects'
+      required:
+      - effects
+      - expires_at
+      - token
+      - version
     Entry:
       type: object
       description: 'Un asiento con sus líneas («Ver asientos»): el único lugar donde
@@ -5225,6 +5513,32 @@ components:
       - page
       - page_size
       - results
+    EntryRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        number:
+          type: integer
+        kind:
+          type: string
+        date:
+          type: string
+          format: date
+        status:
+          type: string
+        total:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - date
+      - id
+      - kind
+      - number
+      - status
+      - total
     EntryStatusEnum:
       enum:
       - pendiente
@@ -5519,6 +5833,24 @@ components:
       required:
       - confirmed
       - created
+    GmfEffect:
+      type: object
+      properties:
+        before:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        after:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - after
+      - before
     HolidayRuleEnum:
       enum:
       - none
@@ -5529,6 +5861,16 @@ components:
         * `none` - none
         * `next` - next
         * `previous` - previous
+    InstallmentEffect:
+      type: object
+      properties:
+        before:
+          $ref: '#/components/schemas/InstallmentSnapshot'
+        after:
+          $ref: '#/components/schemas/InstallmentSnapshot'
+      required:
+      - after
+      - before
     InstallmentPurchase:
       type: object
       properties:
@@ -5561,6 +5903,29 @@ components:
       - purchase_value
       - total_interest
       - total_real_cost
+    InstallmentSnapshot:
+      type: object
+      properties:
+        installments:
+          type: integer
+        purchase_value:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total_real_cost:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        first_payment:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
     InstallmentStatusEnum:
       enum:
       - pending
@@ -5643,7 +6008,7 @@ components:
         rate:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
-          example: '180000'
+          example: '0.24'
         rate_convention:
           $ref: '#/components/schemas/RateConventionEnum'
         system:
@@ -5694,7 +6059,7 @@ components:
         rate:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
-          example: '180000'
+          example: '0.24'
         rate_convention:
           $ref: '#/components/schemas/RateConventionEnum'
         term:
@@ -5945,6 +6310,13 @@ components:
           - string
           - 'null'
           format: uuid
+        replaces_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: 'Si nació de editar otro confirmado (anular y recrear): el
+            movimiento viejo.'
         gmf:
           type:
           - string
@@ -5988,6 +6360,7 @@ components:
       - origin
       - payment_method
       - refund_of_id
+      - replaces_id
       - status
       - tags
       - to_account
@@ -6122,6 +6495,87 @@ components:
       - amount
       - date
       - type
+    MovementEdit:
+      type: object
+      description: Los cambios de una edición de un movimiento **confirmado** (todo
+        opcional, al menos uno).
+      properties:
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        date:
+          type: string
+          format: date
+        account_id:
+          type: string
+          format: uuid
+        to_account_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        category_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        apply_gmf:
+          type:
+          - boolean
+          - 'null'
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 200
+        notes:
+          type:
+          - string
+          - 'null'
+          maxLength: 280
+        counterparty:
+          type:
+          - string
+          - 'null'
+          maxLength: 80
+        nature:
+          oneOf:
+          - $ref: '#/components/schemas/NatureEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        classification:
+          oneOf:
+          - $ref: '#/components/schemas/ClassificationEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        tags:
+          type: array
+          items:
+            type: string
+            maxLength: 80
+          maxItems: 20
+        cost_center_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        payment_method_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        installments:
+          type: integer
+          maximum: 48
+          minimum: 1
+          description: Solo una compra con tarjeta.
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: Solo una compra con tarjeta.
+        rate_convention:
+          type: string
+          maxLength: 3
     MovementEntries:
       type: object
       properties:
@@ -6436,7 +6890,7 @@ components:
           - string
           - 'null'
           maxLength: 4
-        exempt_gmf:
+        gmf_exempt:
           type: boolean
         liquid:
           type: boolean
@@ -6465,7 +6919,7 @@ components:
         rate:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
-          example: '180000'
+          example: '0.24'
         rate_convention:
           $ref: '#/components/schemas/RateConventionEnum'
         installment_system:
@@ -6477,7 +6931,7 @@ components:
         min_payment_rate:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
-          example: '180000'
+          example: '0.24'
         last4:
           type:
           - string
@@ -6824,7 +7278,7 @@ components:
         monthly_rate:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
-          example: '180000'
+          example: '0.24'
           description: Fracción mensual efectiva con que se calculó (puede traer 10
             decimales).
         system:
@@ -7063,7 +7517,7 @@ components:
           - string
           - 'null'
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
-          example: '180000'
+          example: '0.24'
           description: Por defecto, la de la tarjeta.
         rate_convention:
           oneOf:
@@ -7524,7 +7978,7 @@ components:
           - string
           - 'null'
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
-          example: '180000'
+          example: '0.24'
         rate_convention:
           oneOf:
           - $ref: '#/components/schemas/RateConventionEnum'
@@ -7584,6 +8038,25 @@ components:
           maxLength: 200
       required:
       - reason
+    SpentEffect:
+      type: object
+      properties:
+        period:
+          type: string
+          format: date
+          description: Primer día del mes.
+        before:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        after:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - after
+      - before
+      - period
     Statement:
       type: object
       properties:

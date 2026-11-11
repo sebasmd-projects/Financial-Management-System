@@ -4,16 +4,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/api";
-import type { Account, Movement, MovementEntries } from "@/api/models";
+import type { Account, Category, EditPreview, Movement, MovementEntries } from "@/api/models";
 import { paths } from "@/api/paths";
 import { parsePositiveAmount } from "@/lib/amount-input";
-import { formatCop } from "@/lib/money";
+import { compareAmounts, formatCop } from "@/lib/money";
 import { formatDateLong, todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import { setDraft } from "../draft-store";
-import { effectPhrase, movementAccounts, signedAmount } from "../helpers";
+import { effectPhrase, movementAccounts, signedAmount, transferAccounts } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, DefinitionList, Empty, ErrorState, FormActions, Loading, Modal, Money, ScreenHeader, Section, Segmented, SelectField, TextArea, TextField } from "../kit";
+import { EditPreviewPanel } from "./edit-preview";
 import { EntryTable } from "./entry-table";
 import { amountToInput } from "./movement-form";
 
@@ -198,10 +199,10 @@ function ConfirmForm({ movement, onDone, onCancel }: { movement: Movement; onDon
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <p className="muted">{t.confirmIntro}</p>
-      <AmountField label={dict.fin.form.amount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />
+      <AmountField apiCode={submit.errorCode} label={dict.fin.form.amount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />
       <TextField label={dict.fin.form.date} type="date" value={date} onChange={setDate} required />
       <SelectField label={dict.fin.form.account} value={accountId} onChange={setAccountId} options={movementAccounts(accounts.items).map((a) => ({ value: a.id, label: a.name }))} />
-      {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
+      {submit.error && submit.errorCode !== "too_many_decimals" && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
       <Buttons pending={submit.pending} label={t.confirm} onCancel={onCancel} disabled={!amount} />
     </form>
   );
@@ -227,20 +228,25 @@ function ReasonForm({ kind, movement, onDone, onCancel }: { kind: "annul" | "adj
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <p className="muted">{kind === "annul" ? (movement.status === "pendiente" ? t.discardIntro : t.annulIntro) : t.adjustIntro}</p>
-      {kind === "adjust" && <AmountField label={t.newAmount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />}
+      {kind === "adjust" && <AmountField apiCode={submit.errorCode} label={t.newAmount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />}
       <TextArea label={t.reason} value={reason} onChange={setReason} required maxLength={280} hint={t.reasonHint} />
-      {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
+      {submit.error && submit.errorCode !== "too_many_decimals" && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
       <Buttons pending={submit.pending} label={kind === "annul" ? (movement.status === "pendiente" ? t.discard : t.annul) : t.adjust} onCancel={onCancel} disabled={!valid} />
     </form>
   );
 }
 
-/** Editar en el sitio: lo que no toca el libro (descripción, nota, contraparte, naturaleza, clasificación, etiquetas). Dinero y fecha, solo en un pendiente. */
+/**
+ * Editar. Lo que no toca el libro (descripción, nota, contraparte, naturaleza, clasificación, etiquetas) se cambia en el sitio con
+ * PATCH. Monto, fecha, cuenta o categoría: en un pendiente, PATCH; en uno confirmado o conciliado, `edit/preview` → pantalla de
+ * efectos → `edit/apply` con el token (el servidor decide si es un asiento de ajuste o anular y recrear).
+ */
 function EditForm({ movement, onDone, onCancel }: { movement: Movement; onDone: () => void; onCancel: () => void }) {
-  const { dict } = useI18n();
-  const t = dict.fin.detail;
+  const { dict, locale } = useI18n();
   const f = dict.fin.form;
   const submit = useSubmit();
+  const accounts = useAll<Account>(paths.accounts());
+  const categories = useAll<Category>(paths.categories({ archived: false }));
   const pending = movement.status === "pendiente";
   const [description, setDescription] = useState(movement.description ?? "");
   const [counterparty, setCounterparty] = useState(movement.counterparty?.name ?? "");
@@ -250,35 +256,58 @@ function EditForm({ movement, onDone, onCancel }: { movement: Movement; onDone: 
   const [tags, setTags] = useState(movement.tags.map((tag) => tag.name).join(", "));
   const [amountText, setAmountText] = useState(amountToInput(movement.amount));
   const [date, setDate] = useState(movement.date);
+  const [accountId, setAccountId] = useState(movement.account.id);
+  const [categoryId, setCategoryId] = useState(movement.category?.id ?? "");
+  const [preview, setPreview] = useState<EditPreview | null>(null);
   const amount = parsePositiveAmount(amountText);
+  const isTransfer = movement.type === "transfer";
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (pending && !amount) return;
-    const body = {
+    if (!amount) return;
+    const inPlace = {
       description: description.trim() || null,
       counterparty: counterparty.trim() || null,
       notes: notes.trim() || null,
       nature: nature as "" | "fixed" | "variable",
       classification: classification as "" | "necessary" | "discretionary",
       tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
-      ...(pending ? { amount: amount!, date } : {}),
     };
-    const result = await submit.run(body, (key) => api.patch(paths.movement(movement.id), body, { idempotencyKey: key }));
-    if (result.ok) onDone();
+    const money = {
+      ...(compareAmounts(amount, movement.amount) !== 0 ? { amount } : {}),
+      ...(date !== movement.date ? { date } : {}),
+      ...(accountId !== movement.account.id ? { account_id: accountId } : {}),
+      ...(!isTransfer && categoryId !== (movement.category?.id ?? "") ? { category_id: categoryId || null } : {}),
+    };
+    if (pending) {
+      const body = { ...inPlace, ...money };
+      const result = await submit.run(body, (key) => api.patch(paths.movement(movement.id), body, { idempotencyKey: key }));
+      if (result.ok) onDone();
+      return;
+    }
+    if (Object.keys(money).length === 0) {
+      const result = await submit.run(inPlace, (key) => api.patch(paths.movement(movement.id), inPlace, { idempotencyKey: key }));
+      if (result.ok) onDone();
+      return;
+    }
+    // Confirmado o conciliado: primero la vista previa (no escribe nada), con los campos que cambian.
+    const body = { ...inPlace, ...money };
+    const result = await submit.run(body, (key) => api.post<EditPreview>(paths.movementEdit(movement.id, "preview"), body, { idempotencyKey: key, locale }));
+    if (result.ok) setPreview(result.data);
   }
+
+  if (preview) return <EditPreviewPanel movementId={movement.id} preview={preview} onBack={() => setPreview(null)} onApplied={onDone} />;
+
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
-      {!pending && <p className="muted">{t.editHint}</p>}
-      {pending && (
-        <>
-          <AmountField label={f.amount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />
-          <TextField label={f.date} type="date" value={date} onChange={setDate} required />
-        </>
-      )}
-      {movement.type !== "transfer" && <TextField label={f.counterparty} value={counterparty} onChange={setCounterparty} maxLength={80} />}
+      {!pending && <p className="muted">{dict.fin.edit.moneyHint}</p>}
+      <AmountField apiCode={submit.errorCode} label={f.amount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />
+      <TextField label={f.date} type="date" value={date} onChange={setDate} required />
+      <SelectField label={f.account} value={accountId} onChange={setAccountId} options={(isTransfer ? transferAccounts(accounts.items) : movementAccounts(accounts.items)).map((a) => ({ value: a.id, label: a.name }))} />
+      {!isTransfer && <SelectField label={f.category} value={categoryId} onChange={setCategoryId} placeholder={f.noCategory} options={categories.items.filter((c) => c.kind === (movement.type === "income" ? "income" : "expense")).map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />}
+      {!isTransfer && <TextField label={f.counterparty} value={counterparty} onChange={setCounterparty} maxLength={80} />}
       <TextField label={f.description} value={description} onChange={setDescription} maxLength={200} />
-      {movement.type !== "transfer" && (
+      {!isTransfer && (
         <>
           <Segmented legend={f.nature} options={[{ value: "", label: f.none }, { value: "fixed", label: f.natures.fixed }, { value: "variable", label: f.natures.variable }]} value={nature} onChange={setNature} />
           <Segmented legend={f.classification} options={[{ value: "", label: f.none }, { value: "necessary", label: f.classifications.necessary }, { value: "discretionary", label: f.classifications.discretionary }]} value={classification} onChange={setClassification} />
@@ -286,8 +315,8 @@ function EditForm({ movement, onDone, onCancel }: { movement: Movement; onDone: 
         </>
       )}
       <TextArea label={f.notes} value={notes} onChange={setNotes} maxLength={280} />
-      {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
-      <Buttons pending={submit.pending} label={dict.fin.common.save} onCancel={onCancel} disabled={pending && !amount} />
+      {submit.error && submit.errorCode !== "too_many_decimals" && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
+      <Buttons pending={submit.pending} label={pending ? dict.fin.common.save : dict.fin.edit.preview} onCancel={onCancel} disabled={!amount} />
     </form>
   );
 }

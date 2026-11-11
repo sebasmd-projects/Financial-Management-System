@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fractionToPercent, normalizeAmountInput, parsePositiveAmount, percentToFraction } from "./amount-input";
+import { amountInputProblem, fractionToPercent, normalizeAmountInput, parsePositiveAmount, percentToFraction } from "./amount-input";
 
 describe("monto escrito por la persona → cadena decimal", () => {
   it.each([
@@ -52,5 +52,20 @@ describe("tasas: porcentaje que escribe la persona ⇄ fracción de la API", () 
     ["0.00005", "0.005"],
   ])("fracción %j → %j %%", (fraction, expected) => {
     expect(fractionToPercent(fraction)).toBe(expected);
+  });
+});
+
+describe("qué tiene mal un monto (decimales de más)", () => {
+  it.each([
+    ["1,2345", "too_many_decimals"],
+    ["1234.5678", "too_many_decimals"],
+    ["0,125", "too_many_decimals"],
+    ["abc", "invalid"],
+    ["1.5.0", "invalid"],
+    ["180.000", null],
+    ["12,50", null],
+    ["", null],
+  ])("%j → %j", (raw, expected) => {
+    expect(amountInputProblem(raw)).toBe(expected);
   });
 });

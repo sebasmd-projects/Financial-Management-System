@@ -62,6 +62,8 @@ export interface Submit {
   pending: boolean;
   /** Texto del último fallo (ya localizado), o `null`. */
   error: string | null;
+  /** `code` de la API del último fallo (p. ej. `too_many_decimals`), para mostrarlo en el campo que corresponde. */
+  errorCode: string | null;
   clearError: () => void;
   /**
    * Ejecuta una escritura. `fingerprint` identifica la intención (el cuerpo): mientras sea el mismo y la acción no haya tenido
@@ -76,6 +78,7 @@ export function useSubmit(): Submit {
   const busy = useRef(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
 
   const run = useCallback<Submit["run"]>(
     async (fingerprint, call) => {
@@ -83,6 +86,7 @@ export function useSubmit(): Submit {
       busy.current = true;
       setPending(true);
       setError(null);
+      setErrorCode(null);
       try {
         const result = await call(keys.current.keyFor(JSON.stringify(fingerprint)));
         if (result.ok) {
@@ -90,6 +94,7 @@ export function useSubmit(): Submit {
           return { ok: true, data: result.data };
         }
         setError(errorText(result, dict.fin.errors));
+        setErrorCode(result.code);
         return { ok: false };
       } finally {
         busy.current = false;
@@ -99,7 +104,7 @@ export function useSubmit(): Submit {
     [dict],
   );
 
-  return { pending, error, clearError: useCallback(() => setError(null), []), run };
+  return { pending, error, errorCode, clearError: useCallback(() => { setError(null); setErrorCode(null); }, []), run };
 }
 
 const MAX_PAGES = 50;

@@ -100,7 +100,7 @@ export function MovementForm() {
 
   const phrase = effectPhrase({ type: state.type, pending: effectiveStatus === "pending", account, toAccount, amount }, t.effect, formatCop);
   const overdraw = amount && account && state.type === "expense" && wouldOverdraw(account, amount) ? fill(t.overdraw, { account: account.name, balance: formatCop(addAmounts(account.posted_balance, negateAmount(amount))) }) : null;
-  const gmfApplies = isTransfer && account ? (state.gmf ?? !account.exempt_gmf) : false;
+  const gmfApplies = isTransfer && account ? (state.gmf ?? !account.gmf_exempt) : false;
 
   const errors = {
     amount: touched && !amount ? (state.amount.trim() === "" ? t.errors.amountRequired : dict.fin.common.invalidAmount) : null,
@@ -237,7 +237,7 @@ export function MovementForm() {
 
           <Segmented legend={t.type} options={typeOptions} value={state.type} onChange={(v) => set("type", v as MovementType)} />
 
-          <AmountField label={t.amount} value={state.amount} onChange={(v) => set("amount", v)} error={errors.amount} required preview={amount ? formatCop(amount) : null} />
+          <AmountField apiCode={submit.errorCode} label={t.amount} value={state.amount} onChange={(v) => set("amount", v)} error={errors.amount} required preview={amount ? formatCop(amount) : null} />
 
           {phrase && <p className="fin-phrase">{phrase}</p>}
           {overdraw && <Banner tone="warning">{overdraw}</Banner>}
@@ -256,7 +256,7 @@ export function MovementForm() {
               <Segmented legend={t.to} variant="chips" options={usable.filter((a) => a.id !== accountId).map((a) => ({ value: a.id, label: a.name }))} value={state.toAccountId} onChange={(v) => set("toAccountId", v)} />
               {errors.toAccount && <p className="field__error">{errors.toAccount}</p>}
               {account && (
-                <Checkbox label={t.applyGmf} hint={account.exempt_gmf ? t.gmfExempt : t.gmfHint} checked={gmfApplies} onChange={(v) => set("gmf", v)} />
+                <Checkbox label={t.applyGmf} hint={account.gmf_exempt ? t.gmfExempt : t.gmfHint} checked={gmfApplies} onChange={(v) => set("gmf", v)} />
               )}
             </>
           )}
@@ -317,7 +317,7 @@ export function MovementForm() {
             </div>
           )}
 
-          {submit.error && (
+          {submit.error && submit.errorCode !== "too_many_decimals" && (
             <Banner tone="negative" live="assertive">
               {submit.error}
             </Banner>

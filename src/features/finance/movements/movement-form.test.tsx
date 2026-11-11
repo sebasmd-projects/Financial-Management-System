@@ -16,7 +16,7 @@ vi.mock("next/navigation", () => ({
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-const ACCOUNT = { id: "a-1", type: "asset", kind: "savings", system_key: "", name: "Ahorros Bancolombia", last4: null, institution: null, parent_id: null, currency: "COP", exempt_gmf: false, liquid: true, enforce_funds: false, status: "active", posted_balance: "3420000.00", projected_balance: "3420000.00" };
+const ACCOUNT = { id: "a-1", type: "asset", kind: "savings", system_key: "", name: "Ahorros Bancolombia", last4: null, institution: null, parent_id: null, currency: "COP", gmf_exempt: false, liquid: true, enforce_funds: false, status: "active", posted_balance: "3420000.00", projected_balance: "3420000.00" };
 const CATEGORY = { id: "c-1", name: "Combustible", kind: "expense", parent_id: null, path: ["Transporte", "Combustible"], account_id: "x", default_nature: "variable", default_classification: "necessary", archived: false };
 const RECENT = { id: "m-1", type: "expense", origin: "manual", status: "confirmado", voided: false, date: "2026-11-09", amount: "180000.00", currency: "COP", description: null, notes: null, counterparty: { id: "p-1", name: "Terpel" }, category: { id: "c-1", name: "Combustible", path: ["Transporte", "Combustible"] }, nature: "variable", classification: "necessary", tags: [], cost_center: null, payment_method: null, account: { id: "a-1", name: "Ahorros Bancolombia" }, to_account: null, refund_of_id: null, gmf: null, entry_id: "e", entry_number: 1, attachments: 0, installment_plan: null };
 const page = (results: unknown[]) => ({ status: 200, json: { count: results.length, page: 1, page_size: 100, results } });
@@ -126,6 +126,21 @@ describe("alta rápida de movimientos", () => {
     await settle();
     const keys = posts(mock).map((call) => call.headers.get("Idempotency-Key"));
     expect(new Set(keys).size).toBe(2);
+  });
+
+  it("más de 2 decimales: se avisa en el campo al escribir y también si el servidor responde too_many_decimals", async () => {
+    mount({ "POST /api/fms/v1/movements": { status: 400, json: { code: "too_many_decimals", detail: "amount" } } });
+    await settle();
+    const amount = () => host.querySelector<HTMLInputElement>("input.input--amount")!;
+    type(amount(), "1,2345");
+    expect(host.querySelector(".field__error")?.textContent).toBe(es.fin.errors.too_many_decimals);
+    expect(saveButton().disabled).toBe(true);
+    type(amount(), "12,50");
+    expect(host.querySelector(".field__error")).toBeNull();
+    click(saveButton());
+    await settle();
+    expect(host.querySelector(".field__error")?.textContent).toBe(es.fin.errors.too_many_decimals);
+    expect(host.querySelectorAll('[role="alert"]')).toHaveLength(0);
   });
 
   it("en inglés el formulario y sus mensajes salen en inglés", async () => {

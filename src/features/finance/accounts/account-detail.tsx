@@ -37,7 +37,7 @@ export function AccountDetail({ id }: { id: string }) {
   const group = accountGroup(a);
 
   async function setExempt(value: boolean) {
-    const result = await toggle.run({ exempt_gmf: value }, (key) => api.patch<Account>(paths.account(id), { exempt_gmf: value }, { idempotencyKey: key }));
+    const result = await toggle.run({ gmf_exempt: value }, (key) => api.patch<Account>(paths.account(id), { gmf_exempt: value }, { idempotencyKey: key }));
     if (result.ok) account.reload();
   }
 
@@ -64,7 +64,7 @@ export function AccountDetail({ id }: { id: string }) {
           </p>
         )}
         <p className="fin-row__badges">
-          {a.exempt_gmf && <Badge tone="info">{t.exemptGmf}</Badge>}
+          {a.gmf_exempt && <Badge tone="info">{t.exemptGmf}</Badge>}
           {a.status !== "active" && <Badge tone="warning">{t.status[a.status]}</Badge>}
         </p>
       </section>
@@ -84,7 +84,7 @@ export function AccountDetail({ id }: { id: string }) {
       </div>
 
       <Section title={t.settings}>
-        <Checkbox label={t.fields.exempt} hint={t.fields.exemptHint} checked={a.exempt_gmf} onChange={(v) => void setExempt(v)} />
+        <Checkbox label={t.fields.exempt} hint={t.fields.exemptHint} checked={a.gmf_exempt} onChange={(v) => void setExempt(v)} />
         {toggle.error && <Banner tone="negative" live="assertive">{toggle.error}</Banner>}
         <DefinitionList
           rows={[

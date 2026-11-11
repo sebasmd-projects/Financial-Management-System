@@ -6,6 +6,7 @@
  */
 import Link from "next/link";
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { amountInputProblem } from "@/lib/amount-input";
 import { formatCop, formatCopCompact, spokenCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { Icon, type IconName } from "@/ui/icons";
@@ -173,14 +174,20 @@ export function TextField({ label, hint, error, required, value, onChange, type 
   );
 }
 
-/** Monto: texto con teclado decimal; el valor se interpreta con `lib/amount-input.ts`, nunca con `Number`. */
-export function AmountField(props: BaseField & { value: string; onChange: (value: string) => void; preview?: string | null }) {
+/**
+ * Monto: texto con teclado decimal; el valor se interpreta con `lib/amount-input.ts`, nunca con `Number`. Hasta 2 decimales: más
+ * se avisa aquí mismo (`too_many_decimals`, el mismo código del servidor, que además puede devolverlo: `apiCode`).
+ */
+export function AmountField(props: BaseField & { value: string; onChange: (value: string) => void; preview?: string | null; apiCode?: string | null }) {
   const id = useId();
-  const { value, onChange, preview, ...shell } = props;
+  const { dict } = useI18n();
+  const { value, onChange, preview, apiCode, ...shell } = props;
+  const decimals = amountInputProblem(value) === "too_many_decimals" || apiCode === "too_many_decimals";
+  const error = decimals ? dict.fin.errors.too_many_decimals : shell.error;
   return (
-    <FieldShell id={id} {...shell} hint={shell.hint}>
-      <input id={id} className="input input--amount tabular" type="text" inputMode="decimal" autoComplete="off" placeholder="0" value={value} required={shell.required} aria-invalid={shell.error ? true : undefined} aria-describedby={describedBy(id, shell.hint, shell.error)} onChange={(event) => onChange(event.target.value)} />
-      {preview && (
+    <FieldShell id={id} {...shell} error={error} hint={shell.hint}>
+      <input id={id} className="input input--amount tabular" type="text" inputMode="decimal" autoComplete="off" placeholder="0" value={value} required={shell.required} aria-invalid={error ? true : undefined} aria-describedby={describedBy(id, shell.hint, error)} onChange={(event) => onChange(event.target.value)} />
+      {preview && !decimals && (
         <p className="fin-amount-preview tabular" aria-live="polite">
           {preview}
         </p>

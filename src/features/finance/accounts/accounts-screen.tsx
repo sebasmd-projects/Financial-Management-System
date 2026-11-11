@@ -134,7 +134,7 @@ export function AccountRow({ account }: { account: Account }) {
           {account.institution ? ` · ${account.institution.name}` : ""}
         </span>
         <span className="fin-row__badges">
-          {account.exempt_gmf && <Badge tone="info">{t.exemptGmf}</Badge>}
+          {account.gmf_exempt && <Badge tone="info">{t.exemptGmf}</Badge>}
           {account.status !== "active" && <Badge tone="warning">{t.status[account.status]}</Badge>}
         </span>
       </span>
@@ -217,7 +217,7 @@ function AccountForm({ onDone, onCancel }: { onDone: () => void; onCancel: () =>
       kind,
       opening_balance: openingValue,
       opening_date: todayBogota(),
-      exempt_gmf: exempt,
+      gmf_exempt: exempt,
       ...(institution ? { institution_id: toInt(institution) } : {}),
       ...(last4 ? { last4 } : {}),
     };

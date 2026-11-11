@@ -5,6 +5,24 @@
  */
 import { isValidAmountInput } from "./money";
 
+/**
+ * ¿Qué tiene mal el texto de un monto? `too_many_decimals` (más de 2 decimales: nunca se redondea, igual que el servidor),
+ * `invalid` (no es un monto) o `null` si es válido o está vacío.
+ */
+export function amountInputProblem(raw: string): "too_many_decimals" | "invalid" | null {
+  const text = raw.replace(/[\s$\u00a0]/g, "");
+  if (text === "" || normalizeAmountInput(raw) !== null) return null;
+  if (!/^[\d.,]+$/.test(text)) return "invalid";
+  const last = Math.max(text.lastIndexOf("."), text.lastIndexOf(","));
+  const before = text.slice(0, last);
+  const after = text.slice(last + 1);
+  const single = !/[.,]/.test(before);
+  // «1,2345» o «0,125»: una sola coma/punto y demasiados decimales. «12.345.678» sí son miles.
+  if (last !== -1 && single && after.length >= 4) return "too_many_decimals";
+  if (last !== -1 && single && after.length === 3 && (before === "" || before === "0")) return "too_many_decimals";
+  return "invalid";
+}
+
 export function normalizeAmountInput(raw: string): string | null {
   const text = raw.replace(/[\s$ ]/g, "");
   if (text === "" || !/^[\d.,]+$/.test(text)) return null;
@@ -22,6 +40,9 @@ export function normalizeAmountInput(raw: string): string | null {
       fraction = after;
     }
   }
+  // Sin parte decimal: los separadores son de miles y tienen que agrupar de a 3 (`1.200.000`), no «0,125» ni «1,2345».
+  if (!fraction && /[.,]/.test(whole) && !/^\d{1,3}([.,]\d{3})+$/.test(whole)) return null;
+  if (!fraction && /^0[.,]/.test(whole)) return null;
   whole = whole.replace(/[.,]/g, "");
   if (whole === "") whole = "0";
   const candidate = fraction ? `${whole}.${fraction}` : whole;

@@ -29,6 +29,7 @@ import { CardStatement } from "./cards/card-statement";
 import { CategoriesScreen, TagsScreen } from "./catalog/catalog-screens";
 import { NotificationsScreen } from "./notifications/notifications-screen";
 import { RulesScreen } from "./notifications/rules-screen";
+import { ImportScreen } from "./import/import-screen";
 import { LoanDetail } from "./loans/loan-detail";
 import { LoanTable } from "./loans/loan-table";
 import { LoansScreen } from "./loans/loans-screen";
@@ -59,6 +60,8 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <AccountsScreen tab="debito" />;
     case "cuentas-credito":
       return <AccountsScreen tab="credito" />;
+    case "cuentas-importar":
+      return <ImportScreen />;
     case "cuenta":
       return <AccountDetail id={first} />;
     case "cuenta-conciliar":

@@ -13,6 +13,7 @@ export const IMPLEMENTED: ReadonlySet<RouteId> = new Set<RouteId>([
   "cuentas-credito",
   "cuenta",
   "cuenta-conciliar",
+  "cuentas-importar",
   "movimientos",
   "movimientos-ingresos",
   "movimientos-egresos",

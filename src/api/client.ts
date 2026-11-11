@@ -87,7 +87,8 @@ export function createApiClient(deps: ClientDeps) {
       const token = await csrfToken(options.signal);
       if (!token) return { ok: false, status: 0, code: "csrf", data: undefined };
       headers["X-CSRFToken"] = token;
-      if (options.body !== undefined) headers["Content-Type"] = "application/json";
+      // Un `FormData` (la carga de un extracto) lo rotula el navegador con su `boundary`: no se le pone `Content-Type`.
+      if (options.body !== undefined && !(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
       if (options.idempotencyKey) headers["Idempotency-Key"] = options.idempotencyKey;
     }
 
@@ -99,7 +100,7 @@ export function createApiClient(deps: ClientDeps) {
         credentials: "same-origin",
         cache: "no-store",
         signal: options.signal,
-        body: options.body === undefined || method === "GET" ? undefined : JSON.stringify(options.body),
+        body: options.body === undefined || method === "GET" ? undefined : options.body instanceof FormData ? options.body : JSON.stringify(options.body),
       });
     } catch {
       // Sin red, o cancelada. No se reintenta: un POST puede haber llegado.

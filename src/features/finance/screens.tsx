@@ -20,6 +20,7 @@ import { IndicatorsScreen } from "./plan/indicators-screen";
 import { NetWorthScreen, ProjectionsScreen, ReportScreen, ReportsHome, StatisticsScreen } from "./reports/reports-screens";
 import { AccountDetail } from "./accounts/account-detail";
 import { AccountsScreen } from "./accounts/accounts-screen";
+import { CurrenciesScreen } from "./currencies/currencies-screen";
 import { CalendarScreen } from "./calendar/calendar-screen";
 import { CardDetail } from "./cards/card-detail";
 import { CardPay } from "./cards/card-pay";
@@ -148,6 +149,8 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <CategoriesScreen />;
     case "config-etiquetas":
       return <TagsScreen />;
+    case "config-monedas":
+      return <CurrenciesScreen />;
     case "config-parametros":
       return <ParametersScreen />;
     case "config-reglas":

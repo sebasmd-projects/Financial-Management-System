@@ -8,10 +8,11 @@ import type { Account, Category, EditPreview, Movement, MovementEntries } from "
 import { paths } from "@/api/paths";
 import { parsePositiveAmount } from "@/lib/amount-input";
 import { compareAmounts, formatCop } from "@/lib/money";
-import { formatDateLong, todayBogota } from "@/lib/dates";
+import { formatDate, formatDateLong, todayBogota } from "@/lib/dates";
+import { formatForeign, formatRate } from "@/lib/decimal";
 import { useI18n } from "@/i18n/provider";
 import { setDraft } from "../draft-store";
-import { effectPhrase, movementAccounts, signedAmount, transferAccounts } from "../helpers";
+import { effectPhrase, fill, movementAccounts, signedAmount, transferAccounts } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, DefinitionList, Empty, ErrorState, FormActions, Loading, Modal, Money, ScreenHeader, Section, Segmented, SelectField, TextArea, TextField } from "../kit";
 import { EditPreviewPanel } from "./edit-preview";
@@ -125,6 +126,19 @@ export function MovementDetail({ id }: { id: string }) {
         </div>
       )}
       {m.status === "conciliado" && <p className="hint">{t.reconciledHint}</p>}
+
+      {m.original && (
+        <Section title={dict.fin.fx.detail.title}>
+          <DefinitionList
+            rows={[
+              { label: dict.fin.fx.detail.original, value: <span className="tabular">{formatForeign(m.original.amount, m.original.currency)}</span> },
+              { label: dict.fin.fx.detail.rate, value: <span className="tabular">{fill(dict.fin.fx.detail.rateLine, { currency: m.original.currency, rate: formatRate(m.original.rate), date: m.original.rate_date ? formatDate(m.original.rate_date) : "" })}</span> },
+              ...(m.original.source ? [{ label: dict.fin.fx.detail.source, value: m.original.source }] : []),
+              { label: dict.fin.fx.detail.booked, value: <Money value={m.amount} /> },
+            ]}
+          />
+        </Section>
+      )}
 
       <Section title={t.classification}>
         <DefinitionList

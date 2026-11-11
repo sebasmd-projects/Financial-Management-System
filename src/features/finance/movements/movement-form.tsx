@@ -11,6 +11,8 @@ import { todayBogota } from "@/lib/dates";
 import { absAmount, addAmounts, formatCop, negateAmount } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
+import { ForeignFields, useForeign } from "../currencies/fx-fields";
+import { EMPTY_FOREIGN, type ForeignState } from "../currencies/logic";
 import { clearDraft, peekDraft, type MovementDraft } from "../draft-store";
 import { effectPhrase, fill, movementAccounts, topByFrequency, wouldOverdraw } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
@@ -70,6 +72,7 @@ export function MovementForm() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [touched, setTouched] = useState(false);
   const [saved, setSaved] = useState<{ movement: Movement; warnings: Warning[] } | null>(null);
+  const [foreign, setForeign] = useState<ForeignState>(EMPTY_FOREIGN);
 
   const accounts = useAll<Account>(paths.accounts());
   const categories = useAll<Category>(paths.categories({ archived: false }));
@@ -86,7 +89,10 @@ export function MovementForm() {
   const account = usable.find((a) => a.id === accountId) ?? null;
   const toAccount = usable.find((a) => a.id === state.toAccountId) ?? null;
 
-  const amount = parsePositiveAmount(state.amount);
+  const fx = useForeign(foreign, state.date);
+  // Con «otra moneda» los pesos salen de la vista previa de la conversión; el servidor fija el valor al guardar.
+  const foreignOn = foreign.enabled && state.type !== "transfer";
+  const amount = foreignOn ? fx.result.pesos : parsePositiveAmount(state.amount);
   const effectiveStatus = state.status || (state.date > todayBogota() ? "pending" : "confirmed");
   const isTransfer = state.type === "transfer";
   const categoryKind = state.type === "income" ? "income" : "expense";
@@ -129,8 +135,9 @@ export function MovementForm() {
     event.preventDefault();
     setTouched(true);
     if (!amount || !account || (isTransfer && (!toAccount || toAccount.id === account.id))) return;
+    if (foreignOn && !fx.result.body) return;
     const common = {
-      amount,
+      ...(foreignOn ? fx.result.body : { amount }),
       date: state.date,
       status: effectiveStatus,
       ...(state.description.trim() ? { description: state.description.trim() } : {}),
@@ -155,6 +162,7 @@ export function MovementForm() {
       clearDraft();
       setSaved({ movement: result.data, warnings: result.data.warnings ?? [] });
       setTouched(false);
+      setForeign((current) => ({ ...current, amount: "" }));
       setState((current) => ({ ...current, amount: "", description: "", counterparty: "", notes: "", tags: "", categoryId: "", nature: "", classification: "", paymentMethodId: "", gmf: null }));
       recents.reload();
       accounts.reload();
@@ -237,7 +245,8 @@ export function MovementForm() {
 
           <Segmented legend={t.type} options={typeOptions} value={state.type} onChange={(v) => set("type", v as MovementType)} />
 
-          <AmountField apiCode={submit.errorCode} label={t.amount} value={state.amount} onChange={(v) => set("amount", v)} error={errors.amount} required preview={amount ? formatCop(amount) : null} />
+          {!foreignOn && <AmountField apiCode={submit.errorCode} label={t.amount} value={state.amount} onChange={(v) => set("amount", v)} error={errors.amount} required preview={amount ? formatCop(amount) : null} />}
+          {!isTransfer && <ForeignFields state={foreign} onChange={setForeign} fx={fx} touched={touched} />}
 
           {phrase && <p className="fin-phrase">{phrase}</p>}
           {overdraw && <Banner tone="warning">{overdraw}</Banner>}

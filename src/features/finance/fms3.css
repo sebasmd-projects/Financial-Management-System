@@ -1,0 +1,3 @@
+/* FMS-2b (cortes 2.5 a 2.8): monedas, importación, patrimonio y vehículos, clasificación y auditoría. Mobile first; solo tokens de `ui/tokens.css`. */
+
+.fin-stack { display: grid; gap: var(--space-16); min-width: 0; }

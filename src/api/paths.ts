@@ -33,6 +33,9 @@ export const roots = {
   reconciliations: "/reconciliations",
   pushSubscription: "/push-subscription",
   notificationsRead: "/notifications/read",
+  debts: "/debts",
+  budgets: "/budgets",
+  goals: "/goals",
 } as const;
 
 export const paths = {
@@ -84,4 +87,29 @@ export const paths = {
   reconciliationPreview: () => "/reconciliations/preview",
   reconciliationAdjust: () => "/reconciliations/adjust",
   reconciliationReopen: (reconciliationId: string) => `/reconciliations/${id(reconciliationId)}/reopen`,
+  // FMS-2a: créditos, deudas personales y simuladores (los simuladores son POST y no escriben nada)
+  loanRates: (loanId: string) => `/loans/${id(loanId)}/rates`,
+  loanLate: (loanId: string, on?: string) => `/loans/${id(loanId)}/late${query({ on })}`,
+  creditInstallments: (params: Record<string, QueryValue> = {}) => `/credit/installments${query({ page_size: 100, ...params })}`,
+  creditInterest: (params: { from?: string; to?: string } = {}) => `/credit/interest${query(params)}`,
+  debts: (params: Record<string, QueryValue> = {}) => `/debts${query({ page_size: 100, ...params })}`,
+  debt: (debtId: string) => `/debts/${id(debtId)}`,
+  debtPayments: (debtId: string) => `/debts/${id(debtId)}/payments`,
+  debtReminder: (debtId: string, locale: string) => `/debts/${id(debtId)}/reminder${query({ locale })}`,
+  debtsSummary: () => "/debts/summary",
+  simulate: (kind: "rates" | "installment" | "extra-payment" | "compare" | "installment/export") => `/simulators/${kind}`,
+  // FMS-2a: planeación
+  budgets: (params: { all?: boolean; on?: string } = {}) => `/budgets${query({ all: params.all ? "true" : undefined, on: params.on })}`,
+  budget: (budgetId: string, on?: string) => `/budgets/${id(budgetId)}${query({ on })}`,
+  budgetHistory: (budgetId: string, months = 6) => `/budgets/${id(budgetId)}/history${query({ months })}`,
+  budgetSuggestions: () => "/budgets/suggestions",
+  goals: () => "/goals",
+  goal: (goalId: string) => `/goals/${id(goalId)}`,
+  goalContribute: (goalId: string) => `/goals/${id(goalId)}/contribute`,
+  indicators: (month?: string) => `/indicators${query({ month })}`,
+  // FMS-2a: informes
+  reports: () => "/reports",
+  report: (key: string, params: Record<string, QueryValue> = {}) => `/reports/${id(key)}${query(params)}`,
+  reportExport: (key: string) => `/reports/${id(key)}/export`,
+  liquidity: (params: Record<string, QueryValue> = {}) => `/liquidity${query(params)}`,
 };

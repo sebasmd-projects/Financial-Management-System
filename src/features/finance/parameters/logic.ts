@@ -2,10 +2,14 @@
 import type { ParameterCatalog } from "@/api/models";
 import { fractionToPercent, normalizeAmountInput, percentToFraction } from "@/lib/amount-input";
 import { isBusinessDate } from "@/lib/dates";
+import { formatDecimal, parseIndexValue } from "@/lib/decimal";
 import { toInt } from "@/lib/ints";
 import { formatCop } from "@/lib/money";
 
 export type Unit = ParameterCatalog["unit"];
+
+/** La UVR: un valor en pesos con hasta 6 decimales (no un monto de 2). */
+export const UVR_PARAMETER = "UVR_VALUE";
 
 /** La cantidad sin ceros de más: `"4.00"` → `"4"`. */
 function plainCount(value: string): string {
@@ -13,7 +17,9 @@ function plainCount(value: string): string {
 }
 
 /** Un valor vigente tal como se lee: fracción → porcentaje, monto → pesos, cantidad → entero. */
-export function displayValue(unit: Unit, value: string, locale: "es" | "en"): string {
+export function displayValue(unit: Unit, value: string, locale: "es" | "en", key?: string): string {
+  // La UVR vale ~$390 con 4 a 6 decimales: redondearla a pesos (o a centavos) cambiaría el saldo de un crédito en UVR.
+  if (key === UVR_PARAMETER) return `$${formatDecimal(value, 0, 6)}`;
   if (unit === "fraction") {
     const percent = fractionToPercent(value);
     return `${locale === "es" ? percent.replace(".", ",") : percent} %`;
@@ -23,7 +29,8 @@ export function displayValue(unit: Unit, value: string, locale: "es" | "en"): st
 }
 
 /** Lo que escribió la persona → la cadena que espera la API (la fracción de un porcentaje, el monto, el entero); `null` si no vale. */
-export function parseValue(unit: Unit, text: string): string | null {
+export function parseValue(unit: Unit, text: string, key?: string): string | null {
+  if (key === UVR_PARAMETER) return parseIndexValue(text);
   if (unit === "fraction") return percentToFraction(text);
   if (unit === "amount") {
     const amount = normalizeAmountInput(text);
@@ -35,6 +42,8 @@ export function parseValue(unit: Unit, text: string): string | null {
 
 export interface NewValueInput {
   unit: Unit;
+  /** La clave del parámetro: la UVR se captura con más decimales que un monto. */
+  key?: string;
   value: string;
   validFrom: string;
   validTo: string;
@@ -45,7 +54,7 @@ export type NewValueProblems = Partial<Record<"value" | "validFrom" | "range" | 
 
 export function newValueBody(input: NewValueInput): { body: { value: string; valid_from: string; valid_to?: string; source: string } | null; problems: NewValueProblems } {
   const problems: NewValueProblems = {};
-  const value = parseValue(input.unit, input.value);
+  const value = parseValue(input.unit, input.value, input.key);
   if (value === null) problems.value = true;
   if (!isBusinessDate(input.validFrom)) problems.validFrom = true;
   if (input.validTo !== "" && !isBusinessDate(input.validTo)) problems.range = true;

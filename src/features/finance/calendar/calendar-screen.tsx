@@ -12,6 +12,7 @@ import { Icon } from "@/ui/icons";
 import { fill } from "../helpers";
 import { useAll, useHref, useResource } from "../hooks";
 import { Badge, Empty, ErrorState, Loading, Money, ScreenHeader, Section, Segmented, Slots } from "../kit";
+import { AmountOrPending, IndexNoticeBanner } from "../uvr/pending";
 import { calendarQuery, dayDots, itemTarget, modeFromParams, monthGrid, NAVIGABLE, shiftAnchor, type CalendarMode, MODES } from "./logic";
 
 /** Calendario financiero (`/pagos/calendario`, diseño §3.11): mes, semana, día, próximos 7/15/30 y vencidos. */
@@ -76,6 +77,7 @@ export function CalendarScreen() {
 
       {calendar.loading && !data && <Loading />}
       {calendar.failure && <ErrorState message={t.loadError} onRetry={calendar.reload} />}
+      {data && <IndexNoticeBanner notices={data.notices} />}
       {data && mode === "overdue" && <Overdue calendar={data} />}
       {data && mode === "month" && <Month calendar={data} today={today} selected={selected ?? (periodOf(today) === periodOf(data.start) ? today : data.start)} onSelect={setSelected} names={names} />}
       {data && mode !== "month" && mode !== "overdue" && <DayList calendar={data} mode={mode} names={names} />}
@@ -245,7 +247,7 @@ function ItemRow({ item, accountName }: { item: CalendarItem; accountName: strin
         {item.overdue && <Badge tone="negative">{dict.fin.fixed.overdueBadge}</Badge>}
       </div>
       <div className="fin-row__amount">
-        <Money value={item.amount} sign={item.direction === "in" ? "always" : "auto"} kind={item.direction === "in" ? "ingreso" : item.direction === "out" ? "egreso" : undefined} />
+        <AmountOrPending value={item.amount} sign={item.direction === "in" ? "always" : "auto"} kind={item.direction === "in" ? "ingreso" : item.direction === "out" ? "egreso" : undefined} />
       </div>
       {canPay && (
         <Link className="button button--ghost" href={href(target.route, target.params)}>
@@ -277,7 +279,7 @@ function Overdue({ calendar }: { calendar: Calendar }) {
                 </span>
               </div>
               <div className="fin-row__amount">
-                <Money value={item.amount} />
+                <AmountOrPending value={item.amount} />
               </div>
               <Link className="button button--primary" href={href(target.route, target.params)}>
                 {t.pay}

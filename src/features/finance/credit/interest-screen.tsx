@@ -4,12 +4,14 @@ import { useState } from "react";
 import type { CreditInterest } from "@/api/models";
 import { paths } from "@/api/paths";
 import { fractionToPercent } from "@/lib/amount-input";
-import { formatPeriod, periodOf } from "@/lib/dates";
+import { formatDate, formatPeriod, periodOf } from "@/lib/dates";
+import { formatUnits } from "@/lib/decimal";
 import { formatPercent } from "@/lib/percent";
 import { useI18n } from "@/i18n/provider";
 import { useResource } from "../hooks";
 import { Badge, Empty, ErrorState, Loading, Money, ScreenHeader, Section, TextField } from "../kit";
 import { CreditTabs } from "./credit-tabs";
+import { AmountOrPending, IndexNoticeBanner } from "../uvr/pending";
 import { UsuryNote } from "./notes";
 
 /** Intereses (`/creditos/intereses`, §3.8): corriente y de mora por mes y obligación, tasa vigente y comparación con la usura. */
@@ -30,6 +32,7 @@ export function InterestScreen() {
       </div>
       {data.loading && !d && <Loading />}
       {data.failure && <ErrorState message={dict.fin.errors.generic} onRetry={data.reload} />}
+      {d && <IndexNoticeBanner notices={d.notices} />}
       {d && d.rows.length === 0 && d.obligations.length === 0 && <Empty icon="loan" title={t.emptyTitle} body={t.emptyBody} />}
       {d && (d.rows.length > 0 || d.obligations.length > 0) && (
         <>
@@ -78,7 +81,15 @@ export function InterestScreen() {
                       <tr key={`${row.month}-${row.obligation_id}`}>
                         <th scope="row">{formatPeriod(periodOf(row.month), locale)}</th>
                         <td>{row.obligation_name}</td>
-                        <td className="table__num"><Money value={row.interest} /></td>
+                        <td className="table__num">
+                          <AmountOrPending value={row.interest} />
+                          {row.unit === "UVR" && row.interest_units !== null && row.interest_units !== undefined && (
+                            <span className="fin-row__sub muted">
+                              {formatUnits(row.interest_units, "UVR")}
+                              {row.uvr_on ? ` · ${dict.fin.uvr.uvrOn.replace("{date}", formatDate(row.uvr_on))}` : ""}
+                            </span>
+                          )}
+                        </td>
                         <td className="table__num"><Money value={row.late_interest} /></td>
                       </tr>
                     ))}

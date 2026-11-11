@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { api } from "@/api";
-import type { Account, AmortizationSystem, Institution, Loan, LoanKind } from "@/api/models";
+import type { Account, AmortizationSystem, Institution, Loan, LoanIndex, LoanKind, LoanUnit } from "@/api/models";
 import { paths, roots } from "@/api/paths";
 import { normalizeAmountInput, percentToFraction } from "@/lib/amount-input";
 import { toInt } from "@/lib/ints";
+import { formatUnits } from "@/lib/decimal";
 import { formatCop } from "@/lib/money";
 import { todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
@@ -13,6 +14,8 @@ import { RATE_CONVENTIONS, type RateConventionCode } from "../cards/cards-screen
 import { transferAccounts } from "../helpers";
 import { useAll, useResource, useSubmit } from "../hooks";
 import { AmountField, Banner, FormActions, SelectField, TextArea, TextField } from "../kit";
+import { INDEX_KEYS, parseUnits, variableRateBody } from "../uvr/logic";
+import { RegisterIndexLink } from "../uvr/pending";
 import { UsuryRateCheck } from "../credit/usury-check";
 import { parseCustomCapitals } from "./loan-logic";
 
@@ -24,6 +27,7 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
   const { dict, locale } = useI18n();
   const t = dict.fin.loans;
   const c = dict.fin.credit;
+  const u = dict.fin.uvr;
   const submit = useSubmit();
   const accounts = useAll<Account>(paths.accounts());
   const institutions = useResource<Institution[]>(paths.institutions());
@@ -47,18 +51,27 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
   const [paidInstallments, setPaidInstallments] = useState("");
   const [account, setAccount] = useState("");
   const [institution, setInstitution] = useState("");
+  const [unit, setUnit] = useState<LoanUnit>("COP");
+  const [variable, setVariable] = useState(false);
+  const [indexKey, setIndexKey] = useState<LoanIndex>("DTF_EA");
+  const [margin, setMargin] = useState("");
   const [touched, setTouched] = useState(false);
 
-  const principalValue = normalizeAmountInput(principal);
-  const rateValue = percentToFraction(rate);
+  // En UVR el capital, el seguro y los otros cargos son UNIDADES (hasta 4 decimales), no pesos: otro lector de texto.
+  const uvr = unit === "UVR";
+  const amount = (text: string) => (uvr ? parseUnits(text) : normalizeAmountInput(text));
+  const principalValue = amount(principal);
+  const variableRate = variableRateBody(variable, indexKey, margin);
+  // Con tasa variable la tasa la pone el índice de la fecha de desembolso más el margen: el servidor ignora la que se envíe.
+  const rateValue = variable ? (variableRate.problem === null ? "0" : null) : percentToFraction(rate);
   const termValue = toInt(term, 1, 600);
-  const insuranceValue = insurance.trim() === "" ? "0" : normalizeAmountInput(insurance);
-  const chargesValue = otherCharges.trim() === "" ? "0" : normalizeAmountInput(otherCharges);
+  const insuranceValue = insurance.trim() === "" ? "0" : amount(insurance);
+  const chargesValue = otherCharges.trim() === "" ? "0" : amount(otherCharges);
   const paidValue = paidInstallments.trim() === "" ? 0 : toInt(paidInstallments, 0, 599);
   const lateValue = lateRate.trim() === "" ? null : percentToFraction(lateRate);
   const lateBad = lateRate.trim() !== "" && lateValue === null;
   const lateNeedsSource = lateValue !== null && lateSource.trim() === "";
-  const customParsed = system === "custom" ? parseCustomCapitals(custom, termValue, principalValue) : null;
+  const customParsed = system === "custom" && !uvr ? parseCustomCapitals(custom, termValue, principalValue) : null;
   const valid =
     name.trim() !== "" && principalValue !== null && rateValue !== null && termValue !== null && insuranceValue !== null && chargesValue !== null && paidValue !== null && firstDue !== "" && !lateBad && !lateNeedsSource && (customParsed === null || customParsed.problem === null);
 
@@ -71,7 +84,9 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
       kind,
       principal: principalValue!,
       rate: rateValue!,
-      rate_convention: convention,
+      rate_convention: variable ? "EA" : convention,
+      ...(uvr ? { unit } : {}),
+      ...variableRate.body,
       term: termValue!,
       system,
       insurance: insuranceValue!,
@@ -79,7 +94,7 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
       disbursement_date: disbursement,
       first_due_date: firstDue,
       ...(system === "custom" && customParsed?.capitals ? { custom_capitals: customParsed.capitals } : {}),
-      ...(rateSource.trim() ? { rate_source: rateSource.trim() } : {}),
+      ...(rateSource.trim() && !variable ? { rate_source: rateSource.trim() } : {}),
       ...(lateValue !== null ? { late_rate: lateValue, late_rate_convention: lateConvention, late_rate_source: lateSource.trim() } : {}),
       ...(paidValue ? { paid_installments: paidValue } : {}),
       ...(account ? { disbursement_account_id: account } : {}),
@@ -95,16 +110,36 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
       <TextField label={t.fields.name} value={name} onChange={setName} maxLength={80} required error={touched && name.trim() === "" ? req : null} />
       <SelectField label={c.form.kind} value={kind} onChange={(v) => setKind(v as LoanKind)} options={LOAN_KINDS.map((k) => ({ value: k, label: c.kinds[k] }))} />
       <SelectField label={t.fields.institution} value={institution} onChange={setInstitution} placeholder={dict.fin.accounts.noInstitution} options={(institutions.data ?? []).map((i) => ({ value: String(i.id), label: i.name }))} />
-      <AmountField label={t.fields.principal} value={principal} onChange={setPrincipal} required error={touched && principalValue === null ? bad : null} preview={principalValue ? formatCop(principalValue) : null} />
-      <div className="fin-grid-2">
-        <TextField label={t.fields.rate} hint={dict.fin.cards.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" required error={touched && rateValue === null ? dict.fin.cards.rateInvalid : null} />
-        <SelectField label={t.fields.convention} value={convention} onChange={(v) => setConvention(v as RateConventionCode)} options={RATE_CONVENTIONS.map((x) => ({ value: x, label: x }))} />
-      </div>
-      <UsuryRateCheck rate={rateValue} convention={convention} on={disbursement} />
-      <TextField label={c.form.rateSource} hint={c.form.rateSourceHint} value={rateSource} onChange={setRateSource} maxLength={120} />
+      <SelectField label={u.unit} hint={uvr ? u.unitUvrHint : u.unitCopHint} value={unit} onChange={(v) => setUnit(v as LoanUnit)} options={[{ value: "COP", label: u.units.COP }, { value: "UVR", label: u.units.UVR }]} />
+      {uvr ? (
+        <TextField label={u.principalUnits} hint={u.unitsInputHint} value={principal} onChange={setPrincipal} inputMode="decimal" required error={touched && principalValue === null ? u.invalidUnits : null} />
+      ) : (
+        <AmountField label={t.fields.principal} value={principal} onChange={setPrincipal} required error={touched && principalValue === null ? bad : null} preview={principalValue ? formatCop(principalValue) : null} />
+      )}
+      {uvr && principalValue && <p className="fin-amount-preview tabular" aria-live="polite">{formatUnits(principalValue, "UVR")}</p>}
+      {uvr && <p className="hint">{u.needsUvr} <RegisterIndexLink /></p>}
+      <SelectField label={u.rateKind} value={variable ? "variable" : "fixed"} onChange={(v) => setVariable(v === "variable")} options={[{ value: "fixed", label: u.rateFixed }, { value: "variable", label: u.rateVariable }]} />
+      {variable ? (
+        <>
+          <div className="fin-grid-2">
+            <SelectField label={u.index} value={indexKey} onChange={(v) => setIndexKey(v as LoanIndex)} options={INDEX_KEYS.map((k) => ({ value: k, label: u.indices[k] }))} />
+            <TextField label={u.margin} hint={u.marginHint} value={margin} onChange={setMargin} inputMode="decimal" required error={touched && variableRate.problem ? dict.fin.cards.rateInvalid : null} />
+          </div>
+          <p className="hint">{u.variableHint} <RegisterIndexLink indexKey={indexKey} /></p>
+        </>
+      ) : (
+        <>
+          <div className="fin-grid-2">
+            <TextField label={t.fields.rate} hint={dict.fin.cards.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" required error={touched && rateValue === null ? dict.fin.cards.rateInvalid : null} />
+            <SelectField label={t.fields.convention} value={convention} onChange={(v) => setConvention(v as RateConventionCode)} options={RATE_CONVENTIONS.map((x) => ({ value: x, label: x }))} />
+          </div>
+          <UsuryRateCheck rate={rateValue} convention={convention} on={disbursement} />
+          <TextField label={c.form.rateSource} hint={c.form.rateSourceHint} value={rateSource} onChange={setRateSource} maxLength={120} />
+        </>
+      )}
       <TextField label={t.fields.term} hint={t.fields.termHint} value={term} onChange={setTerm} inputMode="numeric" maxLength={3} required error={touched && termValue === null ? t.termInvalid : null} />
-      <SelectField label={t.fields.system} hint={c.form.systemHints[system]} value={system} onChange={(v) => setSystem(v as AmortizationSystem)} options={SYSTEMS.map((s) => ({ value: s, label: dict.fin.systems[s] }))} />
-      {system === "custom" && (
+      <SelectField label={t.fields.system} hint={c.form.systemHints[system]} value={system} onChange={(v) => setSystem(v as AmortizationSystem)} options={SYSTEMS.filter((s) => !(uvr && s === "custom")).map((s) => ({ value: s, label: dict.fin.systems[s] }))} />
+      {system === "custom" && !uvr && (
         <TextArea
           label={c.form.customTitle}
           hint={c.form.customHint}
@@ -115,8 +150,17 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
         />
       )}
       <div className="fin-grid-2">
-        <AmountField label={t.fields.insurance} hint={t.fields.insuranceHint} value={insurance} onChange={setInsurance} error={touched && insuranceValue === null ? bad : null} />
-        <AmountField label={c.form.otherCharges} hint={c.form.otherChargesHint} value={otherCharges} onChange={setOtherCharges} error={touched && chargesValue === null ? bad : null} />
+        {uvr ? (
+          <>
+            <TextField label={t.fields.insurance} hint={u.insuranceUnitsHint} value={insurance} onChange={setInsurance} inputMode="decimal" error={touched && insuranceValue === null ? u.invalidUnits : null} />
+            <TextField label={c.form.otherCharges} hint={u.insuranceUnitsHint} value={otherCharges} onChange={setOtherCharges} inputMode="decimal" error={touched && chargesValue === null ? u.invalidUnits : null} />
+          </>
+        ) : (
+          <>
+            <AmountField label={t.fields.insurance} hint={t.fields.insuranceHint} value={insurance} onChange={setInsurance} error={touched && insuranceValue === null ? bad : null} />
+            <AmountField label={c.form.otherCharges} hint={c.form.otherChargesHint} value={otherCharges} onChange={setOtherCharges} error={touched && chargesValue === null ? bad : null} />
+          </>
+        )}
       </div>
       <fieldset className="fin-details">
         <legend>{c.form.lateTitle}</legend>
@@ -133,7 +177,17 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
       </div>
       <TextField label={t.fields.paidInstallments} hint={t.fields.paidHint} value={paidInstallments} onChange={setPaidInstallments} inputMode="numeric" maxLength={3} error={touched && paidValue === null ? t.termInvalid : null} />
       <SelectField label={t.fields.disbursementAccount} hint={t.fields.disbursementAccountHint} value={account} onChange={setAccount} placeholder={t.noAccount} options={transferAccounts(accounts.items).filter((a) => a.kind !== "credit_card").map((a) => ({ value: a.id, label: a.name }))} />
-      {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
+      {submit.error && (
+        <Banner tone="negative" live="assertive">
+          {submit.error}
+          {submit.errorCode === "index_missing" && (
+            <>
+              {" "}
+              <RegisterIndexLink indexKey={variable ? indexKey : undefined} />
+            </>
+          )}
+        </Banner>
+      )}
       <FormActions>
         <button type="submit" className="button button--primary" disabled={submit.pending}>
           {submit.pending ? dict.fin.common.saving : t.create}

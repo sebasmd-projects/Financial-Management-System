@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { displayValue, newValueBody, parseValue } from "./logic";
+import { displayValue, newValueBody, parseValue, UVR_PARAMETER } from "./logic";
 
 describe("valores de parámetros por unidad", () => {
   it("se leen: fracción como porcentaje (coma en español), monto en pesos y cantidad entera", () => {
@@ -35,5 +35,25 @@ describe("valor nuevo con fuente obligatoria", () => {
     expect(newValueBody({ ...base, validFrom: "" }).problems).toEqual({ validFrom: true });
     expect(newValueBody({ ...base, validTo: "2026-10-01" }).problems).toEqual({ range: true });
     expect(newValueBody({ ...base, source: "x".repeat(501) }).problems).toEqual({ source: true });
+  });
+});
+
+describe("la UVR no es un monto de 2 decimales", () => {
+  it("se muestra con sus decimales (redondearla a pesos cambiaría el saldo de un crédito en UVR)", () => {
+    expect(displayValue("amount", "389.4521", "es", UVR_PARAMETER)).toBe("$389,4521");
+    expect(displayValue("amount", "389.4500", "es", UVR_PARAMETER)).toBe("$389,45");
+    expect(displayValue("amount", "49799.00", "es", "GMF_X")).toBe("$49.799");
+  });
+  it("se captura con hasta 6 decimales y la coma o el punto son SIEMPRE el decimal", () => {
+    expect(parseValue("amount", "389,4521", UVR_PARAMETER)).toBe("389.4521");
+    expect(parseValue("amount", "390.123", UVR_PARAMETER)).toBe("390.123");
+    expect(parseValue("amount", "0", UVR_PARAMETER)).toBeNull();
+    expect(parseValue("amount", "1,2345678", UVR_PARAMETER)).toBeNull();
+    expect(parseValue("amount", "49.799")).toBe("49799");
+  });
+  it("el cuerpo de un valor de la UVR lleva la fuente y no pierde decimales", () => {
+    const input = { unit: "amount" as const, key: UVR_PARAMETER, value: "391,2345", validFrom: "2026-12-01", validTo: "", source: "Banco de la República" };
+    expect(newValueBody(input).body).toEqual({ value: "391.2345", valid_from: "2026-12-01", source: "Banco de la República" });
+    expect(newValueBody({ ...input, source: "" }).problems).toEqual({ source: true });
   });
 });

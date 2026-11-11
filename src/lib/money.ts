@@ -99,14 +99,38 @@ export function formatCopCompact(value: string, options: FormatOptions = {}): st
 }
 
 /** Lo que dice un lector de pantalla (diseño §6): el valor completo, sin separadores y nunca la abreviatura. */
-export function spokenCop(value: string, kind?: "egreso" | "ingreso" | "transferencia"): string {
+export function spokenCop(value: string, kind?: "egreso" | "ingreso" | "transferencia", locale: "es" | "en" = "es"): string {
   const { negative, cents } = parse(value);
   const pesos = cents / 100n;
   const rest = cents % 100n;
+  if (locale === "en") {
+    const amount = rest === 0n ? pesos.toString() : `${pesos.toString()}.${rest.toString().padStart(2, "0")}`;
+    const unit = `${amount} Colombian ${cents === 100n ? "peso" : "pesos"}`;
+    const label = kind === "egreso" ? "expense" : kind === "ingreso" ? "income" : kind === "transferencia" ? "transfer" : null;
+    if (label) return `${label} of ${unit}`;
+    return negative ? `minus ${unit}` : unit;
+  }
   const amount = rest === 0n ? pesos.toString() : `${pesos.toString()},${rest.toString().padStart(2, "0")}`;
   const unit = `${amount} ${cents === 100n ? "peso" : "pesos"}`;
   if (kind) return `${kind} de ${unit}`;
   return negative ? `menos ${unit}` : unit;
+}
+
+/** Quita el signo: el valor absoluto de un monto, como cadena con la escala original. */
+export function absAmount(value: string): string {
+  return value.startsWith("-") || value.startsWith("+") ? value.slice(1) : value;
+}
+
+/** El mismo monto con el signo cambiado (`"12.50"` → `"-12.50"`, `"-3"` → `"3"`, cero sigue siendo cero). */
+export function negateAmount(value: string): string {
+  const { negative, cents } = parse(value);
+  if (cents === 0n) return "0.00";
+  const body = `${cents / 100n}.${(cents % 100n).toString().padStart(2, "0")}`;
+  return negative ? body : `-${body}`;
+}
+
+export function isZeroAmount(value: string): boolean {
+  return parse(value).cents === 0n;
 }
 
 /** Valida lo que escribe el usuario: dígitos, hasta 13 enteros y hasta 2 decimales. */

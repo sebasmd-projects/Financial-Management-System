@@ -7,6 +7,7 @@
 
 export const TIME_ZONE = "America/Bogota";
 
+const MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const BUSINESS_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 const PERIOD = /^(\d{4})-(0[1-9]|1[0-2])$/;
@@ -82,10 +83,10 @@ export function formatDayMonth(value: string | Date): string {
   return `${day} ${MONTHS[month - 1].slice(0, 3)}`;
 }
 
-/** `10 de noviembre de 2026`, para el lector de pantalla. */
-export function formatDateLong(value: string | Date): string {
+/** `10 de noviembre de 2026` (`10 November 2026` en inglés), para el lector de pantalla. */
+export function formatDateLong(value: string | Date, locale: "es" | "en" = "es"): string {
   const { year, month, day } = toYMD(value);
-  return `${day} de ${MONTHS[month - 1]} de ${year}`;
+  return locale === "en" ? `${day} ${MONTHS_EN[month - 1]} ${year}` : `${day} de ${MONTHS[month - 1]} de ${year}`;
 }
 
 /** `HH:mm` de 24 h, en Bogotá. Solo para instantes. */
@@ -96,12 +97,29 @@ export function formatTime(instant: string | Date): string {
   return `${two(hour)}:${two(minute)}`;
 }
 
-/** `"2026-11"` → `Noviembre 2026`. */
-export function formatPeriod(period: string): string {
+/** `"2026-11"` → `Noviembre 2026` (`November 2026` en inglés). */
+export function formatPeriod(period: string, locale: "es" | "en" = "es"): string {
   const match = PERIOD.exec(period);
   if (!match) throw new RangeError("Periodo inválido: se espera AAAA-MM");
-  const name = MONTHS[+match[2] - 1];
+  const name = locale === "en" ? MONTHS_EN[+match[2] - 1] : MONTHS[+match[2] - 1];
   return `${name[0].toUpperCase()}${name.slice(1)} ${match[1]}`;
+}
+
+/** Primer y último día de un periodo (`"2026-02"` → `2026-02-01` … `2026-02-28`), como fechas de negocio. */
+export function periodRange(period: string): { from: string; to: string } {
+  const match = PERIOD.exec(period);
+  if (!match) throw new RangeError("Periodo inválido: se espera AAAA-MM");
+  const [year, month] = [+match[1], +match[2]];
+  const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return { from: `${match[1]}-${match[2]}-01`, to: `${match[1]}-${match[2]}-${two(last)}` };
+}
+
+/** El periodo `delta` meses después (o antes, si es negativo): `shiftPeriod("2026-01", -1)` = `"2025-12"`. */
+export function shiftPeriod(period: string, delta: number): string {
+  const match = PERIOD.exec(period);
+  if (!match) throw new RangeError("Periodo inválido: se espera AAAA-MM");
+  const index = +match[1] * 12 + (+match[2] - 1) + delta;
+  return `${Math.floor(index / 12)}-${two((index % 12) + 1)}`;
 }
 
 /** El día de hoy en Bogotá como fecha de negocio (`AAAA-MM-DD`). */

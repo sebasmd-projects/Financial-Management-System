@@ -1,4 +1,5 @@
 import type { Dictionary } from "./es";
+import { finEn } from "./fin-en";
 
 /** English. Not exposed in the UI yet (see `i18n/config.ts`); it must satisfy the same type as Spanish. */
 export const en: Dictionary = {
@@ -158,6 +159,7 @@ export const en: Dictionary = {
     footerTerms: "Terms",
     footerPrivacy: "Privacy policy",
   },
+  fin: finEn,
   notFound: { title: "We could not find this screen", body: "The address does not exist or has moved." },
   error: { title: "Something went wrong", body: "We could not show this screen. Your information was not affected." },
   screens: {

@@ -1,4 +1,5 @@
 import type { SectionId, RouteId } from "@/nav/routes";
+import { finEs } from "./fin-es";
 
 /** Español (es-CO): el idioma de partida. El tipo `Dictionary` sale de aquí y `en.ts` tiene que cumplirlo. */
 export const es = {
@@ -158,6 +159,7 @@ export const es = {
     footerTerms: "Términos",
     footerPrivacy: "Política de privacidad",
   },
+  fin: finEs,
   notFound: { title: "No encontramos esta pantalla", body: "La dirección no existe o cambió de lugar." },
   error: { title: "Algo salió mal", body: "No pudimos mostrar esta pantalla. Tu información no se vio afectada." },
   screens: {

@@ -24,6 +24,12 @@ const PATHS: Record<string, string> = {
   check: "m5 12.5 4.5 4.5L19 7.5",
   external: "M14 4h6v6M20 4 10 14M18 14v5H5V6h5",
   shield: "M12 3 4.5 6v5.5c0 4.5 3 8 7.5 9.5 4.5-1.5 7.5-5 7.5-9.5V6z",
+  "arrow-left": "M19 12H5M11 6l-6 6 6 6",
+  "arrow-right": "M5 12h14M13 6l6 6-6 6",
+  clip: "M20 11.5 12.2 19.3a4.5 4.5 0 0 1-6.4-6.4l8-8a3 3 0 0 1 4.2 4.2l-8 8a1.5 1.5 0 0 1-2.1-2.1L15 8.8",
+  clock: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 7v5l3 2",
+  card: "M3 6.5h18v11H3zM3 10.5h18M6.5 14.5h4",
+  transfer: "M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4",
   wallet: "M4 7.5h15a1 1 0 0 1 1 1V19H5a1 1 0 0 1-1-1zM4 7.5l12-3v3M16 13.5h.01",
 };
 

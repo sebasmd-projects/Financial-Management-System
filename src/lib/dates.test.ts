@@ -99,3 +99,24 @@ describe("hoy y relativas", () => {
     expect(parseBusinessDate("2026-11-10")).toEqual({ year: 2026, month: 11, day: 10 });
   });
 });
+
+describe("periodos para los filtros", () => {
+  it("periodRange: primer y último día, también febrero bisiesto", async () => {
+    const { periodRange } = await import("./dates");
+    expect(periodRange("2026-11")).toEqual({ from: "2026-11-01", to: "2026-11-30" });
+    expect(periodRange("2028-02")).toEqual({ from: "2028-02-01", to: "2028-02-29" });
+    expect(periodRange("2026-12").to).toBe("2026-12-31");
+  });
+  it("shiftPeriod cruza el año hacia atrás y hacia adelante", async () => {
+    const { shiftPeriod } = await import("./dates");
+    expect(shiftPeriod("2026-01", -1)).toBe("2025-12");
+    expect(shiftPeriod("2026-12", 1)).toBe("2027-01");
+    expect(shiftPeriod("2026-11", 0)).toBe("2026-11");
+  });
+  it("formatPeriod y formatDateLong en inglés", async () => {
+    const { formatPeriod, formatDateLong } = await import("./dates");
+    expect(formatPeriod("2026-11", "en")).toBe("November 2026");
+    expect(formatPeriod("2026-11")).toBe("Noviembre 2026");
+    expect(formatDateLong("2026-11-10", "en")).toBe("10 November 2026");
+  });
+});

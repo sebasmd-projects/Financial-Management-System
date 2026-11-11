@@ -1,0 +1,21 @@
+# Contexto de la imagen: lo que no se copia no puede acabar en una capa.
+node_modules/
+.next/
+.git/
+.github/
+.claude/
+e2e/
+docs/
+coverage/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.tsbuildinfo
+next-env.d.ts
+README.md
+AGENTS.md
+CLAUDE.md
+Dockerfile
+.dockerignore

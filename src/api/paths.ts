@@ -29,6 +29,10 @@ export const roots = {
   cards: "/cards",
   loans: "/loans",
   recurrences: "/recurrences",
+  userParameters: "/user-parameters",
+  reconciliations: "/reconciliations",
+  pushSubscription: "/push-subscription",
+  notificationsRead: "/notifications/read",
 } as const;
 
 export const paths = {
@@ -64,5 +68,19 @@ export const paths = {
   recurrencePreview: () => "/recurrences/preview",
   occurrences: (params: Record<string, QueryValue>) => `/occurrences${query({ page_size: 100, ...params })}`,
   occurrence: (occurrenceId: string) => `/occurrences/${id(occurrenceId)}`,
-  occurrenceAction: (occurrenceId: string, action: "pay" | "skip") => `/occurrences/${id(occurrenceId)}/${action}`,
+  occurrenceAction: (occurrenceId: string, action: "pay" | "skip" | "split" | "unsplit") => `/occurrences/${id(occurrenceId)}/${action}`,
+  occurrenceQuote: (occurrenceId: string, on?: string) => `/occurrences/${id(occurrenceId)}/quote${query({ on })}`,
+  dashboard: (period?: string) => `/dashboard${query({ period })}`,
+  calendar: (params: { view?: "month" | "week" | "day"; range?: 7 | 15 | 30; date?: string }) => `/calendar${query(params)}`,
+  notifications: (params: Record<string, QueryValue> = {}) => `/notifications${query(params)}`,
+  notificationSnooze: (notificationId: string) => `/notifications/${id(notificationId)}/snooze`,
+  notificationPrefs: () => "/notification-prefs",
+  notificationRules: () => "/notification-rules",
+  parameterCatalog: () => "/parameters/catalog",
+  userParameters: (key?: string) => `/user-parameters${query({ key })}`,
+  userParameter: (parameterId: string) => `/user-parameters/${id(parameterId)}`,
+  reconciliations: (accountId?: string) => `/reconciliations${query({ account: accountId, page_size: 20 })}`,
+  reconciliationPreview: () => "/reconciliations/preview",
+  reconciliationAdjust: () => "/reconciliations/adjust",
+  reconciliationReopen: (reconciliationId: string) => `/reconciliations/${id(reconciliationId)}/reopen`,
 };

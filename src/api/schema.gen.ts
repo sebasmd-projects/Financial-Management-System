@@ -96,6 +96,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * El calendario financiero: mes, semana, día o los próximos 7, 15 o 30 días, con festivos, lo que se necesita cada día y el saldo proyectado
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsCalendar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/cards": {
         parameters: {
             query?: never;
@@ -460,6 +481,27 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         patch: operations["fmsCounterpartyPatch"];
+        trace?: never;
+    };
+    "/api/fms/v1/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * El Resumen: «Te queda», «Gastado», disponible, liquidez a 15/30/60/90 días, próximos pagos, gastos fijos, atajos y alertas
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/fms/v1/entries": {
@@ -1091,6 +1133,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/notification-prefs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tus preferencias de avisos: horas de silencio, correo, push y montos fuera de la aplicación
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsNotificationPrefs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Cambiar tus preferencias de avisos
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        patch: operations["fmsNotificationPrefsPatch"];
+        trace?: never;
+    };
+    "/api/fms/v1/notification-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Las reglas predefinidas: interruptor, anticipación en días, hora de envío y canales
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsNotificationRules"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Cambiar reglas (por `key`): encender o apagar, anticipación, hora y canales
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        patch: operations["fmsNotificationRulesPatch"];
+        trace?: never;
+    };
+    "/api/fms/v1/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * El centro de avisos (los que ya se ven; las horas de silencio retrasan los de la noche): grupos hoy, esta semana y anteriores
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsNotifications"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/notifications/{id}/snooze": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Posponer un aviso: vuelve a verse mañana a la hora de su regla
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsNotificationSnooze"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/notifications/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * «Probar ahora»: evalúa tus reglas ya (el proceso horario hace lo mismo; es idempotente)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsNotificationsEvaluate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/notifications/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Marcar avisos como leídos (sin `ids`, todos)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsNotificationsRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/occurrences": {
         parameters: {
             query?: never;
@@ -1175,6 +1353,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/occurrences/{id}/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lo que se debe pagar de una ocurrencia abierta en una fecha: estado (pronto, regular, extemporáneo), descuento, recargo y total
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsOccurrenceQuote"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/occurrences/{id}/skip": {
         parameters: {
             query?: never;
@@ -1196,6 +1395,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/occurrences/{id}/split": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dividir una obligación abierta y sin pagos en cuotas con fecha (el predial anual en trimestres)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsOccurrenceSplit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/occurrences/{id}/unsplit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deshacer el plan de cuotas si ninguna cuota tiene pagos
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsOccurrenceUnsplit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/parameters": {
         parameters: {
             query?: never;
@@ -1209,6 +1450,27 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         get: operations["fmsParameters"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/parameters/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Parámetros de Colombia: valor vigente hoy, fuente y hueco de vigencia (tuyo, o el global)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsParameterCatalog"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1262,6 +1524,142 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         patch: operations["fmsPaymentMethodPatch"];
+        trace?: never;
+    };
+    "/api/fms/v1/push-subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registrar la suscripción de Web Push de este navegador (necesita VAPID en el servidor)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsPushSubscribe"];
+        /**
+         * Borrar la suscripción de Web Push de este navegador
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsPushUnsubscribe"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/reconciliations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * El historial de conciliaciones (la más reciente primero)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsReconciliations"];
+        put?: never;
+        /**
+         * Conciliar: con diferencia 0 los asientos marcados pasan a conciliado (inmutables) y queda el registro
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsReconcile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/reconciliations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Una conciliación con sus asientos
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsReconciliation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/reconciliations/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reabrir la última conciliación de la cuenta: sus asientos vuelven a confirmados (con motivo; queda en la auditoría)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsReconciliationReopen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/reconciliations/adjust": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * «Crear ajuste de $45.000»: un movimiento visible y auditable en «Ajustes de conciliación» por la diferencia
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsReconcileAdjust"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/reconciliations/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pasos 2 y 3: los candidatos, lo marcado y la diferencia contra el extracto. No escribe nada
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsReconcilePreview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/fms/v1/recurrences": {
@@ -1468,6 +1866,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/user-parameters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tus vigencias de parámetros (las que escribiste tú)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsUserParameters"];
+        put?: never;
+        /**
+         * Agregar una vigencia: clave del catálogo, valor, fechas y fuente. La anterior sin fin se cierra el día antes
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsUserParameterCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/user-parameters/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Borrar una vigencia que aún no empieza (lo vigente o pasado se cierra, no se borra)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsUserParameterDelete"];
+        options?: never;
+        head?: never;
+        /**
+         * Cerrar una vigencia en una fecha (no se cambia su valor: se agrega otra vigencia)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        patch: operations["fmsUserParameterClose"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1578,6 +2028,17 @@ export interface components {
             /** @example 180000 */
             amount: string;
         };
+        Adjustment: {
+            /** Format: uuid */
+            movement_id: string;
+            /** Format: uuid */
+            entry_id: string;
+            /** @example 180000 */
+            amount: string;
+            type: components["schemas"]["AmountTypeEnum"];
+            /** @description Con el ajuste ya listado: márcalo y concilia. */
+            preview: components["schemas"]["ReconcilePreview"];
+        };
         Advance: {
             /** @example 180000 */
             amount: string;
@@ -1596,12 +2057,66 @@ export interface components {
             advance: components["schemas"]["Movement"];
             fee: components["schemas"]["Movement"] | null;
         };
+        Alert: {
+            kind: components["schemas"]["AlertKindEnum"];
+            severity: components["schemas"]["SeverityEnum"];
+            name: string;
+            /** @example 180000 */
+            amount: string | null;
+            /** Format: date */
+            date: string;
+            ref_kind: string;
+            /** Format: uuid */
+            ref_id: string | null;
+        };
+        /**
+         * @description * `overdue` - overdue
+         *     * `due_today` - due_today
+         *     * `insufficient_funds` - insufficient_funds
+         *     * `confirm_subscription` - confirm_subscription
+         * @enum {string}
+         */
+        AlertKindEnum: "overdue" | "due_today" | "insufficient_funds" | "confirm_subscription";
         /**
          * @description * `french` - french
          *     * `constant_capital` - constant_capital
          * @enum {string}
          */
         AmortizationSystemEnum: "french" | "constant_capital";
+        AmountDue: {
+            /** Format: date */
+            on: string;
+            state: components["schemas"]["AmountDueStateEnum"];
+            /**
+             * @description Lo que falta de la obligación.
+             * @example 180000
+             */
+            principal: string;
+            /** @example 180000 */
+            discount: string;
+            /** @example 180000 */
+            surcharge: string;
+            /**
+             * @description Capital menos descuento + recargo.
+             * @example 180000
+             */
+            total: string;
+            days_late: number;
+            /** Format: date */
+            early_deadline: string | null;
+            /**
+             * Format: date
+             * @description El vencimiento ya ajustado por festivos.
+             */
+            due: string;
+        };
+        /**
+         * @description * `early` - early
+         *     * `regular` - regular
+         *     * `late` - late
+         * @enum {string}
+         */
+        AmountDueStateEnum: "early" | "regular" | "late";
         /**
          * @description * `income` - income
          *     * `expense` - expense
@@ -1654,8 +2169,92 @@ export interface components {
             /** @example 180000 */
             projected_after: string | null;
         };
+        Bar: {
+            /** @example 180000 */
+            spent: string;
+            /** @example 180000 */
+            committed: string;
+            /** @example 180000 */
+            free: string;
+        };
         /** @enum {unknown} */
         BlankEnum: "";
+        Calendar: {
+            /** @description `month`, `week`, `day`, `range_7`, `range_15` o `range_30`. */
+            mode: string;
+            /** Format: date */
+            start: string;
+            /** Format: date */
+            end: string;
+            days: components["schemas"]["CalendarDay"][];
+            overdue: components["schemas"]["Overdue"];
+        };
+        CalendarDay: {
+            /** Format: date */
+            date: string;
+            /** @description Nombre del festivo de Colombia («F»). */
+            holiday: string | null;
+            items: components["schemas"]["CalendarItem"][];
+            /**
+             * @description «Necesitas $550.000 disponibles».
+             * @example 180000
+             */
+            needed: string;
+            /** @example 180000 */
+            expected_income: string;
+            /** @example 180000 */
+            balance_before: string | null;
+            /** @example 180000 */
+            balance_after: string | null;
+            negative: boolean;
+        };
+        CalendarItem: {
+            /** Format: date */
+            date: string;
+            /**
+             * Format: date
+             * @description «Movido del 16/11 (festivo)».
+             */
+            original_date: string | null;
+            moved_reason: components["schemas"]["MovedReasonEnum"] | components["schemas"]["NullEnum"];
+            kind: string;
+            name: string;
+            /** @example 180000 */
+            amount: string;
+            direction: components["schemas"]["DirectionEnum"];
+            ref_kind: string;
+            /** Format: uuid */
+            ref_id: string;
+            /** Format: uuid */
+            account_id: string | null;
+            overdue: boolean;
+            estimated: boolean;
+            /**
+             * @description Saldo proyectado (cuentas líquidas) tras este compromiso.
+             * @example 180000
+             */
+            balance_after: string;
+            /**
+             * @description El primero que deja una cuenta en negativo: «No alcanza: faltan $80.000».
+             * @example 180000
+             */
+            shortfall: string | null;
+        };
+        Candidate: {
+            /** Format: uuid */
+            entry_id: string;
+            number: number;
+            /** Format: date */
+            date: string;
+            /** Format: uuid */
+            movement_id: string | null;
+            description: string | null;
+            /**
+             * @description Efecto sobre el saldo de la cuenta (negativo = sale plata).
+             * @example 180000
+             */
+            effect: string;
+        };
         Card: {
             /** Format: uuid */
             id: string;
@@ -1818,6 +2417,13 @@ export interface components {
             name: string;
             path: string[];
         };
+        /**
+         * @description * `app` - app
+         *     * `email` - email
+         *     * `push` - push
+         * @enum {string}
+         */
+        ChannelsEnum: "app" | "email" | "push";
         Charge: {
             kind: components["schemas"]["ChargeKindEnum"];
             /** Format: date */
@@ -1848,6 +2454,30 @@ export interface components {
          * @enum {string}
          */
         CodeEnum: "email_unverified" | "mfa_required" | "account_blocked" | "consent_mismatch";
+        Dashboard: {
+            /** Format: date */
+            period: string;
+            /** @description `false`: «Viendo octubre 2026 · Volver a hoy». */
+            is_current: boolean;
+            /** Format: date */
+            today: string;
+            kpi: components["schemas"]["Kpi"];
+            bar: components["schemas"]["Bar"];
+            liquidity: components["schemas"]["Liquidity"];
+            rail: components["schemas"]["RailItem"][];
+            fixed_expenses: components["schemas"]["FixedGrid"];
+            shortcuts: components["schemas"]["Shortcut"][];
+            alerts: components["schemas"]["Alert"][];
+            /** @description Sin alertas: días al próximo pago. */
+            all_clear_days: number | null;
+        };
+        /**
+         * @description * `out` - out
+         *     * `in` - in
+         *     * `info` - info
+         * @enum {string}
+         */
+        DirectionEnum: "out" | "in" | "info";
         Duplicate: {
             /** Format: uuid */
             movement_id: string;
@@ -1857,6 +2487,12 @@ export interface components {
         Duplicates: {
             duplicates: components["schemas"]["Duplicate"][];
         };
+        /**
+         * @description * `percent` - percent
+         *     * `fixed` - fixed
+         * @enum {string}
+         */
+        EarlyKindEnum: "percent" | "fixed";
         EditApplied: {
             movement: components["schemas"]["Movement"];
             effects: components["schemas"]["EditEffects"];
@@ -1996,6 +2632,10 @@ export interface components {
             /** @description Un código estable para el cliente (`entry_not_pending`, `immutable_entry`...). */
             code: string;
         };
+        EvaluateResult: {
+            /** @description Avisos nuevos (0 si ya estaban: idempotente). */
+            created: number;
+        };
         FixedExpenses: {
             /** Format: date */
             period: string;
@@ -2009,6 +2649,45 @@ export interface components {
             /** @description «No tocan este mes». */
             not_this_month: components["schemas"]["Recurrence"][];
         };
+        FixedGrid: {
+            paid_count: number;
+            total_count: number;
+            /** @example 180000 */
+            paid: string;
+            /** @example 180000 */
+            total: string;
+            percent: number;
+            /** @description Hasta 8 (7 y «Ver todos» si hay más), en el orden de la pantalla. */
+            items: components["schemas"]["FixedItem"][];
+            more: number;
+        };
+        FixedItem: {
+            /** Format: uuid */
+            occurrence_id: string;
+            name: string;
+            status: components["schemas"]["FixedItemStatusEnum"];
+            /** Format: date */
+            due_date: string;
+            /** @example 180000 */
+            expected: string;
+            /** @example 180000 */
+            paid: string;
+            /** @example 180000 */
+            pending: string;
+            percent: number;
+            days_left: number;
+            estimated: boolean;
+        };
+        /**
+         * @description * `overdue` - overdue
+         *     * `partial` - partial
+         *     * `soon` - soon
+         *     * `pending` - pending
+         *     * `paid` - paid
+         *     * `skipped` - skipped
+         * @enum {string}
+         */
+        FixedItemStatusEnum: "overdue" | "partial" | "soon" | "pending" | "paid" | "skipped";
         FmsActivationRefused: {
             code: components["schemas"]["CodeEnum"];
         };
@@ -2113,15 +2792,39 @@ export interface components {
             after: string | null;
         };
         /**
+         * @description * `today` - today
+         *     * `this_week` - this_week
+         *     * `earlier` - earlier
+         * @enum {string}
+         */
+        GroupEnum: "today" | "this_week" | "earlier";
+        /**
          * @description * `none` - none
          *     * `next` - next
          *     * `previous` - previous
          * @enum {string}
          */
         HolidayRuleEnum: "none" | "next" | "previous";
+        Horizon: {
+            days: number;
+            /**
+             * @description Disponible + ingresos pendientes - egresos de caja pendientes hasta ese día.
+             * @example 180000
+             */
+            balance: string;
+        };
         InstallmentEffect: {
             before: components["schemas"]["InstallmentSnapshot"];
             after: components["schemas"]["InstallmentSnapshot"];
+        };
+        InstallmentInput: {
+            /** Format: date */
+            due_date: string;
+            /**
+             * @description Todas con monto o ninguna (partes iguales).
+             * @example 180000
+             */
+            amount?: string;
         };
         InstallmentPurchase: {
             /** Format: uuid */
@@ -2173,12 +2876,78 @@ export interface components {
             /** @description Cuántos cargos de interés se hicieron (0 si ya estaban). */
             posted: number;
         };
+        /**
+         * @description * `card_payment` - card_payment
+         *     * `card_cut` - card_cut
+         *     * `fixed_due` - fixed_due
+         *     * `overdue` - overdue
+         *     * `loan_due` - loan_due
+         *     * `subscription_confirm` - subscription_confirm
+         *     * `low_balance` - low_balance
+         *     * `renewal` - renewal
+         *     * `period_start` - period_start
+         * @enum {string}
+         */
+        KeyEnum: "card_payment" | "card_cut" | "fixed_due" | "overdue" | "loan_due" | "subscription_confirm" | "low_balance" | "renewal" | "period_start";
+        Kpi: {
+            /**
+             * @description «Te queda»: ingresos - gastado - abonos a capital - compromisos pendientes del periodo.
+             * @example 180000
+             */
+            remaining: string;
+            /**
+             * @description «Gastado»: gastos confirmados del periodo (una compra a cuotas cuenta completa el día de la compra).
+             * @example 180000
+             */
+            spent: string;
+            /** @example 180000 */
+            income: string;
+            /**
+             * @description Gastos fijos y cuotas de préstamo pendientes del periodo.
+             * @example 180000
+             */
+            committed: string;
+            /** @example 180000 */
+            loan_capital_paid: string;
+            /**
+             * @description Aportes planeados a metas (ahorro primero): 0 hasta que existan las metas (v2).
+             * @example 180000
+             */
+            goal_contributions: string;
+            /**
+             * @description Saldo confirmado de las cuentas de activo líquidas.
+             * @example 180000
+             */
+            available_today: string;
+            /**
+             * @description «Debes»: saldo de los pasivos.
+             * @example 180000
+             */
+            owed: string;
+            /** @example 180000 */
+            overdue_total: string;
+        };
+        /**
+         * @description * `none` - none
+         *     * `fixed` - fixed
+         *     * `percent` - percent
+         *     * `daily` - daily
+         * @enum {string}
+         */
+        LateKindEnum: "none" | "fixed" | "percent" | "daily";
         LineAccount: {
             /** Format: uuid */
             id: string;
             name: string;
             type: string;
             kind: string;
+        };
+        Liquidity: {
+            horizons: components["schemas"]["Horizon"][];
+            /** Format: date */
+            first_negative_date: string | null;
+            /** @example 180000 */
+            missing: string | null;
         };
         Loan: {
             /** Format: uuid */
@@ -2306,6 +3075,12 @@ export interface components {
          * @enum {string}
          */
         LoanStatusEnum: "active" | "paid";
+        /**
+         * @description * `holiday` - holiday
+         *     * `weekend` - weekend
+         * @enum {string}
+         */
+        MovedReasonEnum: "holiday" | "weekend";
         Movement: {
             /** Format: uuid */
             id: string;
@@ -2500,6 +3275,38 @@ export interface components {
          * @enum {string}
          */
         NatureEnum: "fixed" | "variable";
+        Notification: {
+            /** Format: uuid */
+            id: string;
+            rule_key: string;
+            severity: components["schemas"]["SeverityEnum"];
+            title: string;
+            body: string;
+            object_kind: string;
+            /**
+             * Format: uuid
+             * @description Para la acción «Marcar pagado»: la ocurrencia, cuota o tarjeta.
+             */
+            object_id: string | null;
+            /** Format: date */
+            due_date: string | null;
+            /** Format: date-time */
+            visible_at: string;
+            is_read: boolean;
+            group: components["schemas"]["GroupEnum"];
+        };
+        NotificationList: {
+            /** @description Para la campana («9+» lo pone el cliente). */
+            unread: number;
+            results: components["schemas"]["Notification"][];
+        };
+        NotificationsRead: {
+            /** @description Sin `ids`, todas. */
+            ids?: string[];
+        };
+        NotificationsReadResult: {
+            updated: number;
+        };
         NullEnum: null;
         Occurrence: {
             /** Format: uuid */
@@ -2536,6 +3343,19 @@ export interface components {
             /** Format: uuid */
             movement_id: string | null;
             skip_reason: string | null;
+            /** @description 0 = la de la regla; 1..N = cuota de un plan. */
+            installment: number;
+            /** Format: uuid */
+            parent_id: string | null;
+            /** Format: date */
+            early_deadline: string | null;
+            /** @description `early`, `regular` o `late` hoy; `null` si no está abierta. */
+            payment_state: string | null;
+            /**
+             * @description Lo que se paga hoy por lo que falta (con descuento o recargo); `null` si no está abierta o falta la tasa de mora.
+             * @example 180000
+             */
+            amount_due: string | null;
         };
         OccurrenceDate: {
             /** Format: date */
@@ -2560,6 +3380,18 @@ export interface components {
              * @example 180000
              */
             overpaid: string;
+            /** @description `early`, `regular`, `late` o vacío si no hay condiciones. */
+            state: string;
+            /**
+             * @description Descuento por pronto pago escrito como línea propia del asiento.
+             * @example 180000
+             */
+            discount: string;
+            /**
+             * @description Recargo extemporáneo escrito como línea propia del asiento.
+             * @example 180000
+             */
+            surcharge: string;
             warnings: components["schemas"]["Warning"][];
         };
         OccurrencePay: {
@@ -2582,9 +3414,31 @@ export interface components {
          * @description * `open` - Open
          *     * `paid` - Paid
          *     * `skipped` - Skipped
+         *     * `split` - Split in installments
          * @enum {string}
          */
-        OccurrenceStatusEnum: "open" | "paid" | "skipped";
+        OccurrenceStatusEnum: "open" | "paid" | "skipped" | "split";
+        Overdue: {
+            /** @description Del más antiguo al más reciente. */
+            items: components["schemas"]["OverdueItem"][];
+            /**
+             * @description El total adeudado.
+             * @example 180000
+             */
+            total: string;
+        };
+        OverdueItem: {
+            /** Format: date */
+            date: string;
+            name: string;
+            /** @example 180000 */
+            amount: string;
+            kind: string;
+            ref_kind: string;
+            /** Format: uuid */
+            ref_id: string;
+            days_late: number;
+        };
         Parameter: {
             /** @description `GMF_RATE`: el 4x1000 como fracción (`0.004`). */
             key: string;
@@ -2595,6 +3449,33 @@ export interface components {
             /** Format: date */
             valid_to: string | null;
             source: string;
+        };
+        ParameterCatalog: {
+            key: string;
+            label: string;
+            unit: components["schemas"]["UnitEnum"];
+            description: string;
+            /** @description `true`: el proyecto siembra valores (contrástalos); `false`: los escribes tú. */
+            seeded: boolean;
+            /**
+             * @description `user` si tu valor gana sobre el global.
+             *
+             *     * `global` - global
+             *     * `user` - user
+             */
+            scope: components["schemas"]["ScopeEnum"];
+            /** @description Vigente hoy; `null` = sin valor vigente. */
+            value: string | null;
+            /** Format: date */
+            valid_from: string | null;
+            /** Format: date */
+            valid_to: string | null;
+            source: string | null;
+            /**
+             * Format: date
+             * @description «Sin valor vigente desde …»: la primera fecha sin valor; `null` si no hay hueco.
+             */
+            gap_from: string | null;
         };
         PatchedAccountPatch: {
             name?: string;
@@ -2667,8 +3548,47 @@ export interface components {
             last4?: string | null;
             active?: boolean;
         };
+        PatchedPrefsPatch: {
+            /** Format: time */
+            quiet_start?: string;
+            /** Format: time */
+            quiet_end?: string;
+            email_enabled?: boolean;
+            push_enabled?: boolean;
+            show_amounts_outside_app?: boolean;
+        };
         /** @description Todo opcional. Cambiar la regla o el monto afecta desde el periodo siguiente; «solo este mes» edita el movimiento pendiente. */
         PatchedRecurrencePatch: {
+            /** @description Días antes del vencimiento en que termina el pronto pago. */
+            early_days_before?: number | null;
+            /**
+             * @description `percent` o `fixed`.
+             *
+             *     * `percent` - percent
+             *     * `fixed` - fixed
+             */
+            early_kind?: components["schemas"]["EarlyKindEnum"] | components["schemas"]["BlankEnum"];
+            /**
+             * @description Porcentaje (`10`) o monto del descuento.
+             * @example 180000
+             */
+            early_value?: string | null;
+            /**
+             * @description `fixed`, `percent` o `daily` (interés de mora diario de la tasa vigente `late_rate_key`).
+             *
+             *     * `none` - none
+             *     * `fixed` - fixed
+             *     * `percent` - percent
+             *     * `daily` - daily
+             */
+            late_kind?: components["schemas"]["LateKindEnum"];
+            /**
+             * @description Monto o porcentaje del recargo.
+             * @example 180000
+             */
+            late_value?: string | null;
+            /** @description Clave del parámetro con vigencia (tasa efectiva anual, fracción) para `daily`. */
+            late_rate_key?: string;
             name?: string;
             /** @example 180000 */
             expected_amount?: string;
@@ -2703,6 +3623,25 @@ export interface components {
             nth_business_day?: number | null;
             last_weekday?: number | null;
             holiday_rule?: components["schemas"]["HolidayRuleEnum"];
+            months?: number[];
+            skip_months?: number[];
+            skip_ranges?: components["schemas"]["PauseRange"][];
+        };
+        PatchedRulesPatch: {
+            rules?: components["schemas"]["RulePatch"][];
+        };
+        PatchedUserParameterClose: {
+            /** Format: date */
+            valid_to?: string;
+        };
+        PauseRange: {
+            /** Format: date */
+            start: string;
+            /**
+             * Format: date
+             * @description Incluida.
+             */
+            end: string;
         };
         /**
          * @description * `remaining` - remaining
@@ -2796,12 +3735,38 @@ export interface components {
             /** @example 180000 */
             next_payment: string | null;
         };
+        Prefs: {
+            /**
+             * Format: time
+             * @description 21:00 por defecto.
+             */
+            quiet_start: string;
+            /**
+             * Format: time
+             * @description 07:00 por defecto: lo que cae en silencio se entrega aquí.
+             */
+            quiet_end: string;
+            email_enabled: boolean;
+            /** @description Requiere Web Push configurado en el servidor y una suscripción. */
+            push_enabled: boolean;
+            /** @description Apagado por defecto: el push y el correo no llevan cifras. */
+            show_amounts_outside_app: boolean;
+            /** @description El servidor tiene VAPID configurado. */
+            readonly push_available: boolean;
+            readonly vapid_public_key: string;
+        };
         Preview: {
             /** @description Vacío = «Esta regla no genera ninguna fecha». */
             dates: components["schemas"]["OccurrenceDate"][];
         };
         /** @description La regla de fechas (diseño §3.10). */
         PreviewRequest: {
+            /** @description Meses del año en que ocurre (p. ej. `[2, 8]` la matrícula); sustituye el paso de la frecuencia. */
+            months?: number[];
+            /** @description Meses sin ocurrencias cada año (p. ej. `[12, 1]` el transporte escolar). */
+            skip_months?: number[];
+            /** @description Rangos de fechas sin ocurrencias (vacaciones). */
+            skip_ranges?: components["schemas"]["PauseRange"][];
             frequency: components["schemas"]["FrequencyEnum"];
             /** Format: date */
             start_date: string;
@@ -2882,6 +3847,42 @@ export interface components {
             /** Format: uuid */
             payment_method_id?: string | null;
         };
+        PushSubscribe: {
+            /** Format: uri */
+            endpoint: string;
+            p256dh: string;
+            auth: string;
+        };
+        RailItem: {
+            kind: components["schemas"]["RailItemKindEnum"];
+            name: string;
+            /** @example 180000 */
+            amount: string;
+            /** Format: date */
+            date: string;
+            /** @description Negativo = vencido. */
+            days_left: number;
+            state: components["schemas"]["RailItemStateEnum"];
+            ref_kind: string;
+            /** Format: uuid */
+            ref_id: string;
+        };
+        /**
+         * @description * `card_payment` - card_payment
+         *     * `card_cut` - card_cut
+         *     * `loan_installment` - loan_installment
+         * @enum {string}
+         */
+        RailItemKindEnum: "card_payment" | "card_cut" | "loan_installment";
+        /**
+         * @description * `normal` - normal
+         *     * `soon` - soon
+         *     * `today` - today
+         *     * `overdue` - overdue
+         *     * `cut` - cut
+         * @enum {string}
+         */
+        RailItemStateEnum: "normal" | "soon" | "today" | "overdue" | "cut";
         /**
          * @description * `EA` - EA
          *     * `EM` - EM
@@ -2893,8 +3894,99 @@ export interface components {
          * @enum {string}
          */
         RateConventionEnum: "EA" | "EM" | "ET" | "ED" | "NMV" | "NTV" | "NAV";
+        ReconcileInput: {
+            /** Format: uuid */
+            account_id: string;
+            /**
+             * Format: date
+             * @description Fecha de corte del extracto.
+             */
+            cutoff: string;
+            /**
+             * @description Saldo final del extracto (puede ser negativo).
+             * @example 180000
+             */
+            statement_balance: string;
+            entry_ids?: string[];
+        };
+        ReconcileLast: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date */
+            cutoff: string;
+            /** @example 180000 */
+            statement_balance: string;
+        };
+        ReconcilePreview: {
+            /** Format: uuid */
+            account_id: string;
+            /** Format: date */
+            cutoff: string;
+            /**
+             * @description «Saldo del extracto».
+             * @example 180000
+             */
+            statement_balance: string;
+            /**
+             * @description Lo ya conciliado de la cuenta (parte de la conciliación anterior).
+             * @example 180000
+             */
+            reconciled_balance: string;
+            /**
+             * @description «Marcado en FMS».
+             * @example 180000
+             */
+            marked: string;
+            /**
+             * @description Extracto - marcado. Con 0 se puede conciliar.
+             * @example 180000
+             */
+            difference: string;
+            can_reconcile: boolean;
+            /** @description Confirmados, no conciliados, con fecha <= corte. */
+            candidates: components["schemas"]["Candidate"][];
+            last: components["schemas"]["ReconcileLast"] | null;
+        };
+        Reconciliation: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            account_id: string;
+            /** Format: date */
+            cutoff: string;
+            /** @example 180000 */
+            statement_balance: string;
+            /** @example 180000 */
+            marked_balance: string;
+            entry_count: number;
+            status: components["schemas"]["ReconciliationStatusEnum"];
+            /** Format: date-time */
+            closed_at: string;
+            /** Format: date-time */
+            reopened_at: string | null;
+            reopen_reason: string | null;
+            entry_ids: string[];
+        };
+        ReconciliationPage: {
+            count: number;
+            page: number;
+            page_size: number;
+            results: components["schemas"]["Reconciliation"][];
+        };
+        /**
+         * @description * `closed` - closed
+         *     * `reopened` - reopened
+         * @enum {string}
+         */
+        ReconciliationStatusEnum: "closed" | "reopened";
         /** @description La regla de fechas (diseño §3.10). */
         Recurrence: {
+            /** @description Meses del año en que ocurre (p. ej. `[2, 8]` la matrícula); sustituye el paso de la frecuencia. */
+            months?: number[];
+            /** @description Meses sin ocurrencias cada año (p. ej. `[12, 1]` el transporte escolar). */
+            skip_months?: number[];
+            /** @description Rangos de fechas sin ocurrencias (vacaciones). */
+            skip_ranges?: components["schemas"]["PauseRange"][];
             frequency: components["schemas"]["FrequencyEnum"];
             /** Format: date */
             start_date: string;
@@ -2925,6 +4017,36 @@ export interface components {
              * @default none
              */
             holiday_rule: components["schemas"]["HolidayRuleEnum"];
+            /** @description Días antes del vencimiento en que termina el pronto pago. */
+            early_days_before?: number | null;
+            /**
+             * @description `percent` o `fixed`.
+             *
+             *     * `percent` - percent
+             *     * `fixed` - fixed
+             */
+            early_kind?: components["schemas"]["EarlyKindEnum"] | components["schemas"]["BlankEnum"];
+            /**
+             * @description Porcentaje (`10`) o monto del descuento.
+             * @example 180000
+             */
+            early_value?: string | null;
+            /**
+             * @description `fixed`, `percent` o `daily` (interés de mora diario de la tasa vigente `late_rate_key`).
+             *
+             *     * `none` - none
+             *     * `fixed` - fixed
+             *     * `percent` - percent
+             *     * `daily` - daily
+             */
+            late_kind?: components["schemas"]["LateKindEnum"];
+            /**
+             * @description Monto o porcentaje del recargo.
+             * @example 180000
+             */
+            late_value?: string | null;
+            /** @description Clave del parámetro con vigencia (tasa efectiva anual, fracción) para `daily`. */
+            late_rate_key?: string;
             /** Format: uuid */
             id: string;
             kind: components["schemas"]["RecurrenceKindEnum"];
@@ -2955,6 +4077,12 @@ export interface components {
         };
         /** @description La regla de fechas (diseño §3.10). */
         RecurrenceCreate: {
+            /** @description Meses del año en que ocurre (p. ej. `[2, 8]` la matrícula); sustituye el paso de la frecuencia. */
+            months?: number[];
+            /** @description Meses sin ocurrencias cada año (p. ej. `[12, 1]` el transporte escolar). */
+            skip_months?: number[];
+            /** @description Rangos de fechas sin ocurrencias (vacaciones). */
+            skip_ranges?: components["schemas"]["PauseRange"][];
             frequency: components["schemas"]["FrequencyEnum"];
             /** Format: date */
             start_date: string;
@@ -2985,6 +4113,36 @@ export interface components {
              * @default none
              */
             holiday_rule: components["schemas"]["HolidayRuleEnum"];
+            /** @description Días antes del vencimiento en que termina el pronto pago. */
+            early_days_before?: number | null;
+            /**
+             * @description `percent` o `fixed`.
+             *
+             *     * `percent` - percent
+             *     * `fixed` - fixed
+             */
+            early_kind?: components["schemas"]["EarlyKindEnum"] | components["schemas"]["BlankEnum"];
+            /**
+             * @description Porcentaje (`10`) o monto del descuento.
+             * @example 180000
+             */
+            early_value?: string | null;
+            /**
+             * @description `fixed`, `percent` o `daily` (interés de mora diario de la tasa vigente `late_rate_key`).
+             *
+             *     * `none` - none
+             *     * `fixed` - fixed
+             *     * `percent` - percent
+             *     * `daily` - daily
+             */
+            late_kind?: components["schemas"]["LateKindEnum"];
+            /**
+             * @description Monto o porcentaje del recargo.
+             * @example 180000
+             */
+            late_value?: string | null;
+            /** @description Clave del parámetro con vigencia (tasa efectiva anual, fracción) para `daily`. */
+            late_rate_key?: string;
             /** @default fixed_expense */
             kind: components["schemas"]["RecurrenceKindEnum"];
             name: string;
@@ -3038,6 +4196,47 @@ export interface components {
             id: string;
             name: string;
         };
+        Reopen: {
+            reason: string;
+        };
+        Rule: {
+            key: components["schemas"]["KeyEnum"];
+            enabled: boolean;
+            /** @description Días de anticipación (o de atraso en `overdue`). */
+            offsets: number[];
+            /** Format: time */
+            send_time: string;
+            /** @description `app` siempre. */
+            channels: components["schemas"]["ChannelsEnum"][];
+        };
+        RulePatch: {
+            key: components["schemas"]["KeyEnum"];
+            enabled?: boolean;
+            offsets?: number[];
+            /** Format: time */
+            send_time?: string;
+            channels?: components["schemas"]["ChannelsEnum"][];
+        };
+        /**
+         * @description * `global` - global
+         *     * `user` - user
+         * @enum {string}
+         */
+        ScopeEnum: "global" | "user";
+        /**
+         * @description * `info` - info
+         *     * `warning` - warning
+         *     * `critical` - critical
+         * @enum {string}
+         */
+        SeverityEnum: "info" | "warning" | "critical";
+        Shortcut: {
+            name: string;
+            /** @example 180000 */
+            amount: string;
+            /** Format: uuid */
+            category_id: string | null;
+        };
         /**
          * @description * `debit` - debit
          *     * `credit` - credit
@@ -3088,6 +4287,13 @@ export interface components {
             before: string;
             /** @example 180000 */
             after: string;
+        };
+        Split: {
+            installments: components["schemas"]["InstallmentInput"][];
+        };
+        SplitResult: {
+            parent: components["schemas"]["Occurrence"];
+            installments: components["schemas"]["Occurrence"][];
         };
         Statement: {
             /** Format: date */
@@ -3201,6 +4407,38 @@ export interface components {
             notes?: string | null;
             /** @description El 4x1000 de la transferencia; sin valor, la regla por defecto. */
             apply_gmf?: boolean | null;
+        };
+        /**
+         * @description * `fraction` - fraction
+         *     * `amount` - amount
+         *     * `count` - count
+         * @enum {string}
+         */
+        UnitEnum: "fraction" | "amount" | "count";
+        UserParameter: {
+            /** Format: uuid */
+            id: string;
+            key: string;
+            value: string;
+            /** Format: date */
+            valid_from: string;
+            /** Format: date */
+            valid_to: string | null;
+            source: string;
+        };
+        UserParameterCreate: {
+            key: string;
+            /**
+             * @description Una tasa como fracción (`0.2345`), un monto o un conteo.
+             * @example 0.24
+             */
+            value: string;
+            /** Format: date */
+            valid_from: string;
+            /** Format: date */
+            valid_to?: string | null;
+            /** @description De dónde sale el valor (obligatoria). */
+            source: string;
         };
         Verify: {
             ok: boolean;
@@ -3555,6 +4793,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FmsError"];
+                };
+            };
+        };
+    };
+    fmsCalendar: {
+        parameters: {
+            query?: {
+                /** @description `YYYY-MM-DD` ancla de la vista; por defecto hoy. */
+                date?: string;
+                /** @description `7`, `15` o `30` días desde hoy (sustituye a `view`). */
+                range?: number;
+                /** @description `month` (defecto), `week` o `day`. */
+                view?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Calendar"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
         };
@@ -5003,6 +6294,55 @@ export interface operations {
             };
             /** @description Valida pero no se puede aplicar (`code` dice por qué). */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsDashboard: {
+        parameters: {
+            query?: {
+                /** @description `YYYY-MM`; por defecto el mes en curso. */
+                period?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dashboard"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6955,6 +8295,382 @@ export interface operations {
             };
         };
     };
+    fmsNotificationPrefs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Prefs"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsNotificationPrefsPatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedPrefsPatch"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Prefs"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsNotificationRules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Rule"][];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsNotificationRulesPatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedRulesPatch"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Rule"][];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsNotifications: {
+        parameters: {
+            query?: {
+                rule?: string;
+                unread?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationList"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsNotificationSnooze: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notification"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsNotificationsEvaluate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluateResult"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsNotificationsRead: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["NotificationsRead"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationsReadResult"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsOccurrences: {
         parameters: {
             query?: {
@@ -7215,6 +8931,84 @@ export interface operations {
             };
         };
     };
+    fmsOccurrenceQuote: {
+        parameters: {
+            query?: {
+                /** @description `YYYY-MM-DD`; por defecto hoy (Bogotá). */
+                on?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AmountDue"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsOccurrenceSkip: {
         parameters: {
             query?: never;
@@ -7294,6 +9088,142 @@ export interface operations {
             };
         };
     };
+    fmsOccurrenceSplit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Split"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SplitResult"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsOccurrenceUnsplit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Occurrence"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsParameters: {
         parameters: {
             query?: {
@@ -7312,6 +9242,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Parameter"][];
+                };
+            };
+        };
+    };
+    fmsParameterCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ParameterCatalog"][];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
         };
@@ -7466,6 +9433,508 @@ export interface operations {
             };
             /** @description No existe (o es de otro usuario). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsPushSubscribe: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PushSubscribe"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsPushUnsubscribe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsReconciliations: {
+        parameters: {
+            query?: {
+                account?: string;
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationPage"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsReconcile: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconcileInput"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reconciliation"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsReconciliation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reconciliation"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsReconciliationReopen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Reopen"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reconciliation"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsReconcileAdjust: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconcileInput"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Adjustment"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsReconcilePreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconcileInput"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconcilePreview"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -8115,6 +10584,233 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Movement"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsUserParameters: {
+        parameters: {
+            query?: {
+                key?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserParameter"][];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsUserParameterCreate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserParameterCreate"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserParameter"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsUserParameterDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsUserParameterClose: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedUserParameterClose"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserParameter"];
                 };
             };
             /** @description Cuerpo inválido o falta `Idempotency-Key`. */

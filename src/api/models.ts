@@ -56,6 +56,34 @@ export type Summary = S["Summary"];
 export type TransferCreate = S["TransferCreate"];
 export type Warning = S["Warning"];
 
+// FMS-1b (cortes 1.7 a 1.10)
+export type AmountDue = S["AmountDue"];
+export type SplitInput = S["Split"];
+export type SplitResult = S["SplitResult"];
+export type Dashboard = S["Dashboard"];
+export type RailItem = S["RailItem"];
+export type FixedGrid = S["FixedGrid"];
+export type Alert = S["Alert"];
+export type Calendar = S["Calendar"];
+export type CalendarDay = S["CalendarDay"];
+export type CalendarItem = S["CalendarItem"];
+export type Notification = S["Notification"];
+export type NotificationList = S["NotificationList"];
+export type Prefs = S["Prefs"];
+export type PrefsPatch = S["PatchedPrefsPatch"];
+export type Rule = S["Rule"];
+export type RulePatch = S["RulePatch"];
+export type PushSubscribe = S["PushSubscribe"];
+export type Parameter = S["Parameter"];
+export type ParameterCatalog = S["ParameterCatalog"];
+export type UserParameter = S["UserParameter"];
+export type UserParameterCreate = S["UserParameterCreate"];
+export type ReconcileInput = S["ReconcileInput"];
+export type ReconcilePreview = S["ReconcilePreview"];
+export type Reconciliation = S["Reconciliation"];
+export type Adjustment = S["Adjustment"];
+export type Candidate = S["Candidate"];
+
 export type AccountKind = S["AccountKindEnum"];
 export type EntryStatus = S["EntryStatusEnum"];
 export type MovementType = S["MovementTypeEnum"];

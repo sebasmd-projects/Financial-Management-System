@@ -382,3 +382,33 @@ export function DefinitionList({ rows }: { rows: readonly { label: string; value
     </dl>
   );
 }
+
+/**
+ * Pestañas de una misma pantalla (no cambian de URL): `tablist` con flechas izquierda y derecha, y un único panel visible
+ * (`tabpanel`) rotulado por la pestaña activa.
+ */
+export function Tabs<T extends string>({ label, tabs, value, onChange, children }: { label: string; tabs: readonly { value: T; label: string }[]; value: T; onChange: (value: T) => void; children: ReactNode }) {
+  const base = useId();
+  const move = (event: React.KeyboardEvent, index: number) => {
+    const delta = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+    if (delta === 0) return;
+    event.preventDefault();
+    const next = tabs[(index + delta + tabs.length) % tabs.length];
+    onChange(next.value);
+    document.getElementById(`${base}-${next.value}`)?.focus();
+  };
+  return (
+    <div>
+      <div role="tablist" aria-label={label} className="fin-tabs">
+        {tabs.map((tab, index) => (
+          <button key={tab.value} type="button" role="tab" id={`${base}-${tab.value}`} className="fin-tab" aria-selected={tab.value === value} aria-controls={`${base}-panel`} tabIndex={tab.value === value ? 0 : -1} onClick={() => onChange(tab.value)} onKeyDown={(event) => move(event, index)}>
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel" id={`${base}-panel`} aria-labelledby={`${base}-${value}`} tabIndex={0}>
+        {children}
+      </div>
+    </div>
+  );
+}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { api } from "@/api";
-import type { Account, Loan, LoanInstallment, Movement } from "@/api/models";
+import type { Account, LateQuote, Loan, LoanInstallment, Movement } from "@/api/models";
 import { paths } from "@/api/paths";
 import { fractionToPercent, normalizeAmountInput } from "@/lib/amount-input";
 import { addAmounts } from "@/lib/money";
@@ -11,6 +11,9 @@ import { daysBetween, formatDate, todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import { amountToInput } from "../movements/movement-form";
 import { relativeDays, transferAccounts } from "../helpers";
+import { LatePanel } from "../credit/late-panel";
+import { RateMissingNotice } from "../credit/notes";
+import { RatesPanel } from "./rates-panel";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, DefinitionList, ErrorState, FormActions, Loading, Modal, Money, Progress, ScreenHeader, Section, SelectField, TextField } from "../kit";
 
@@ -67,6 +70,12 @@ export function LoanDetail({ id }: { id: string }) {
         <Link className="button button--ghost" href={href("credito-tabla", [l.id])}>
           {t.table}
         </Link>
+        <Link className="button button--ghost" href={href("simulador-abono-extra")}>
+          {dict.fin.credit.detail.extraPayment}
+        </Link>
+        <Link className="button button--ghost" href={href("simulador-comparar")}>
+          {dict.fin.credit.detail.whatIf}
+        </Link>
         <Link className="button button--ghost" href={`${href("movimientos")}?cuenta=${encodeURIComponent(l.account_id)}`}>
           {t.viewMovements}
         </Link>
@@ -78,9 +87,13 @@ export function LoanDetail({ id }: { id: string }) {
             { label: t.fields.system, value: dict.fin.systems[l.system] ?? l.system },
             { label: t.fields.term, value: String(l.term) },
             { label: t.fields.insurance, value: <Money value={l.insurance} /> },
+            { label: dict.fin.credit.form.otherCharges, value: <Money value={l.other_charges} /> },
+            { label: dict.fin.credit.form.kind, value: dict.fin.credit.kinds[l.kind] },
           ]}
         />
       </Section>
+      <RatesPanel loanId={l.id} canRecalculate={l.system !== "custom"} onChanged={loan.reload} />
+      <LatePanel loanId={l.id} />
       {next && (
         <Modal open={paying} title={t.payInstallment} onClose={() => setPaying(false)}>
           <PayForm
@@ -108,19 +121,23 @@ function PayForm({ loanId, installment, onDone, onCancel }: { loanId: string; in
   const [interest, setInterest] = useState(amountToInput(installment.interest));
   const [insurance, setInsurance] = useState(amountToInput(installment.insurance));
   const [fees, setFees] = useState("");
+  const [late, setLate] = useState<string | null>(null);
   const [date, setDate] = useState(todayBogota());
+  const quote = useResource<LateQuote>(installment.adjusted_due_date < date ? paths.loanLate(loanId, date) : null);
+  const suggested = quote.data?.rows.find((row) => row.number === installment.number)?.late_interest ?? null;
+  const lateText = late ?? (suggested ? amountToInput(suggested) : "");
   const [fromAccount, setFromAccount] = useState("");
   const sources = transferAccounts(accounts.items).filter((a) => a.kind !== "credit_card");
   const from = fromAccount || sources[0]?.id || "";
 
-  const parts = { capital: normalizeAmountInput(capital || "0"), interest: normalizeAmountInput(interest || "0"), insurance: normalizeAmountInput(insurance || "0"), fees: normalizeAmountInput(fees || "0") };
-  const valid = parts.capital !== null && parts.interest !== null && parts.insurance !== null && parts.fees !== null && from !== "";
-  const total = valid ? addAmounts(parts.capital!, parts.interest!, parts.insurance!, parts.fees!) : null;
+  const parts = { capital: normalizeAmountInput(capital || "0"), interest: normalizeAmountInput(interest || "0"), insurance: normalizeAmountInput(insurance || "0"), fees: normalizeAmountInput(fees || "0"), late: normalizeAmountInput(lateText || "0") };
+  const valid = parts.capital !== null && parts.interest !== null && parts.insurance !== null && parts.fees !== null && parts.late !== null && from !== "";
+  const total = valid ? addAmounts(parts.capital!, parts.interest!, parts.insurance!, parts.fees!, parts.late!) : null;
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!valid) return;
-    const body = { from_account_id: from, date, capital: parts.capital!, interest: parts.interest!, insurance: parts.insurance!, fees: parts.fees! };
+    const body = { from_account_id: from, date, capital: parts.capital!, interest: parts.interest!, insurance: parts.insurance!, fees: parts.fees!, ...(parts.late !== "0" ? { late_interest: parts.late! } : {}) };
     const result = await submit.run(body, (key) => api.post<Movement>(paths.loanPay(loanId, installment.number), body, { idempotencyKey: key, locale }));
     if (result.ok) onDone();
   }
@@ -132,6 +149,8 @@ function PayForm({ loanId, installment, onDone, onCancel }: { loanId: string; in
       <AmountField label={t.split.interest} value={interest} onChange={setInterest} error={parts.interest === null ? bad : null} />
       <AmountField label={t.split.insurance} value={insurance} onChange={setInsurance} error={parts.insurance === null ? bad : null} />
       <AmountField label={t.split.fees} value={fees} onChange={setFees} error={parts.fees === null ? bad : null} />
+      <AmountField label={dict.fin.credit.late.lateInterest} hint={dict.fin.credit.late.payHint} value={lateText} onChange={setLate} error={parts.late === null ? bad : null} />
+      {quote.data?.rate_missing && <RateMissingNotice />}
       {total && (
         <p className="fin-phrase">
           {t.total} <Money value={total} />

@@ -1,0 +1,54 @@
+/* FMS-2a (cortes 2.1 a 2.4): créditos, simuladores, presupuestos y metas, informes. Mobile first; solo tokens de `ui/tokens.css`. */
+
+.fin-tab[aria-selected="true"] { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+.fin-tabs button.fin-tab { background: none; border-top: 0; border-left: 0; border-right: 0; cursor: pointer; }
+
+/* ---------- Simuladores ---------- */
+.sim-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-8); margin: 0; }
+@media (min-width: 720px) { .sim-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.sim-summary__item { display: grid; gap: var(--space-2); margin: 0; padding: var(--space-12); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+.sim-summary__item dd { margin: 0; font: var(--text-title-s); overflow-wrap: anywhere; }
+.sim-summary__item--strong { border-color: var(--color-primary); background: var(--color-primary-container); color: var(--color-on-primary-container); }
+.sim-summary__item--strong .muted { color: inherit; }
+.sim-offers { display: grid; gap: var(--space-16); }
+@media (min-width: 960px) { .sim-offers { grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; } }
+.sim-offer { display: grid; gap: var(--space-12); margin: 0; min-width: 0; }
+.sim-compare th[scope="row"] { text-align: left; font-weight: 500; }
+
+/* ---------- Gráficas accesibles (decorativas + tabla equivalente) ---------- */
+.chart { display: grid; gap: var(--space-8); margin: 0; }
+.chart__caption { font: var(--text-title-s); }
+.chart__legend { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-16); margin: 0; padding: 0; list-style: none; font: var(--text-body-s); color: var(--color-text-secondary); }
+.chart__legend li { display: inline-flex; align-items: center; gap: var(--space-8); }
+.chart__swatch { width: 18px; height: 12px; border-radius: 3px; background: var(--chart-1); border: 1px solid var(--chart-1); }
+.chart__swatch--hatched, .chart__fill--hatched { background: repeating-linear-gradient(45deg, var(--chart-1) 0 3px, transparent 3px 6px); }
+.chart__rows { display: grid; gap: var(--space-12); }
+.chart__row { display: grid; gap: var(--space-4); }
+.chart__label { font: var(--text-label); color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.chart__bars { display: grid; gap: var(--space-4); }
+.chart__bar { position: relative; display: flex; align-items: center; gap: var(--space-8); min-height: 20px; }
+.chart__fill { display: block; flex: none; height: 14px; border-radius: 3px; background: var(--chart-1); border: 1px solid var(--chart-1); box-sizing: border-box; }
+.chart__fill--1 { background: var(--chart-3); border-color: var(--chart-3); }
+.chart__fill--2 { background: var(--chart-4); border-color: var(--chart-4); }
+.chart__fill--3 { background: var(--chart-5); border-color: var(--chart-5); }
+.chart__fill--1.chart__fill--hatched { background: repeating-linear-gradient(45deg, var(--chart-3) 0 3px, transparent 3px 6px); }
+.chart__fill--2.chart__fill--hatched { background: repeating-linear-gradient(45deg, var(--chart-4) 0 3px, transparent 3px 6px); }
+.chart__fill--3.chart__fill--hatched { background: repeating-linear-gradient(45deg, var(--chart-5) 0 3px, transparent 3px 6px); }
+.chart__value { font: var(--text-body-s); white-space: nowrap; }
+.chart__table summary { min-height: var(--target-min); display: flex; align-items: center; cursor: pointer; color: var(--color-primary); font: var(--text-label); }
+
+/* ---------- Informes ---------- */
+.rep-view, .rep-body, .rep-filters, .rep-export { display: grid; gap: var(--space-16); min-width: 0; }
+.rep-table { display: grid; gap: var(--space-12); }
+.rep-table .table__caption { font: var(--text-title-s); text-align: left; padding-block: var(--space-8); }
+.rep-notes { margin: 0; padding-left: var(--space-16); }
+/* Real y proyectado se distinguen por forma y rótulo, no solo por color: lo proyectado va con otro fondo, borde discontinuo y la insignia «Proyectado». */
+.rep-row--projected > * { background: var(--color-surface-2); }
+.rep-row--projected > :first-child { border-left: 3px dashed var(--color-border-strong); }
+.rep-row--current > :first-child { border-left: 3px solid var(--color-warning); }
+.rep-home { display: grid; gap: var(--space-12); margin: 0; padding: 0; list-style: none; }
+@media (min-width: 720px) { .rep-home { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.chart__swatch--1 { background: var(--chart-3); border-color: var(--chart-3); }
+.chart__swatch--2 { background: var(--chart-4); border-color: var(--chart-4); }
+.chart__swatch--3 { background: var(--chart-5); border-color: var(--chart-5); }
+.chart__swatch--1.chart__swatch--hatched { background: repeating-linear-gradient(45deg, var(--chart-3) 0 3px, transparent 3px 6px); }

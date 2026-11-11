@@ -35,6 +35,8 @@ export interface RequestOptions {
   redirectOn401?: boolean;
   /** Va en `Accept-Language`: Django escribe en ese idioma sus mensajes. */
   locale?: string;
+  /** La respuesta buena es un archivo (exportaciones): se entrega como `Blob`, sin leerla como JSON. Los errores siguen siendo JSON. */
+  asBlob?: boolean;
 }
 
 export interface ClientDeps {
@@ -79,7 +81,7 @@ export function createApiClient(deps: ClientDeps) {
   }
 
   async function request<T>(method: Method, path: string, options: RequestOptions = {}): Promise<ApiResult<T>> {
-    const headers: Record<string, string> = { Accept: "application/json" };
+    const headers: Record<string, string> = { Accept: options.asBlob ? "*/*" : "application/json" };
     if (options.locale) headers["Accept-Language"] = options.locale;
     if (!SAFE_METHODS.has(method)) {
       const token = await csrfToken(options.signal);
@@ -106,7 +108,7 @@ export function createApiClient(deps: ClientDeps) {
 
     let data: unknown;
     try {
-      data = response.status === 204 ? undefined : await response.json();
+      data = response.status === 204 ? undefined : options.asBlob && response.ok ? await response.blob() : await response.json();
     } catch {
       data = undefined;
     }

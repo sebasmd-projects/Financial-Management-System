@@ -21,6 +21,8 @@ export function errorText(result: Extract<ApiResult<unknown>, { ok: false }>, te
       return texts.notFound;
     case 409:
       return texts.conflict;
+    case 429:
+      return texts.tooMany ?? texts.generic;
     case 422:
       return texts.invalid;
     default:

@@ -3,6 +3,21 @@
 import { Suspense, type ReactNode } from "react";
 import type { RouteId } from "@/nav/routes";
 import { Loading } from "./kit";
+import { AmortizationsScreen } from "./credit/amortizations-screen";
+import { DebtsScreen } from "./credit/debts-screen";
+import { InstallmentsScreen } from "./credit/installments-screen";
+import { InterestScreen } from "./credit/interest-screen";
+import { CardSimulatorPicker } from "./simulators/card-sim-picker";
+import { CompareSimulator } from "./simulators/compare-sim";
+import { ExtraPaymentSimulator } from "./simulators/extra-sim";
+import { InstallmentSimulator } from "./simulators/installment-sim";
+import { RatesSimulator } from "./simulators/rates-sim";
+import { BudgetDetail } from "./plan/budget-detail";
+import { BudgetsScreen } from "./plan/budgets-screen";
+import { GoalDetail } from "./plan/goal-detail";
+import { GoalsScreen } from "./plan/goals-screen";
+import { IndicatorsScreen } from "./plan/indicators-screen";
+import { NetWorthScreen, ProjectionsScreen, ReportScreen, ReportsHome, StatisticsScreen } from "./reports/reports-screens";
 import { AccountDetail } from "./accounts/account-detail";
 import { AccountsScreen } from "./accounts/accounts-screen";
 import { CalendarScreen } from "./calendar/calendar-screen";
@@ -85,10 +100,50 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <RecurrenceDetail id={first} />;
     case "creditos":
       return <LoansScreen />;
+    case "creditos-cuotas":
+      return <InstallmentsScreen />;
+    case "creditos-intereses":
+      return <InterestScreen />;
+    case "creditos-amortizaciones":
+      return <AmortizationsScreen />;
+    case "creditos-deudas":
+      return <DebtsScreen />;
+    case "simulador-amortizacion":
+      return <InstallmentSimulator />;
+    case "simulador-tasas":
+      return <RatesSimulator />;
+    case "simulador-abono-extra":
+      return <ExtraPaymentSimulator />;
+    case "simulador-comparar":
+      return <CompareSimulator />;
+    case "simulador-compra-tarjeta":
+      return <CardSimulatorPicker />;
     case "credito":
       return <LoanDetail id={first} />;
     case "credito-tabla":
       return <LoanTable id={first} />;
+    case "plan-presupuestos":
+      return <BudgetsScreen />;
+    case "plan-presupuesto":
+      return <BudgetDetail id={first} />;
+    case "plan-ahorro":
+      return <GoalsScreen tab="ahorro" />;
+    case "plan-objetivos":
+      return <GoalsScreen tab="objetivos" />;
+    case "plan-meta":
+      return <GoalDetail id={first} />;
+    case "plan-indicadores":
+      return <IndicatorsScreen />;
+    case "informes":
+      return <ReportsHome />;
+    case "informe":
+      return <ReportScreen reportKey={first} />;
+    case "informes-estadisticas":
+      return <StatisticsScreen />;
+    case "informes-proyecciones":
+      return <ProjectionsScreen />;
+    case "informes-patrimonio":
+      return <NetWorthScreen />;
     case "config-categorias":
       return <CategoriesScreen />;
     case "config-etiquetas":

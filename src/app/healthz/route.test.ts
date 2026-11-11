@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { GET } from "./route";
 
-describe("GET /finanzas/healthz", () => {
+describe("GET /_fms/healthz", () => {
   it("200 «ok», texto plano y sin caché", async () => {
     const response = GET();
     expect(response.status).toBe(200);

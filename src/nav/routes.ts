@@ -1,186 +1,216 @@
 /**
- * Árbol de navegación y tabla de rutas (docs/design-spec.md §1). Una sola fuente para la barra inferior, la barra
- * lateral, la hoja «Más», el buscador de pantallas y las pantallas de relleno de FMS-0.
+ * Árbol de navegación y TABLA DE RUTAS: la única fuente de la que salen las URLs de cada pantalla en español y en
+ * inglés (`/es/finanzas/movimientos` ⇄ `/en/finance/transactions`), la barra inferior, la lateral, la hoja «Más», el
+ * buscador, los `hreflang` y el cambio de idioma.
  *
- * Las rutas son las del diseño §1.4, SIN el prefijo `/finanzas` (lo pone `basePath`; `next/link` y `usePathname` ya
- * lo manejan). Sin montos ni datos en la URL: la ruta de alta no admite `?monto=` (AGENTS.md: nada de montos en URLs).
+ * Cada ruta se escribe UNA vez con su patrón por idioma (sin el prefijo `/<idioma>/<raíz>`). Los segmentos `[id]` son
+ * parámetros (los mismos en los dos idiomas); `[1|2|3]` es una lista cerrada. Sin montos ni datos en la URL.
  */
+import type { Locale } from "@/i18n/config";
+import { locales } from "@/i18n/config";
+import { ROOT_SLUG, rootPath } from "@/config/paths";
 
 export type SectionId = "resumen" | "movimientos" | "cuentas" | "pagos" | "creditos" | "plan" | "informes" | "config";
 
+export const SIMULATORS = [
+  { slug: "amortizacion", en: "amortization" },
+  { slug: "tasas", en: "rates" },
+  { slug: "abono-extra", en: "extra-payment" },
+  { slug: "comparar", en: "compare" },
+  { slug: "compra-tarjeta", en: "card-purchase" },
+] as const;
+
+export const CONFIG_SCREENS = [
+  { slug: "categorias", en: "categories" },
+  { slug: "etiquetas", en: "tags" },
+  { slug: "instituciones", en: "institutions" },
+  { slug: "monedas", en: "currencies" },
+  { slug: "reglas", en: "rules" },
+  { slug: "parametros", en: "parameters" },
+  { slug: "auditoria", en: "audit" },
+] as const;
+
+type Def = { id: string; section: SectionId | null; es: string; en: string };
+
+const STATIC_ROUTES = [
+  { id: "resumen", section: "resumen", es: "/", en: "/" },
+  { id: "movimientos", section: "movimientos", es: "/movimientos", en: "/transactions" },
+  { id: "movimientos-ingresos", section: "movimientos", es: "/movimientos/ingresos", en: "/transactions/income" },
+  { id: "movimientos-egresos", section: "movimientos", es: "/movimientos/egresos", en: "/transactions/expenses" },
+  { id: "movimientos-transferencias", section: "movimientos", es: "/movimientos/transferencias", en: "/transactions/transfers" },
+  { id: "movimientos-historial", section: "movimientos", es: "/movimientos/historial", en: "/transactions/history" },
+  { id: "movimiento-nuevo", section: "movimientos", es: "/movimientos/nuevo", en: "/transactions/new" },
+  { id: "compartidos", section: "movimientos", es: "/movimientos/compartidos", en: "/transactions/shared" },
+  { id: "compartidos-persona", section: "movimientos", es: "/movimientos/compartidos/[persona]", en: "/transactions/shared/[persona]" },
+  { id: "movimiento", section: "movimientos", es: "/movimientos/[id]", en: "/transactions/[id]" },
+  { id: "movimiento-asientos", section: "movimientos", es: "/movimientos/[id]/asientos", en: "/transactions/[id]/entries" },
+  { id: "movimiento-historial", section: "movimientos", es: "/movimientos/[id]/historial", en: "/transactions/[id]/history" },
+  { id: "cuentas", section: "cuentas", es: "/cuentas", en: "/accounts" },
+  { id: "cuentas-bancos", section: "cuentas", es: "/cuentas/bancos", en: "/accounts/banks" },
+  { id: "cuentas-efectivo", section: "cuentas", es: "/cuentas/efectivo", en: "/accounts/cash" },
+  { id: "cuentas-debito", section: "cuentas", es: "/cuentas/debito", en: "/accounts/debit" },
+  { id: "cuentas-credito", section: "cuentas", es: "/cuentas/credito", en: "/accounts/credit" },
+  { id: "cuentas-importar", section: "cuentas", es: "/cuentas/importar", en: "/accounts/import" },
+  { id: "cuenta", section: "cuentas", es: "/cuentas/[id]", en: "/accounts/[id]" },
+  { id: "cuenta-conciliar", section: "cuentas", es: "/cuentas/[id]/conciliar", en: "/accounts/[id]/reconcile" },
+  { id: "tarjeta", section: "cuentas", es: "/tarjetas/[id]", en: "/cards/[id]" },
+  { id: "tarjeta-extracto", section: "cuentas", es: "/tarjetas/[id]/extractos/[periodo]", en: "/cards/[id]/statements/[periodo]" },
+  { id: "tarjeta-pagar", section: "cuentas", es: "/tarjetas/[id]/pagar", en: "/cards/[id]/pay" },
+  { id: "tarjeta-simular", section: "cuentas", es: "/tarjetas/[id]/simular", en: "/cards/[id]/simulate" },
+  { id: "pagos", section: "pagos", es: "/pagos", en: "/payments" },
+  { id: "pagos-fijos", section: "pagos", es: "/pagos/fijos", en: "/payments/fixed" },
+  { id: "pagos-fijo-pagar", section: "pagos", es: "/pagos/fijos/[id]/pagar", en: "/payments/fixed/[id]/pay" },
+  { id: "pagos-suscripciones", section: "pagos", es: "/pagos/suscripciones", en: "/payments/subscriptions" },
+  { id: "pagos-recurrencia-nueva", section: "pagos", es: "/pagos/recurrencias/nueva", en: "/payments/recurring/new" },
+  { id: "pagos-recurrencia", section: "pagos", es: "/pagos/recurrencias/[id]", en: "/payments/recurring/[id]" },
+  { id: "pagos-calendario", section: "pagos", es: "/pagos/calendario", en: "/payments/calendar" },
+  { id: "creditos", section: "creditos", es: "/creditos", en: "/loans" },
+  { id: "creditos-cuotas", section: "creditos", es: "/creditos/cuotas", en: "/loans/installments" },
+  { id: "creditos-intereses", section: "creditos", es: "/creditos/intereses", en: "/loans/interest" },
+  { id: "creditos-amortizaciones", section: "creditos", es: "/creditos/amortizaciones", en: "/loans/amortization" },
+  { id: "creditos-deudas", section: "creditos", es: "/creditos/deudas-personales", en: "/loans/personal-debts" },
+  { id: "credito", section: "creditos", es: "/creditos/[id]", en: "/loans/[id]" },
+  { id: "credito-tabla", section: "creditos", es: "/creditos/[id]/tabla", en: "/loans/[id]/table" },
+  { id: "plan-presupuestos", section: "plan", es: "/presupuestos", en: "/budgets" },
+  { id: "plan-ahorro", section: "plan", es: "/presupuestos/ahorro", en: "/budgets/savings" },
+  { id: "plan-objetivos", section: "plan", es: "/presupuestos/objetivos", en: "/budgets/goals" },
+  { id: "plan-meta", section: "plan", es: "/presupuestos/objetivos/[id]", en: "/budgets/goals/[id]" },
+  { id: "plan-indicadores", section: "plan", es: "/presupuestos/indicadores", en: "/budgets/indicators" },
+  { id: "plan-presupuesto", section: "plan", es: "/presupuestos/[id]", en: "/budgets/[id]" },
+  { id: "informes", section: "informes", es: "/informes", en: "/reports" },
+  { id: "informes-estadisticas", section: "informes", es: "/informes/estadisticas", en: "/reports/statistics" },
+  { id: "informes-proyecciones", section: "informes", es: "/informes/proyecciones", en: "/reports/projections" },
+  { id: "informes-comparar", section: "informes", es: "/informes/proyecciones/comparar", en: "/reports/projections/compare" },
+  { id: "informes-independencia", section: "informes", es: "/informes/proyecciones/independencia", en: "/reports/projections/independence" },
+  { id: "informes-patrimonio", section: "informes", es: "/informes/patrimonio", en: "/reports/net-worth" },
+  { id: "informes-activo", section: "informes", es: "/informes/patrimonio/activos/[id]", en: "/reports/net-worth/assets/[id]" },
+  { id: "informe", section: "informes", es: "/informes/[informe]", en: "/reports/[informe]" },
+  { id: "notificaciones", section: null, es: "/notificaciones", en: "/notifications" },
+  { id: "perfil", section: null, es: "/perfil", en: "/profile" },
+  { id: "bienvenida", section: null, es: "/bienvenida/[1|2|3|4|5]", en: "/welcome/[1|2|3|4|5]" },
+] as const satisfies readonly Def[];
+
+type SimulatorId = `simulador-${(typeof SIMULATORS)[number]["slug"]}`;
+type ConfigId = `config-${(typeof CONFIG_SCREENS)[number]["slug"]}`;
+export type RouteId = (typeof STATIC_ROUTES)[number]["id"] | SimulatorId | ConfigId;
+
+export interface Route {
+  id: RouteId;
+  section: SectionId | null;
+  es: string;
+  en: string;
+}
+
+/** La tabla: una fila por pantalla, con su patrón en cada idioma. */
+export const ROUTES: readonly Route[] = [
+  ...(STATIC_ROUTES as readonly Route[]),
+  ...SIMULATORS.map((s): Route => ({ id: `simulador-${s.slug}`, section: "creditos", es: `/creditos/simuladores/${s.slug}`, en: `/loans/simulators/${s.en}` })),
+  ...CONFIG_SCREENS.map((s): Route => ({ id: `config-${s.slug}`, section: "config", es: `/configuracion/${s.slug}`, en: `/settings/${s.en}` })),
+];
+
+const BY_ID = new Map<RouteId, Route>(ROUTES.map((route) => [route.id, route]));
+
+export function routeById(id: RouteId): Route {
+  return BY_ID.get(id)!;
+}
+
 export interface NavItem {
   id: string;
-  /** Ruta con consulta opcional (`/movimientos?tipo=egreso`). */
-  href: string;
+  route: RouteId;
 }
 
 export interface NavSection {
   id: SectionId;
   /** Nombre del icono (`src/ui/icons.tsx`). */
   icon: string;
-  href: string;
+  route: RouteId;
   items: NavItem[];
 }
 
-/** Los nombres y el orden son los del propietario (§1.1). */
+/** Los nombres y el orden son los del propietario (§1.1 del diseño). */
 export const SECTIONS: readonly NavSection[] = [
-  { id: "resumen", icon: "home", href: "/", items: [] },
+  { id: "resumen", icon: "home", route: "resumen", items: [] },
   {
     id: "movimientos",
     icon: "list",
-    href: "/movimientos",
+    route: "movimientos",
     items: [
-      { id: "ingresos", href: "/movimientos?tipo=ingreso" },
-      { id: "egresos", href: "/movimientos?tipo=egreso" },
-      { id: "transferencias", href: "/movimientos?tipo=transferencia" },
-      { id: "historial", href: "/movimientos" },
-      { id: "compartidos", href: "/movimientos/compartidos" },
+      { id: "ingresos", route: "movimientos-ingresos" },
+      { id: "egresos", route: "movimientos-egresos" },
+      { id: "transferencias", route: "movimientos-transferencias" },
+      { id: "historial", route: "movimientos-historial" },
+      { id: "compartidos", route: "compartidos" },
     ],
   },
   {
     id: "cuentas",
     icon: "bank",
-    href: "/cuentas",
+    route: "cuentas",
     items: [
-      { id: "bancos", href: "/cuentas?tipo=banco" },
-      { id: "efectivo", href: "/cuentas?tipo=efectivo" },
-      { id: "debito", href: "/cuentas?tipo=debito" },
-      { id: "credito", href: "/cuentas?tipo=credito" },
-      { id: "importar", href: "/cuentas/importar" },
+      { id: "bancos", route: "cuentas-bancos" },
+      { id: "efectivo", route: "cuentas-efectivo" },
+      { id: "debito", route: "cuentas-debito" },
+      { id: "credito", route: "cuentas-credito" },
+      { id: "importar", route: "cuentas-importar" },
     ],
   },
   {
     id: "pagos",
     icon: "calendar-check",
-    href: "/pagos",
+    route: "pagos",
     items: [
-      { id: "suscripciones", href: "/pagos/suscripciones" },
-      { id: "fijos", href: "/pagos/fijos" },
-      { id: "calendario", href: "/pagos/calendario" },
+      { id: "suscripciones", route: "pagos-suscripciones" },
+      { id: "fijos", route: "pagos-fijos" },
+      { id: "calendario", route: "pagos-calendario" },
     ],
   },
   {
     id: "creditos",
     icon: "loan",
-    href: "/creditos",
+    route: "creditos",
     items: [
-      { id: "prestamos", href: "/creditos" },
-      { id: "cuotas", href: "/creditos?vista=cuotas" },
-      { id: "intereses", href: "/creditos?vista=intereses" },
-      { id: "amortizaciones", href: "/creditos/simuladores/amortizacion" },
-      { id: "deudas", href: "/creditos/deudas-personales" },
+      { id: "prestamos", route: "creditos" },
+      { id: "cuotas", route: "creditos-cuotas" },
+      { id: "intereses", route: "creditos-intereses" },
+      { id: "amortizaciones", route: "creditos-amortizaciones" },
+      { id: "deudas", route: "creditos-deudas" },
     ],
   },
   {
     id: "plan",
     icon: "target",
-    href: "/plan/presupuestos",
+    route: "plan-presupuestos",
     items: [
-      { id: "presupuestos", href: "/plan/presupuestos" },
-      { id: "ahorro", href: "/plan/metas?tipo=ahorro" },
-      { id: "objetivos", href: "/plan/metas?tipo=objetivo" },
+      { id: "presupuestos", route: "plan-presupuestos" },
+      { id: "ahorro", route: "plan-ahorro" },
+      { id: "objetivos", route: "plan-objetivos" },
     ],
   },
   {
     id: "informes",
     icon: "chart",
-    href: "/informes",
+    route: "informes",
     items: [
-      { id: "estadisticas", href: "/informes" },
-      { id: "proyecciones", href: "/informes/proyecciones" },
-      { id: "patrimonio", href: "/informes/patrimonio" },
+      { id: "estadisticas", route: "informes-estadisticas" },
+      { id: "proyecciones", route: "informes-proyecciones" },
+      { id: "patrimonio", route: "informes-patrimonio" },
     ],
   },
   {
     id: "config",
     icon: "gear",
-    href: "/config/categorias",
-    items: [
-      { id: "categorias", href: "/config/categorias" },
-      { id: "etiquetas", href: "/config/etiquetas" },
-      { id: "instituciones", href: "/config/instituciones" },
-      { id: "monedas", href: "/config/monedas" },
-      { id: "reglas", href: "/config/reglas" },
-      { id: "parametros", href: "/config/parametros" },
-      { id: "auditoria", href: "/config/auditoria" },
-    ],
+    route: "config-categorias",
+    items: CONFIG_SCREENS.map((s): NavItem => ({ id: s.slug, route: `config-${s.slug}` })),
   },
 ];
 
 /** Fuera del árbol, en la cabecera (§1.1). */
-export const NOTIFICATIONS_HREF = "/notificaciones";
-export const PROFILE_HREF = "/perfil";
-export const NEW_MOVEMENT_HREF = "/movimientos/nuevo";
-
-export const SIMULATORS = ["amortizacion", "tasas", "abono-extra", "comparar", "compra-tarjeta"] as const;
-export const CONFIG_SCREENS = ["categorias", "etiquetas", "instituciones", "monedas", "reglas", "parametros", "auditoria"] as const;
-
-type RouteDef = { id: string; pattern: string; section: SectionId | null };
-
-const STATIC_ROUTES = [
-  { id: "resumen", pattern: "/", section: "resumen" },
-  { id: "movimientos", pattern: "/movimientos", section: "movimientos" },
-  { id: "movimiento-nuevo", pattern: "/movimientos/nuevo", section: "movimientos" },
-  { id: "compartidos", pattern: "/movimientos/compartidos", section: "movimientos" },
-  { id: "compartidos-persona", pattern: "/movimientos/compartidos/[persona]", section: "movimientos" },
-  { id: "movimiento", pattern: "/movimientos/[id]", section: "movimientos" },
-  { id: "movimiento-asientos", pattern: "/movimientos/[id]/asientos", section: "movimientos" },
-  { id: "movimiento-historial", pattern: "/movimientos/[id]/historial", section: "movimientos" },
-  { id: "cuentas", pattern: "/cuentas", section: "cuentas" },
-  { id: "cuentas-importar", pattern: "/cuentas/importar", section: "cuentas" },
-  { id: "cuenta", pattern: "/cuentas/[id]", section: "cuentas" },
-  { id: "cuenta-conciliar", pattern: "/cuentas/[id]/conciliar", section: "cuentas" },
-  { id: "tarjeta", pattern: "/tarjetas/[id]", section: "cuentas" },
-  { id: "tarjeta-extracto", pattern: "/tarjetas/[id]/extractos/[periodo]", section: "cuentas" },
-  { id: "tarjeta-pagar", pattern: "/tarjetas/[id]/pagar", section: "cuentas" },
-  { id: "tarjeta-simular", pattern: "/tarjetas/[id]/simular", section: "cuentas" },
-  { id: "pagos", pattern: "/pagos", section: "pagos" },
-  { id: "pagos-fijos", pattern: "/pagos/fijos", section: "pagos" },
-  { id: "pagos-fijo-pagar", pattern: "/pagos/fijos/[id]/pagar", section: "pagos" },
-  { id: "pagos-suscripciones", pattern: "/pagos/suscripciones", section: "pagos" },
-  { id: "pagos-recurrencia-nueva", pattern: "/pagos/recurrencias/nueva", section: "pagos" },
-  { id: "pagos-recurrencia", pattern: "/pagos/recurrencias/[id]", section: "pagos" },
-  { id: "pagos-calendario", pattern: "/pagos/calendario", section: "pagos" },
-  { id: "creditos", pattern: "/creditos", section: "creditos" },
-  { id: "creditos-deudas", pattern: "/creditos/deudas-personales", section: "creditos" },
-  { id: "credito", pattern: "/creditos/[id]", section: "creditos" },
-  { id: "credito-tabla", pattern: "/creditos/[id]/tabla", section: "creditos" },
-  { id: "plan-presupuestos", pattern: "/plan/presupuestos", section: "plan" },
-  { id: "plan-presupuesto", pattern: "/plan/presupuestos/[id]", section: "plan" },
-  { id: "plan-metas", pattern: "/plan/metas", section: "plan" },
-  { id: "plan-meta", pattern: "/plan/metas/[id]", section: "plan" },
-  { id: "plan-indicadores", pattern: "/plan/indicadores", section: "plan" },
-  { id: "informes", pattern: "/informes", section: "informes" },
-  { id: "informes-proyecciones", pattern: "/informes/proyecciones", section: "informes" },
-  { id: "informes-comparar", pattern: "/informes/proyecciones/comparar", section: "informes" },
-  { id: "informes-independencia", pattern: "/informes/proyecciones/independencia", section: "informes" },
-  { id: "informes-patrimonio", pattern: "/informes/patrimonio", section: "informes" },
-  { id: "informes-activo", pattern: "/informes/patrimonio/activos/[id]", section: "informes" },
-  { id: "informe", pattern: "/informes/[informe]", section: "informes" },
-  { id: "notificaciones", pattern: "/notificaciones", section: null },
-  { id: "perfil", pattern: "/perfil", section: null },
-  { id: "bienvenida", pattern: "/bienvenida/[1|2|3|4|5]", section: null },
-] as const satisfies readonly RouteDef[];
-
-type SimulatorId = `simulador-${(typeof SIMULATORS)[number]}`;
-type ConfigId = `config-${(typeof CONFIG_SCREENS)[number]}`;
-export type RouteId = (typeof STATIC_ROUTES)[number]["id"] | SimulatorId | ConfigId;
-
-export interface Route {
-  id: RouteId;
-  pattern: string;
-  /** `null` para lo que cuelga de la cabecera (notificaciones, perfil, primer uso). */
-  section: SectionId | null;
-}
-
-export const ROUTES: readonly Route[] = [
-  ...(STATIC_ROUTES as readonly Route[]),
-  ...SIMULATORS.map((slug): Route => ({ id: `simulador-${slug}`, pattern: `/creditos/simuladores/${slug}`, section: "creditos" })),
-  ...CONFIG_SCREENS.map((slug): Route => ({ id: `config-${slug}`, pattern: `/config/${slug}`, section: "config" })),
-];
+export const NOTIFICATIONS_ROUTE: RouteId = "notificaciones";
+export const PROFILE_ROUTE: RouteId = "perfil";
+export const NEW_MOVEMENT_ROUTE: RouteId = "movimiento-nuevo";
 
 const SLUG = /^[A-Za-z0-9_-]{1,64}$/;
-const PERIOD = /^(?:\d{4}-(?:0[1-9]|1[0-2])|actual)$/;
+const PERIOD = /^(?:\d{4}-(?:0[1-9]|1[0-2])|actual|current)$/;
 
 function segmentMatches(pattern: string, value: string): { dynamic: boolean; ok: boolean } {
   if (!pattern.startsWith("[")) return { dynamic: false, ok: pattern === value };
@@ -189,18 +219,23 @@ function segmentMatches(pattern: string, value: string): { dynamic: boolean; ok:
   return { dynamic: true, ok: inner === "periodo" ? PERIOD.test(value) : SLUG.test(value) };
 }
 
+const split = (path: string) => path.split("/").filter(Boolean);
+
 export interface RouteMatch {
   route: Route;
-  /** Los segmentos que salieron de `[...]`, en orden (para el detalle de una pantalla). */
+  /** Los segmentos que salieron de `[...]`, en orden. */
   params: string[];
 }
 
-/** La ruta de una URL (sin prefijo ni consulta). Gana la de menos segmentos dinámicos: `/movimientos/nuevo` no es un `[id]`. */
-export function matchRoute(pathname: string): RouteMatch | null {
-  const segments = pathname.split("/").filter(Boolean);
-  let best: { route: Route; params: string[]; dynamic: number } | null = null;
+/**
+ * La pantalla de una ruta (sin `/<idioma>/<raíz>`) en un idioma. Gana la de menos segmentos dinámicos:
+ * `/movimientos/nuevo` no es un `[id]`.
+ */
+export function matchRoute(locale: Locale, rest: string): RouteMatch | null {
+  const segments = split(rest);
+  let best: (RouteMatch & { dynamic: number }) | null = null;
   for (const route of ROUTES) {
-    const parts = route.pattern.split("/").filter(Boolean);
+    const parts = split(route[locale]);
     if (parts.length !== segments.length) continue;
     let dynamic = 0;
     const params: string[] = [];
@@ -221,26 +256,56 @@ export function matchRoute(pathname: string): RouteMatch | null {
   return best && { route: best.route, params: best.params };
 }
 
+/** La ruta relativa (`/movimientos/42/asientos`) de una pantalla en un idioma, con sus parámetros. */
+export function routePath(locale: Locale, id: RouteId, params: readonly string[] = []): string {
+  let index = 0;
+  const parts = split(routeById(id)[locale]).map((part) => (part.startsWith("[") ? (params[index++] ?? part) : part));
+  return parts.length === 0 ? "/" : `/${parts.join("/")}`;
+}
+
+/** La URL completa: `/es/finanzas/movimientos`, `/en/finance` (la raíz es la de Resumen y la página de aterrizaje). */
+export function fmsHref(locale: Locale, id: RouteId, params: readonly string[] = []): string {
+  const rel = routePath(locale, id, params);
+  return rel === "/" ? rootPath(locale) : `${rootPath(locale)}${rel}`;
+}
+
+export interface FmsLocation {
+  locale: Locale;
+  /** `null` si la URL es de otro lado, o es de aquí pero no está en la tabla. */
+  match: RouteMatch | null;
+  /** Es `/<idioma>/<raíz>`: la página de aterrizaje (y el Resumen de quien tiene sesión). */
+  isLanding: boolean;
+}
+
+/** Descompone una URL de la app (`/es/finanzas/pagos/fijos`); `null` si no empieza por `/<idioma>/<raíz>`. */
+export function parseFmsPath(pathname: string): FmsLocation | null {
+  const [first, second, ...rest] = split(pathname);
+  if (!(locales as readonly string[]).includes(first)) return null;
+  const locale = first as Locale;
+  if (second !== ROOT_SLUG[locale]) return null;
+  const relative = `/${rest.join("/")}`;
+  return { locale, match: matchRoute(locale, relative), isLanding: rest.length === 0 };
+}
+
+/** La URL equivalente en otro idioma (cambio de idioma, `hreflang`); la raíz del otro idioma si no hay equivalente. */
+export function alternatePath(pathname: string, target: Locale): string {
+  const parsed = parseFmsPath(pathname);
+  if (!parsed?.match) return rootPath(target);
+  return fmsHref(target, parsed.match.route.id, parsed.match.params);
+}
+
 export function sectionOf(pathname: string): SectionId | null {
-  return matchRoute(pathname)?.route.section ?? null;
+  return parseFmsPath(pathname)?.match?.route.section ?? null;
 }
 
-/**
- * ¿Está activo un subelemento? Misma ruta y, si el subelemento trae consulta, la misma consulta (`?tipo=egreso`); sin
- * consulta (Historial) solo cuando la URL no filtra por `tipo`.
- */
-export function isItemActive(item: NavItem, pathname: string, search: URLSearchParams): boolean {
-  const [path, query = ""] = item.href.split("?");
-  if (path !== pathname) return false;
-  const wanted = new URLSearchParams(query);
-  if ([...wanted.keys()].length === 0) {
-    // Hermanos con consulta en la misma ruta: este es el «sin filtro».
-    return !["tipo", "vista"].some((key) => search.has(key));
-  }
-  return [...wanted].every(([key, value]) => search.get(key) === value);
+/** ¿Es este subelemento la pantalla actual? */
+export function isItemActive(item: NavItem, pathname: string): boolean {
+  return parseFmsPath(pathname)?.match?.route.id === item.route;
 }
 
-/** La sección está activa en cualquier ruta suya; `Resumen` solo en `/`. */
+/** La sección está activa en cualquier ruta suya; `Resumen` solo en la raíz. */
 export function isSectionActive(section: NavSection, pathname: string): boolean {
-  return section.id === "resumen" ? pathname === "/" : sectionOf(pathname) === section.id;
+  const parsed = parseFmsPath(pathname);
+  if (!parsed) return false;
+  return section.id === "resumen" ? parsed.isLanding : parsed.match?.route.section === section.id;
 }

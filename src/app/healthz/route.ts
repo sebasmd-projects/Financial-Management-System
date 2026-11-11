@@ -1,5 +1,5 @@
 // Salud del contenedor (HEALTHCHECK del Dockerfile): vivo = Next contesta. No toca la API ni la sesión.
-// Con `basePath` se sirve en `/finanzas/healthz`.
+// Se sirve en `/healthz` y, por la reescritura de `next.config.ts`, en `/_fms/healthz` (la que usa el HEALTHCHECK).
 export const dynamic = "force-static";
 
 export function GET() {

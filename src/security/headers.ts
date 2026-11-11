@@ -60,3 +60,13 @@ export const PRIVATE_PAGE_HEADERS: Readonly<Record<string, string>> = {
   Pragma: "no-cache",
   "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet",
 };
+
+/**
+ * La página de aterrizaje pública (`/es/finanzas`, `/en/finance`): se indexa y NO es `no-store`. Su HTML no depende de
+ * quién pregunta (no lee cookies ni sesión; lo de cada persona se pinta en el navegador tras preguntar a `/me`).
+ * Como la CSP lleva un nonce por petición, ningún intermediario debe guardarla ni compartirla: `private, no-cache`
+ * (el navegador puede conservarla y reutilizarla —sirve a la caché de ida y vuelta— pero la revalida).
+ */
+export const PUBLIC_LANDING_HEADERS: Readonly<Record<string, string>> = {
+  "Cache-Control": "private, no-cache",
+};

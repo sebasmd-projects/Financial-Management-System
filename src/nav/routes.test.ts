@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { locales } from "@/i18n/config";
 import { en } from "@/i18n/dictionaries/en";
 import { es } from "@/i18n/dictionaries/es";
-import { isItemActive, isSectionActive, matchRoute, NEW_MOVEMENT_HREF, ROUTES, SECTIONS, sectionOf } from "./routes";
+import { alternatePath, fmsHref, isItemActive, isSectionActive, matchRoute, parseFmsPath, ROUTES, routeById, routePath, SECTIONS, sectionOf } from "./routes";
+import { alternatePathFromRoot } from "./legacy";
 import { normalize, searchScreens } from "./search";
 
 describe("árbol del propietario (diseño §1.1)", () => {
@@ -28,13 +30,13 @@ describe("árbol del propietario (diseño §1.1)", () => {
     expect(labels("config")).toEqual(["Categorías", "Etiquetas", "Instituciones", "Monedas", "Reglas", "Parámetros Colombia", "Auditoría"]);
     expect(labels("resumen")).toEqual([]);
   });
-  it("todo subelemento tiene texto en español e inglés y su ruta existe", () => {
+  it("todo subelemento tiene texto en los dos idiomas y su ruta existe", () => {
     for (const section of SECTIONS) {
-      expect(matchRoute(section.href.split("?")[0]), section.href).not.toBeNull();
+      expect(routeById(section.route)).toBeTruthy();
       for (const item of section.items) {
         expect(es.nav.items[item.id], item.id).toBeTruthy();
         expect(en.nav.items[item.id], item.id).toBeTruthy();
-        expect(matchRoute(item.href.split("?")[0]), item.href).not.toBeNull();
+        expect(routeById(item.route), item.id).toBeTruthy();
       }
     }
   });
@@ -46,97 +48,151 @@ describe("árbol del propietario (diseño §1.1)", () => {
   });
 });
 
-describe("rutas profundas (diseño §1.4)", () => {
-  it.each([
-    ["/", "resumen"],
-    ["/movimientos", "movimientos"],
-    ["/movimientos/nuevo", "movimiento-nuevo"],
-    ["/movimientos/42", "movimiento"],
-    ["/movimientos/42/asientos", "movimiento-asientos"],
-    ["/movimientos/42/historial", "movimiento-historial"],
-    ["/movimientos/compartidos", "compartidos"],
-    ["/movimientos/compartidos/ana", "compartidos-persona"],
-    ["/cuentas", "cuentas"],
-    ["/cuentas/importar", "cuentas-importar"],
-    ["/cuentas/7", "cuenta"],
-    ["/cuentas/7/conciliar", "cuenta-conciliar"],
-    ["/tarjetas/3", "tarjeta"],
-    ["/tarjetas/3/extractos/2026-11", "tarjeta-extracto"],
-    ["/tarjetas/3/pagar", "tarjeta-pagar"],
-    ["/tarjetas/3/simular", "tarjeta-simular"],
-    ["/pagos", "pagos"],
-    ["/pagos/fijos", "pagos-fijos"],
-    ["/pagos/fijos/9/pagar", "pagos-fijo-pagar"],
-    ["/pagos/suscripciones", "pagos-suscripciones"],
-    ["/pagos/recurrencias/nueva", "pagos-recurrencia-nueva"],
-    ["/pagos/recurrencias/5", "pagos-recurrencia"],
-    ["/pagos/calendario", "pagos-calendario"],
-    ["/creditos", "creditos"],
-    ["/creditos/11", "credito"],
-    ["/creditos/11/tabla", "credito-tabla"],
-    ["/creditos/deudas-personales", "creditos-deudas"],
-    ["/creditos/simuladores/amortizacion", "simulador-amortizacion"],
-    ["/creditos/simuladores/compra-tarjeta", "simulador-compra-tarjeta"],
-    ["/plan/presupuestos", "plan-presupuestos"],
-    ["/plan/presupuestos/2", "plan-presupuesto"],
-    ["/plan/metas", "plan-metas"],
-    ["/plan/metas/2", "plan-meta"],
-    ["/plan/indicadores", "plan-indicadores"],
-    ["/informes", "informes"],
-    ["/informes/flujo-de-caja", "informe"],
-    ["/informes/proyecciones", "informes-proyecciones"],
-    ["/informes/proyecciones/comparar", "informes-comparar"],
-    ["/informes/proyecciones/independencia", "informes-independencia"],
-    ["/informes/patrimonio", "informes-patrimonio"],
-    ["/informes/patrimonio/activos/8", "informes-activo"],
-    ["/notificaciones", "notificaciones"],
-    ["/config/parametros", "config-parametros"],
-    ["/config/auditoria", "config-auditoria"],
-    ["/perfil", "perfil"],
-    ["/bienvenida/3", "bienvenida"],
-  ])("%s → %s", (path, id) => {
-    expect(matchRoute(path)?.route.id).toBe(id);
+describe("tabla única de rutas", () => {
+  const params = (pattern: string) => (pattern.match(/\[[^\]]+\]/g) ?? []).join("");
+  it("ids únicos y patrones únicos por idioma", () => {
+    expect(new Set(ROUTES.map((r) => r.id)).size).toBe(ROUTES.length);
+    for (const locale of locales) expect(new Set(ROUTES.map((r) => r[locale])).size, locale).toBe(ROUTES.length);
   });
-
-  it("lo estático gana a lo dinámico y los parámetros se devuelven", () => {
-    expect(matchRoute("/movimientos/nuevo")?.route.id).toBe("movimiento-nuevo");
-    expect(matchRoute("/informes/proyecciones")?.route.id).toBe("informes-proyecciones");
-    expect(matchRoute("/tarjetas/3/extractos/2026-11")?.params).toEqual(["3", "2026-11"]);
+  it("los dos idiomas tienen los mismos parámetros en el mismo orden", () => {
+    for (const route of ROUTES) expect(params(route.es), route.id).toBe(params(route.en));
   });
-  it("lo que no está en la tabla no existe", () => {
-    for (const path of ["/zzz", "/config/otra", "/bienvenida/6", "/tarjetas/3/extractos/ayer", "/movimientos/1/2/3", "/creditos/simuladores/ninguno", "/movimientos/a b", "/movimientos/<script>", "/informes/../x"]) {
-      expect(matchRoute(path), path).toBeNull();
+  it("el primer segmento traducido de cada sección", () => {
+    const first = (locale: "es" | "en", id: string) => routeById(SECTIONS.find((s) => s.id === id)!.route as never)[locale].split("/")[1];
+    expect(["movimientos", "cuentas", "pagos", "creditos", "plan", "informes"].map((s) => first("es", s))).toEqual(["movimientos", "cuentas", "pagos", "creditos", "presupuestos", "informes"]);
+    expect(["movimientos", "cuentas", "pagos", "creditos", "plan", "informes"].map((s) => first("en", s))).toEqual(["transactions", "accounts", "payments", "loans", "budgets", "reports"]);
+    expect(routeById("config-categorias").es).toBe("/configuracion/categorias");
+    expect(routeById("config-categorias").en).toBe("/settings/categories");
+  });
+  it("las subrutas de Movimientos son las del propietario", () => {
+    expect(["movimientos-ingresos", "movimientos-egresos", "movimientos-transferencias", "movimientos-historial"].map((id) => routeById(id as never).es)).toEqual([
+      "/movimientos/ingresos",
+      "/movimientos/egresos",
+      "/movimientos/transferencias",
+      "/movimientos/historial",
+    ]);
+    expect(["movimientos-ingresos", "movimientos-egresos", "movimientos-transferencias", "movimientos-historial"].map((id) => routeById(id as never).en)).toEqual([
+      "/transactions/income",
+      "/transactions/expenses",
+      "/transactions/transfers",
+      "/transactions/history",
+    ]);
+  });
+  it("ida y vuelta: cada ruta, en cada idioma, se resuelve a sí misma", () => {
+    for (const route of ROUTES) {
+      for (const locale of locales) {
+        const sample = (route[locale].match(/\[[^\]]+\]/g) ?? []).map((p) => (p.includes("|") ? p.slice(1, -1).split("|")[0] : p === "[periodo]" ? "2026-11" : "x1"));
+        const path = routePath(locale, route.id, sample);
+        expect(matchRoute(locale, path)?.route.id, `${locale} ${path}`).toBe(route.id);
+        expect(matchRoute(locale, path)?.params, `${locale} ${path}`).toEqual(sample);
+      }
     }
   });
-  it("tolera barra final", () => {
-    expect(matchRoute("/pagos/")?.route.id).toBe("pagos");
+  it("sin montos en la URL (AGENTS.md)", () => {
+    for (const route of ROUTES) expect(`${route.es} ${route.en}`).not.toMatch(/monto|amount/i);
   });
-  it("la alta no admite el monto en la URL (AGENTS.md: nada de montos en URLs)", () => {
-    expect(NEW_MOVEMENT_HREF).toBe("/movimientos/nuevo");
-    for (const route of ROUTES) expect(route.pattern).not.toMatch(/monto|amount/i);
+});
+
+describe("URLs completas y cambio de idioma", () => {
+  it("fmsHref", () => {
+    expect(fmsHref("es", "resumen")).toBe("/es/finanzas");
+    expect(fmsHref("en", "resumen")).toBe("/en/finance");
+    expect(fmsHref("es", "pagos-fijos")).toBe("/es/finanzas/pagos/fijos");
+    expect(fmsHref("en", "movimiento-asientos", ["42"])).toBe("/en/finance/transactions/42/entries");
+    expect(fmsHref("en", "tarjeta-extracto", ["3", "2026-11"])).toBe("/en/finance/cards/3/statements/2026-11");
+  });
+  it.each([
+    ["/es/finanzas", "en", "/en/finance"],
+    ["/en/finance", "es", "/es/finanzas"],
+    ["/es/finanzas/pagos/fijos", "en", "/en/finance/payments/fixed"],
+    ["/en/finance/payments/fixed", "es", "/es/finanzas/pagos/fijos"],
+    ["/es/finanzas/movimientos/42/asientos", "en", "/en/finance/transactions/42/entries"],
+    ["/en/finance/reports/net-worth/assets/8", "es", "/es/finanzas/informes/patrimonio/activos/8"],
+    ["/es/finanzas/configuracion/parametros", "en", "/en/finance/settings/parameters"],
+    ["/es/finanzas/creditos/simuladores/abono-extra", "en", "/en/finance/loans/simulators/extra-payment"],
+    ["/es/finanzas/presupuestos/objetivos/5", "en", "/en/finance/budgets/goals/5"],
+    ["/es/finanzas/no-existe", "en", "/en/finance"],
+    ["/otra/cosa", "en", "/en/finance"],
+  ] as const)("%s → %s", (from, to, expected) => {
+    expect(alternatePath(from, to)).toBe(expected);
+  });
+  it("los slugs de un idioma no valen en el otro", () => {
+    expect(parseFmsPath("/es/finanzas/transactions")?.match).toBeNull();
+    expect(parseFmsPath("/en/finance/movimientos")?.match).toBeNull();
+    expect(parseFmsPath("/es/finance")).toBeNull();
+    expect(parseFmsPath("/en/finanzas")).toBeNull();
+    expect(parseFmsPath("/fr/finance")).toBeNull();
+  });
+  it("la raíz es la página de aterrizaje", () => {
+    expect(parseFmsPath("/es/finanzas")).toMatchObject({ locale: "es", isLanding: true });
+    expect(parseFmsPath("/en/finance/")).toMatchObject({ locale: "en", isLanding: true });
+    expect(parseFmsPath("/en/finance/payments")?.isLanding).toBe(false);
+  });
+  it("rutas sin idioma (/finanzas, /finance) → la equivalente completa", () => {
+    expect(alternatePathFromRoot("es", "/pagos/fijos", "en")).toBe("/en/finance/payments/fixed");
+    expect(alternatePathFromRoot("en", "/payments/fixed", "es")).toBe("/es/finanzas/pagos/fijos");
+    expect(alternatePathFromRoot("es", "/payments/fixed", "en")).toBe("/en/finance/payments/fixed");
+    expect(alternatePathFromRoot("es", "/", "en")).toBe("/en/finance");
+    expect(alternatePathFromRoot("es", "/nada", "es")).toBe("/es/finanzas");
+  });
+});
+
+describe("rutas profundas", () => {
+  it.each([
+    ["es", "/", "resumen"],
+    ["es", "/movimientos", "movimientos"],
+    ["es", "/movimientos/nuevo", "movimiento-nuevo"],
+    ["en", "/transactions/new", "movimiento-nuevo"],
+    ["es", "/movimientos/42", "movimiento"],
+    ["es", "/movimientos/compartidos/ana", "compartidos-persona"],
+    ["en", "/transactions/shared/ana", "compartidos-persona"],
+    ["es", "/tarjetas/3/extractos/2026-11", "tarjeta-extracto"],
+    ["en", "/cards/3/statements/2026-11", "tarjeta-extracto"],
+    ["es", "/pagos/recurrencias/nueva", "pagos-recurrencia-nueva"],
+    ["en", "/payments/recurring/5", "pagos-recurrencia"],
+    ["es", "/creditos/simuladores/compra-tarjeta", "simulador-compra-tarjeta"],
+    ["en", "/loans/simulators/card-purchase", "simulador-compra-tarjeta"],
+    ["es", "/presupuestos/ahorro", "plan-ahorro"],
+    ["es", "/presupuestos/2", "plan-presupuesto"],
+    ["en", "/budgets/indicators", "plan-indicadores"],
+    ["es", "/informes/flujo-de-caja", "informe"],
+    ["en", "/reports/projections", "informes-proyecciones"],
+    ["es", "/configuracion/auditoria", "config-auditoria"],
+    ["en", "/settings/audit", "config-auditoria"],
+    ["en", "/welcome/3", "bienvenida"],
+  ] as const)("%s %s → %s", (locale, path, id) => {
+    expect(matchRoute(locale, path)?.route.id).toBe(id);
+  });
+  it("lo estático gana a lo dinámico", () => {
+    expect(matchRoute("es", "/movimientos/historial")?.route.id).toBe("movimientos-historial");
+    expect(matchRoute("en", "/reports/statistics")?.route.id).toBe("informes-estadisticas");
+    expect(matchRoute("es", "/presupuestos/objetivos")?.route.id).toBe("plan-objetivos");
+  });
+  it("lo que no está en la tabla no existe", () => {
+    for (const path of ["/zzz", "/configuracion/otra", "/bienvenida/6", "/tarjetas/3/extractos/ayer", "/movimientos/1/2/3", "/movimientos/a b", "/movimientos/<script>", "/informes/../x"]) {
+      expect(matchRoute("es", path), path).toBeNull();
+    }
+    expect(matchRoute("en", "/settings/categorias")).toBeNull();
   });
   it("sección de cada ruta", () => {
-    expect(sectionOf("/tarjetas/3")).toBe("cuentas");
-    expect(sectionOf("/perfil")).toBeNull();
-    expect(sectionOf("/zzz")).toBeNull();
+    expect(sectionOf("/es/finanzas/tarjetas/3")).toBe("cuentas");
+    expect(sectionOf("/en/finance/profile")).toBeNull();
+    expect(sectionOf("/en/finance/zzz")).toBeNull();
   });
 });
 
 describe("activo en el menú", () => {
-  const params = (q: string) => new URLSearchParams(q);
   const item = (id: string) => SECTIONS.flatMap((s) => s.items).find((i) => i.id === id)!;
-  it("los hermanos de una misma ruta se distinguen por la consulta", () => {
-    expect(isItemActive(item("egresos"), "/movimientos", params("tipo=egreso"))).toBe(true);
-    expect(isItemActive(item("ingresos"), "/movimientos", params("tipo=egreso"))).toBe(false);
-    expect(isItemActive(item("historial"), "/movimientos", params(""))).toBe(true);
-    expect(isItemActive(item("historial"), "/movimientos", params("tipo=egreso"))).toBe(false);
-    expect(isItemActive(item("compartidos"), "/movimientos/compartidos", params(""))).toBe(true);
+  it("subelementos por pantalla, en los dos idiomas", () => {
+    expect(isItemActive(item("egresos"), "/es/finanzas/movimientos/egresos")).toBe(true);
+    expect(isItemActive(item("egresos"), "/en/finance/transactions/expenses")).toBe(true);
+    expect(isItemActive(item("ingresos"), "/es/finanzas/movimientos/egresos")).toBe(false);
+    expect(isItemActive(item("prestamos"), "/en/finance/loans")).toBe(true);
   });
   it("secciones", () => {
-    const resumen = SECTIONS[0];
-    expect(isSectionActive(resumen, "/")).toBe(true);
-    expect(isSectionActive(resumen, "/pagos")).toBe(false);
-    expect(isSectionActive(SECTIONS[2], "/tarjetas/3/pagar")).toBe(true);
+    expect(isSectionActive(SECTIONS[0], "/es/finanzas")).toBe(true);
+    expect(isSectionActive(SECTIONS[0], "/es/finanzas/pagos")).toBe(false);
+    expect(isSectionActive(SECTIONS[2], "/en/finance/cards/3/pay")).toBe(true);
   });
 });
 
@@ -153,5 +209,6 @@ describe("buscador de pantallas", () => {
     expect(hits[0].items).toHaveLength(5);
     expect(searchScreens("", es)).toHaveLength(8);
     expect(searchScreens("zzzz", es)).toEqual([]);
+    expect(searchScreens("payments", en)[0].section.id).toBe("pagos");
   });
 });

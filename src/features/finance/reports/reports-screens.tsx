@@ -76,17 +76,22 @@ export function ReportScreen({ reportKey }: { reportKey: string }) {
 }
 
 /** Patrimonio (`/informes/patrimonio`): patrimonio neto y su evolución. */
-export function NetWorthScreen() {
+export function NetWorthScreen({ embedded = false }: { embedded?: boolean }) {
   const { dict } = useI18n();
   const rep = dict.fin.rep;
   const href = useHref();
   const [tab, setTab] = useState<"net_worth" | "net_worth_evolution">("net_worth");
+  const tabs = (
+    <Tabs label={rep.netWorthTabs.label} value={tab} onChange={setTab} tabs={[{ value: "net_worth", label: rep.titles.net_worth }, { value: "net_worth_evolution", label: rep.titles.net_worth_evolution }]}>
+      <ReportView key={tab} reportKey={tab} />
+    </Tabs>
+  );
+  // Incrustado en la pantalla de Patrimonio (FMS-2b): sin su propia cabecera.
+  if (embedded) return tabs;
   return (
     <div className="screen">
       <ScreenHeader title={dict.screens["informes-patrimonio"]} eyebrow={dict.screens.informes} back={{ href: href("informes"), label: dict.screens.informes }} />
-      <Tabs label={rep.netWorthTabs.label} value={tab} onChange={setTab} tabs={[{ value: "net_worth", label: rep.titles.net_worth }, { value: "net_worth_evolution", label: rep.titles.net_worth_evolution }]}>
-        <ReportView key={tab} reportKey={tab} />
-      </Tabs>
+      {tabs}
     </div>
   );
 }

@@ -17,9 +17,13 @@ import { BudgetsScreen } from "./plan/budgets-screen";
 import { GoalDetail } from "./plan/goal-detail";
 import { GoalsScreen } from "./plan/goals-screen";
 import { IndicatorsScreen } from "./plan/indicators-screen";
-import { NetWorthScreen, ProjectionsScreen, ReportScreen, ReportsHome, StatisticsScreen } from "./reports/reports-screens";
+import { ProjectionsScreen, ReportScreen, ReportsHome, StatisticsScreen } from "./reports/reports-screens";
 import { AccountDetail } from "./accounts/account-detail";
 import { AccountsScreen } from "./accounts/accounts-screen";
+import { CurrenciesScreen } from "./currencies/currencies-screen";
+import { AssetDetail } from "./assets/asset-detail";
+import { WealthScreen } from "./assets/wealth-screen";
+import { AuditScreen, MovementHistory } from "./audit/audit-screen";
 import { CalendarScreen } from "./calendar/calendar-screen";
 import { CardDetail } from "./cards/card-detail";
 import { CardPay } from "./cards/card-pay";
@@ -28,6 +32,7 @@ import { CardStatement } from "./cards/card-statement";
 import { CategoriesScreen, TagsScreen } from "./catalog/catalog-screens";
 import { NotificationsScreen } from "./notifications/notifications-screen";
 import { RulesScreen } from "./notifications/rules-screen";
+import { ImportScreen } from "./import/import-screen";
 import { LoanDetail } from "./loans/loan-detail";
 import { LoanTable } from "./loans/loan-table";
 import { LoansScreen } from "./loans/loans-screen";
@@ -58,6 +63,8 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <AccountsScreen tab="debito" />;
     case "cuentas-credito":
       return <AccountsScreen tab="credito" />;
+    case "cuentas-importar":
+      return <ImportScreen />;
     case "cuenta":
       return <AccountDetail id={first} />;
     case "cuenta-conciliar":
@@ -143,11 +150,19 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
     case "informes-proyecciones":
       return <ProjectionsScreen />;
     case "informes-patrimonio":
-      return <NetWorthScreen />;
+      return <WealthScreen />;
+    case "informes-activo":
+      return <AssetDetail id={first} />;
     case "config-categorias":
       return <CategoriesScreen />;
     case "config-etiquetas":
       return <TagsScreen />;
+    case "config-monedas":
+      return <CurrenciesScreen />;
+    case "config-auditoria":
+      return <AuditScreen />;
+    case "movimiento-historial":
+      return <MovementHistory id={first} />;
     case "config-parametros":
       return <ParametersScreen />;
     case "config-reglas":

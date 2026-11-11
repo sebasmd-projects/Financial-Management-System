@@ -4,13 +4,17 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/api";
-import type { Account, Category, Movement, MovementType, Named, Page, PaymentMethod, Warning } from "@/api/models";
+import type { Account, Category, CustomAttribute, Movement, MovementType, Named, Page, PaymentMethod, Warning } from "@/api/models";
 import { paths, roots } from "@/api/paths";
 import { parsePositiveAmount } from "@/lib/amount-input";
 import { todayBogota } from "@/lib/dates";
 import { absAmount, addAmounts, formatCop, negateAmount } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
+import { AttributeFields } from "../classification/attribute-fields";
+import { attributesBody } from "../classification/logic";
+import { ForeignFields, useForeign } from "../currencies/fx-fields";
+import { EMPTY_FOREIGN, type ForeignState } from "../currencies/logic";
 import { clearDraft, peekDraft, type MovementDraft } from "../draft-store";
 import { effectPhrase, fill, movementAccounts, topByFrequency, wouldOverdraw } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
@@ -70,11 +74,16 @@ export function MovementForm() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [touched, setTouched] = useState(false);
   const [saved, setSaved] = useState<{ movement: Movement; warnings: Warning[] } | null>(null);
+  const [foreign, setForeign] = useState<ForeignState>(EMPTY_FOREIGN);
+  const [attrValues, setAttrValues] = useState<Record<string, string>>({});
+  const [costCenterId, setCostCenterId] = useState("");
 
   const accounts = useAll<Account>(paths.accounts());
   const categories = useAll<Category>(paths.categories({ archived: false }));
   const methods = useResource<PaymentMethod[]>(paths.paymentMethods());
   const tagList = useAll<Named>(paths.tags());
+  const centers = useAll<Named>(paths.costCenters());
+  const attributeDefs = useAll<CustomAttribute>(paths.customAttributes());
   const recents = useResource<Page<Movement>>(paths.movements({ page_size: 30 }));
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setState((current) => ({ ...current, [key]: value }));
@@ -86,7 +95,10 @@ export function MovementForm() {
   const account = usable.find((a) => a.id === accountId) ?? null;
   const toAccount = usable.find((a) => a.id === state.toAccountId) ?? null;
 
-  const amount = parsePositiveAmount(state.amount);
+  const fx = useForeign(foreign, state.date);
+  // Con «otra moneda» los pesos salen de la vista previa de la conversión; el servidor fija el valor al guardar.
+  const foreignOn = foreign.enabled && state.type !== "transfer";
+  const amount = foreignOn ? fx.result.pesos : parsePositiveAmount(state.amount);
   const effectiveStatus = state.status || (state.date > todayBogota() ? "pending" : "confirmed");
   const isTransfer = state.type === "transfer";
   const categoryKind = state.type === "income" ? "income" : "expense";
@@ -100,6 +112,7 @@ export function MovementForm() {
 
   const phrase = effectPhrase({ type: state.type, pending: effectiveStatus === "pending", account, toAccount, amount }, t.effect, formatCop);
   const overdraw = amount && account && state.type === "expense" && wouldOverdraw(account, amount) ? fill(t.overdraw, { account: account.name, balance: formatCop(addAmounts(account.posted_balance, negateAmount(amount))) }) : null;
+  const attributes = attributesBody(attributeDefs.items, attrValues, state.type);
   const gmfApplies = isTransfer && account ? (state.gmf ?? !account.gmf_exempt) : false;
 
   const errors = {
@@ -129,8 +142,13 @@ export function MovementForm() {
     event.preventDefault();
     setTouched(true);
     if (!amount || !account || (isTransfer && (!toAccount || toAccount.id === account.id))) return;
+    if (foreignOn && !fx.result.body) return;
+    if (!isTransfer && attributes.problems.length > 0) {
+      setMoreOpen(true);
+      return;
+    }
     const common = {
-      amount,
+      ...(foreignOn ? fx.result.body : { amount }),
       date: state.date,
       status: effectiveStatus,
       ...(state.description.trim() ? { description: state.description.trim() } : {}),
@@ -148,6 +166,8 @@ export function MovementForm() {
           ...(state.nature ? { nature: state.nature } : {}),
           ...(state.classification ? { classification: state.classification } : {}),
           ...(state.paymentMethodId ? { payment_method_id: state.paymentMethodId } : {}),
+          ...(costCenterId ? { cost_center_id: costCenterId } : {}),
+          ...(Object.keys(attributes.body).length > 0 ? { attributes: attributes.body } : {}),
           tags: state.tags.split(",").map((tag) => tag.trim()).filter(Boolean),
         };
     const result = await submit.run(body, (key) => api.post<Movement>(isTransfer ? paths.transfers() : roots.movements, body, { idempotencyKey: key, locale }));
@@ -155,6 +175,9 @@ export function MovementForm() {
       clearDraft();
       setSaved({ movement: result.data, warnings: result.data.warnings ?? [] });
       setTouched(false);
+      setForeign((current) => ({ ...current, amount: "" }));
+      setAttrValues({});
+      setCostCenterId("");
       setState((current) => ({ ...current, amount: "", description: "", counterparty: "", notes: "", tags: "", categoryId: "", nature: "", classification: "", paymentMethodId: "", gmf: null }));
       recents.reload();
       accounts.reload();
@@ -237,7 +260,8 @@ export function MovementForm() {
 
           <Segmented legend={t.type} options={typeOptions} value={state.type} onChange={(v) => set("type", v as MovementType)} />
 
-          <AmountField apiCode={submit.errorCode} label={t.amount} value={state.amount} onChange={(v) => set("amount", v)} error={errors.amount} required preview={amount ? formatCop(amount) : null} />
+          {!foreignOn && <AmountField apiCode={submit.errorCode} label={t.amount} value={state.amount} onChange={(v) => set("amount", v)} error={errors.amount} required preview={amount ? formatCop(amount) : null} />}
+          {!isTransfer && <ForeignFields state={foreign} onChange={setForeign} fx={fx} touched={touched} />}
 
           {phrase && <p className="fin-phrase">{phrase}</p>}
           {overdraw && <Banner tone="warning">{overdraw}</Banner>}
@@ -285,6 +309,7 @@ export function MovementForm() {
             {t.moreDetails}
             <Icon name="chevron-down" size={20} />
           </button>
+          {!isTransfer && touched && attributes.problems.length > 0 && !moreOpen && <p className="field__error" role="alert">{dict.fin.cls.form.requiredOpen}</p>}
           {moreOpen && (
             <div id="more-details" className="fin-form fin-more">
               {!isTransfer && <TextField label={t.counterparty} value={state.counterparty} onChange={(v) => set("counterparty", v)} maxLength={80} />}
@@ -299,6 +324,10 @@ export function MovementForm() {
                       <option key={tag.id} value={tag.name} />
                     ))}
                   </datalist>
+                  {centers.items.some((c) => !c.archived) && (
+                    <SelectField label={dict.fin.cls.form.costCenter} value={costCenterId} onChange={setCostCenterId} placeholder={dict.fin.cls.form.noCostCenter} options={centers.items.filter((c) => !c.archived).map((c) => ({ value: c.id, label: c.name }))} />
+                  )}
+                  <AttributeFields defs={attributeDefs.items} type={state.type} values={attrValues} onChange={(id, value) => setAttrValues((current) => ({ ...current, [id]: value }))} problems={attributes.problems} touched={touched} />
                   {(methods.data ?? []).length > 0 && (
                     <SelectField
                       label={t.paymentMethod}

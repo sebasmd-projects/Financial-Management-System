@@ -4,14 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/api";
-import type { Account, Category, EditPreview, Movement, MovementEntries } from "@/api/models";
+import type { Account, Category, CustomAttribute, EditPreview, Movement, MovementEntries } from "@/api/models";
 import { paths } from "@/api/paths";
 import { parsePositiveAmount } from "@/lib/amount-input";
 import { compareAmounts, formatCop } from "@/lib/money";
-import { formatDateLong, todayBogota } from "@/lib/dates";
+import { formatDate, formatDateLong, todayBogota } from "@/lib/dates";
+import { formatForeign, formatRate } from "@/lib/decimal";
 import { useI18n } from "@/i18n/provider";
 import { setDraft } from "../draft-store";
-import { effectPhrase, movementAccounts, signedAmount, transferAccounts } from "../helpers";
+import { effectPhrase, fill, movementAccounts, signedAmount, transferAccounts } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, DefinitionList, Empty, ErrorState, FormActions, Loading, Modal, Money, ScreenHeader, Section, Segmented, SelectField, TextArea, TextField } from "../kit";
 import { EditPreviewPanel } from "./edit-preview";
@@ -27,6 +28,7 @@ export function MovementDetail({ id }: { id: string }) {
   const href = useHref();
   const router = useRouter();
   const movement = useResource<Movement>(paths.movement(id));
+  const attributeDefs = useAll<CustomAttribute>(paths.customAttributes());
   const [action, setAction] = useState<Action>(null);
   const back = { href: href("movimientos"), label: dict.screens.movimientos };
 
@@ -126,6 +128,19 @@ export function MovementDetail({ id }: { id: string }) {
       )}
       {m.status === "conciliado" && <p className="hint">{t.reconciledHint}</p>}
 
+      {m.original && (
+        <Section title={dict.fin.fx.detail.title}>
+          <DefinitionList
+            rows={[
+              { label: dict.fin.fx.detail.original, value: <span className="tabular">{formatForeign(m.original.amount, m.original.currency)}</span> },
+              { label: dict.fin.fx.detail.rate, value: <span className="tabular">{fill(dict.fin.fx.detail.rateLine, { currency: m.original.currency, rate: formatRate(m.original.rate), date: m.original.rate_date ? formatDate(m.original.rate_date) : "" })}</span> },
+              ...(m.original.source ? [{ label: dict.fin.fx.detail.source, value: m.original.source }] : []),
+              { label: dict.fin.fx.detail.booked, value: <Money value={m.amount} /> },
+            ]}
+          />
+        </Section>
+      )}
+
       <Section title={t.classification}>
         <DefinitionList
           rows={[
@@ -136,6 +151,11 @@ export function MovementDetail({ id }: { id: string }) {
             ...(m.classification ? [{ label: dict.fin.form.classification, value: dict.fin.form.classifications[m.classification as "necessary" | "discretionary"] ?? m.classification }] : []),
             ...(m.tags.length > 0 ? [{ label: dict.fin.form.tags, value: m.tags.map((tag) => `#${tag.name}`).join(" ") }] : []),
             ...(m.payment_method ? [{ label: dict.fin.form.paymentMethod, value: m.payment_method.name }] : []),
+            ...(m.cost_center ? [{ label: dict.fin.cls.form.costCenter, value: m.cost_center.name }] : []),
+            ...Object.entries(m.attributes ?? {}).flatMap(([attrId, attrValue]) => {
+              const def = attributeDefs.items.find((d) => d.id === attrId);
+              return def && attrValue ? [{ label: def.name, value: attrValue }] : [];
+            }),
             ...(m.gmf ? [{ label: t.gmf, value: <Money value={m.gmf} /> }] : []),
             ...(m.description ? [{ label: dict.fin.form.description, value: m.description }] : []),
             ...(m.notes ? [{ label: dict.fin.form.notes, value: m.notes }] : []),
@@ -147,6 +167,7 @@ export function MovementDetail({ id }: { id: string }) {
 
       <nav className="fin-links" aria-label={t.more}>
         <Link href={href("movimiento-asientos", [m.id])}>{t.viewEntries}</Link>
+        <Link href={href("movimiento-historial", [m.id])}>{dict.screens["movimiento-historial"]}</Link>
       </nav>
 
       <Modal open={action === "confirm"} title={t.confirm} onClose={() => setAction(null)}>

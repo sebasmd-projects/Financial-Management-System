@@ -62,6 +62,17 @@ describe("cliente de la API", () => {
     expect(calls[0].headers.get("Idempotency-Key")).toBe(key);
   });
 
+  it("un FormData (el extracto) viaja tal cual: sin Content-Type propio, con CSRF e Idempotency-Key", async () => {
+    const { client, calls } = setup({ "POST /api/fms/v1/imports": { status: 201, json: {} } }, { csrftoken: "tok" });
+    const form = new FormData();
+    form.set("account_id", "a-1");
+    await client.post("/imports", form, { idempotencyKey: "k-1" });
+    expect(calls[0].body).toBe(form);
+    expect(calls[0].headers.has("Content-Type")).toBe(false);
+    expect(calls[0].headers.get("X-CSRFToken")).toBe("tok");
+    expect(calls[0].headers.get("Idempotency-Key")).toBe("k-1");
+  });
+
   it("NO reintenta un POST fallido: ni por red, ni por 5xx, ni por 403", async () => {
     for (const reply of [{ status: 500 }, { status: 403, json: { code: "csrf" } }, { status: 502 }]) {
       const { client, calls } = setup({ "POST /api/fms/v1/movements": reply }, { csrftoken: "t" });

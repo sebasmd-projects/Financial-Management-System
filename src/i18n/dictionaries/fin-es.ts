@@ -1,10 +1,12 @@
 import { finCEs } from "./fin-c-es";
+import { errorsDEs, finDEs } from "./fin-d-es";
 import { finBEs } from "./fin-b-es";
 
 /** Textos de las pantallas financieras de FMS-1 (español, es-CO). `fin-en.ts` tiene que cumplir el mismo tipo. */
 export const finEs = {
   currentPeriodParam: "actual",
   errors: {
+    ...errorsDEs,
     generic: "No pudimos completar la acción. Inténtalo de nuevo en un momento.",
     network: "No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo: no se duplicará nada.",
     csrf: "No pudimos validar la solicitud. Recarga la página e inténtalo de nuevo.",
@@ -574,6 +576,7 @@ export const finEs = {
   },
   ...finBEs,
   ...finCEs,
+  ...finDEs,
 };
 
 export type FinDictionary = typeof finEs;

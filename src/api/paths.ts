@@ -41,6 +41,11 @@ export const roots = {
   assets: "/assets",
   costCenters: "/cost-centers",
   customAttributes: "/custom-attributes",
+  // FMS-3a: reglas propias, escenarios y compras compartidas (el cuerpo de un POST lleva los montos; la URL, solo ids)
+  automationRules: "/automation/rules",
+  scenarios: "/scenarios",
+  sharedPurchases: "/shared/purchases",
+  counterparties: "/counterparties",
 } as const;
 
 export const paths = {
@@ -147,5 +152,25 @@ export const paths = {
   costCenterDefaults: () => "/cost-centers/defaults",
   costCenterUsage: (params: { from?: string; to?: string } = {}) => `/cost-centers/usage${query(params)}`,
   usuryCheck: (params: { rate: string; convention: string; on?: string }) => `/usury/check${query(params)}`,
+  // FMS-3a (cortes 3.1 a 3.4): motor de reglas, escenarios e independencia, UVR y tasa variable, compras compartidas.
+  automationCatalog: () => "/automation/catalog",
+  automationRules: () => `/automation/rules${query({ page_size: 100 })}`,
+  automationRule: (ruleId: string) => `/automation/rules/${id(ruleId)}`,
+  automationRuleTest: (ruleId: string) => `/automation/rules/${id(ruleId)}/test`,
+  automationPreview: () => "/automation/rules/preview",
+  scenarios: () => `/scenarios${query({ page_size: 100 })}`,
+  scenario: (scenarioId: string) => `/scenarios/${id(scenarioId)}`,
+  scenarioCompare: () => "/scenarios/compare",
+  independence: () => "/independence",
+  loanValuation: (loanId: string, on?: string) => `/loans/${id(loanId)}/valuation${query({ on })}`,
+  loanRevalue: (loanId: string) => `/loans/${id(loanId)}/revalue`,
+  loanReprice: (loanId: string) => `/loans/${id(loanId)}/reprice`,
+  counterparties: () => `/counterparties${query({ page_size: 200 })}`,
+  sharedBalances: () => "/shared/balances",
+  sharedPerson: (counterpartyId: string) => `/shared/people/${id(counterpartyId)}`,
+  sharedSettle: (counterpartyId: string) => `/shared/people/${id(counterpartyId)}/settle`,
+  sharedPurchases: (params: Record<string, QueryValue> = {}) => `/shared/purchases${query({ page_size: 50, ...params })}`,
+  sharedPurchase: (purchaseId: string) => `/shared/purchases/${id(purchaseId)}`,
+  sharedCancel: (purchaseId: string) => `/shared/purchases/${id(purchaseId)}/cancel`,
   audit: (params: Record<string, QueryValue> = {}) => `/audit${query({ page_size: 25, ...params })}`,
 };

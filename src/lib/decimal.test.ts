@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { convertToPesos, formatDecimal, formatForeign, formatKm, formatRate, parseForeignAmount, parseRateInput } from "./decimal";
+import { convertToPesos, formatDecimal, formatForeign, formatKm, formatRate, formatUnits, parseForeignAmount, parseIndexValue, parseRateInput, parseUnitsInput, sumDecimals } from "./decimal";
 
 describe("tasa escrita por la persona", () => {
   it.each([
@@ -53,5 +53,46 @@ describe("formatos", () => {
     expect(formatForeign("1250", "JPY", 0)).toBe("JPY 1.250");
     expect(formatKm("185400.00")).toBe("185.400");
     expect(formatKm("0")).toBe("0");
+  });
+});
+
+describe("índices (UVR)", () => {
+  it("un solo separador es el decimal, nunca el de miles", () => {
+    expect(parseIndexValue("389,4521")).toBe("389.4521");
+    expect(parseIndexValue("390.123")).toBe("390.123");
+    expect(parseIndexValue("390,123")).toBe("390.123");
+    expect(parseIndexValue("389")).toBe("389");
+    expect(parseIndexValue(" $ 389,450000 ")).toBe("389.45");
+  });
+  it("rechaza lo ambiguo, cero, negativos y más de 6 decimales", () => {
+    for (const bad of ["", "abc", "1.234,5", "1,2,3", "0", "0,000", "-3", "389,1234567", "12345678901234"]) expect(parseIndexValue(bad), bad).toBeNull();
+  });
+  it("las unidades se muestran con punto de miles y hasta 4 decimales", () => {
+    expect(formatUnits("1234567.8900", "UVR")).toBe("1.234.567,89 UVR");
+    expect(formatUnits("52000.0000", "UVR")).toBe("52.000 UVR");
+    expect(formatUnits("0.5", "UVR")).toBe("0,5 UVR");
+  });
+});
+
+describe("unidades UVR escritas por la persona", () => {
+  it.each([
+    ["52000", "52000"],
+    ["52.000", "52000"],
+    ["52.000,5", "52000.5"],
+    ["1.250.000,1234", "1250000.1234"],
+    ["52000,25", "52000.25"],
+    ["52000.25", "52000.25"],
+    ["0,5", "0.5"],
+    ["1.234.567", "1234567"],
+  ])("%j → %j", (raw, expected) => expect(parseUnitsInput(raw)).toBe(expected));
+  it.each(["", "0", "abc", "1,23456", "12.34.5", "1,234,5", "-5", "0,000"])("rechaza %j", (raw) => expect(parseUnitsInput(raw)).toBeNull());
+});
+
+describe("suma exacta de decimales", () => {
+  it("no redondea a centavos", () => {
+    expect(sumDecimals(["0.0001", "0.0002"])).toBe("0.0003");
+    expect(sumDecimals(["1234.5678", "0.4322", "5"])).toBe("1240");
+    expect(sumDecimals([])).toBe("0");
+    expect(sumDecimals(["0.10", "0.20"])).toBe("0.3");
   });
 });

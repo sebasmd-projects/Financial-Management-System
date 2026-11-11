@@ -123,3 +123,70 @@ export function formatRate(rate: string): string {
 export function formatKm(value: string): string {
   return formatDecimal(value.replace(/\.0+$/, ""), 0, 1);
 }
+
+/**
+ * El valor de un índice que escribe la persona (la UVR: `389,4521`). A diferencia de una tasa de cambio, un solo separador es SIEMPRE
+ * el decimal (la UVR no pasa de unos cientos: `390,123` no es «390 mil»), y no hay separador de miles. Positivo, hasta `maxDecimals`
+ * decimales y 13 enteros. Solo texto: nunca `Number`.
+ */
+export function parseIndexValue(raw: string, maxDecimals = 6): string | null {
+  const text = raw.replace(/[\s$ ]/g, "");
+  const match = /^(\d+)(?:[.,](\d+))?$/.exec(text);
+  if (!match) return null;
+  const whole = match[1].replace(/^0+(?=\d)/, "");
+  const fraction = trimZeros(match[2] ?? "");
+  if (whole.length > MAX_INTEGER_DIGITS || (match[2] ?? "").length > maxDecimals) return null;
+  const value = fraction ? `${whole}.${fraction}` : whole;
+  return /^0(\.0*)?$/.test(value) ? null : value;
+}
+
+/** Unidades de un crédito indexado para mostrar (`"1234.5"` → `1.234,5 UVR`): hasta 4 decimales, sin ceros de relleno. */
+export function formatUnits(value: string, unit: string): string {
+  return `${formatDecimal(value, 0, 4)} ${unit}`;
+}
+
+/**
+ * Unidades de un crédito indexado que escribe la persona (`52.000` o `52.000,5` UVR): hasta 4 decimales. Como en los montos, un único
+ * separador con exactamente 3 cifras detrás (y 1 a 3 delante) es de miles; con ambos separadores, el último es el decimal. La pantalla
+ * repite el valor leído (`formatUnits`) para que la persona lo confirme. Positivo; solo texto, nunca `Number`.
+ */
+export function parseUnitsInput(raw: string): string | null {
+  const text = raw.replace(/[\s$ ]/g, "");
+  if (!/^[\d.,]+$/.test(text)) return null;
+  const last = Math.max(text.lastIndexOf("."), text.lastIndexOf(","));
+  let whole = text;
+  let fraction = "";
+  if (last !== -1) {
+    const before = text.slice(0, last);
+    const after = text.slice(last + 1);
+    const separator = text[last];
+    const single = !/[.,]/.test(before);
+    const thousands = after.length === 3 && ((single && /^\d{1,3}$/.test(before) && before !== "0") || before.includes(separator));
+    if (!thousands) {
+      if (after.length < 1 || after.length > 4) return null;
+      // Con dos clases de separador, el de miles es el otro; el decimal no se repite.
+      if (before.includes(separator)) return null;
+      whole = before;
+      fraction = after;
+    }
+  }
+  if (/[.,]/.test(whole) && !/^\d{1,3}([.,]\d{3})+$/.test(whole)) return null;
+  whole = whole.replace(/[.,]/g, "").replace(/^0+(?=\d)/, "") || "0";
+  if (whole.length > MAX_INTEGER_DIGITS) return null;
+  const trimmed = trimZeros(fraction);
+  const value = trimmed ? `${whole}.${trimmed}` : whole;
+  return /^0(\.0*)?$/.test(value) ? null : value;
+}
+
+/** Suma exacta de decimales sin signo con hasta 12 decimales (unidades UVR: sumarlas por pesos redondearía cada una a centavos). */
+export function sumDecimals(values: readonly string[]): string {
+  let total = 0n;
+  for (const value of values) {
+    const scaled = toScaled(value);
+    if (!scaled) throw new RangeError("Decimal inválido");
+    total += scaled.digits * 10n ** BigInt(MAX_RATE_DECIMALS - scaled.scale);
+  }
+  const text = total.toString().padStart(MAX_RATE_DECIMALS + 1, "0");
+  const fraction = trimZeros(text.slice(-MAX_RATE_DECIMALS));
+  return fraction ? `${text.slice(0, -MAX_RATE_DECIMALS)}.${fraction}` : text.slice(0, -MAX_RATE_DECIMALS);
+}

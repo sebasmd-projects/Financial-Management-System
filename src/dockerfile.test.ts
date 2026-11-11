@@ -18,8 +18,11 @@ describe("Dockerfile", () => {
     expect(dockerfile).toMatch(/\.next\/standalone/);
     expect(dockerfile).toMatch(/CMD \["node", "server\.js"\]/);
   });
-  it("la salud pide /finanzas/healthz en el puerto 3100", () => {
-    expect(dockerfile).toMatch(/HEALTHCHECK[\s\S]*127\.0\.0\.1:3100\/finanzas\/healthz/);
+  it("la salud pide /_fms/healthz en el puerto 3100", () => {
+    expect(dockerfile).toMatch(/HEALTHCHECK[\s\S]*127\.0\.0\.1:3100\/_fms\/healthz/);
+  });
+  it("SITE_URL no se fija al construir (las páginas lo leen al arrancar)", () => {
+    expect(dockerfile).not.toMatch(/^\s*(ARG|ENV)\s+SITE_URL/m);
   });
   it("la base va por resumen (digest) y las dependencias con npm ci", () => {
     expect(dockerfile).toMatch(/^ARG NODE_IMAGE=node:22-[a-z-]+@sha256:[0-9a-f]{64}$/m);

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  addMonths,
   daysBetween,
   formatDate,
   formatDateLong,
@@ -118,5 +119,15 @@ describe("periodos para los filtros", () => {
     expect(formatPeriod("2026-11", "en")).toBe("November 2026");
     expect(formatPeriod("2026-11")).toBe("Noviembre 2026");
     expect(formatDateLong("2026-11-10", "en")).toBe("10 November 2026");
+  });
+});
+
+describe("addMonths", () => {
+  it("suma meses y recorta el día al último del mes destino", () => {
+    expect(addMonths("2026-01-15", 3)).toBe("2026-04-15");
+    expect(addMonths("2026-01-31", 1)).toBe("2026-02-28");
+    expect(addMonths("2028-01-31", 1)).toBe("2028-02-29");
+    expect(addMonths("2026-11-30", 3)).toBe("2027-02-28");
+    expect(addMonths("2026-12-10", 12)).toBe("2027-12-10");
   });
 });

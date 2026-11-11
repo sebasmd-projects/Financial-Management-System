@@ -165,3 +165,22 @@ export function compareAmounts(a: string, b: string): number {
 export function isNegativeAmount(value: string): boolean {
   return parse(value).negative;
 }
+
+/**
+ * Reparte un monto en `parts` partes iguales al centavo; la última lleva la diferencia (igual que el servidor al dividir una
+ * obligación en cuotas). Solo para MOSTRAR la vista previa: lo que vale es lo que calcula el servidor.
+ */
+export function splitEqual(total: string, parts: number): string[] {
+  if (parts % 1 !== 0 || parts < 1) throw new RangeError("Partes inválidas");
+  const { negative, cents } = parse(total);
+  const each = cents / BigInt(parts);
+  const out: string[] = [];
+  let used = 0n;
+  for (let i = 0; i < parts; i++) {
+    const part = i === parts - 1 ? cents - used : each;
+    used += part;
+    const body = `${part / 100n}.${(part % 100n).toString().padStart(2, "0")}`;
+    out.push(negative && part !== 0n ? `-${body}` : body);
+  }
+  return out;
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { amountInputProblem, fractionToPercent, normalizeAmountInput, parsePositiveAmount, percentToFraction } from "./amount-input";
+import { amountInputProblem, fractionToPercent, normalizeAmountInput, parsePercentPoints, parsePositiveAmount, percentToFraction } from "./amount-input";
 
 describe("monto escrito por la persona → cadena decimal", () => {
   it.each([
@@ -67,5 +67,26 @@ describe("qué tiene mal un monto (decimales de más)", () => {
     ["", null],
   ])("%j → %j", (raw, expected) => {
     expect(amountInputProblem(raw)).toBe(expected);
+  });
+});
+
+describe("porcentaje en puntos (descuentos y recargos)", () => {
+  it.each([
+    ["10", "10"],
+    ["7,5", "7.5"],
+    ["7.50 %", "7.5"],
+    ["100", "100"],
+    ["0,25", "0.25"],
+    ["010", "10"],
+    ["0", null],
+    ["0,0", null],
+    ["100,5", null],
+    ["101", null],
+    ["-5", null],
+    ["1,23456", null],
+    ["abc", null],
+    ["", null],
+  ])("%j → %j", (raw, expected) => {
+    expect(parsePercentPoints(raw)).toBe(expected);
   });
 });

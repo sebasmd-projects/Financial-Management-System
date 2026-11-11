@@ -1,5 +1,6 @@
 @import "../ui/tokens.css";
 @import "../features/finance/finance.css";
+@import "../features/finance/planning.css";
 
 /* ---------- Base ---------- */
 *,

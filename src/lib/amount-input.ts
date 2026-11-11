@@ -84,3 +84,18 @@ export function fractionToPercent(fraction: string, maxDecimals = 4): string {
   const body = decimals ? `${intPart}.${decimals}` : `${intPart}`;
   return sign === "-" && scaled !== 0n ? `-${body}` : body;
 }
+
+/**
+ * Un porcentaje en puntos (`10` = 10 %, `7,5` = 7,5 %) tal como lo espera la API en los descuentos y recargos (distinto de las
+ * tasas, que son fracción). Positivo y hasta 100; hasta 4 decimales. Solo texto: nunca `Number`.
+ */
+export function parsePercentPoints(raw: string): string | null {
+  const text = raw.replace(/[\s%]/g, "").replace(",", ".");
+  const match = /^(\d{1,3})(?:\.(\d{1,4}))?$/.exec(text);
+  if (!match) return null;
+  const whole = match[1].replace(/^0+(?=\d)/, "");
+  const fraction = (match[2] ?? "").replace(/0+$/, "");
+  if (whole === "0" && fraction === "") return null;
+  if (whole.length === 3 && (whole !== "100" || fraction !== "")) return null;
+  return fraction ? `${whole}.${fraction}` : whole;
+}

@@ -1,0 +1,13 @@
+/* FMS-1b: pausas y ventanas de pago, Resumen, calendario, avisos, conciliación y parámetros. Mobile first; solo tokens de `ui/tokens.css`. */
+
+/* ---------- Meses, pausas y ventanas ---------- */
+.fin-months, .fin-ranges { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: var(--space-8); }
+.fin-months__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4) var(--space-8); }
+@media (min-width: 480px) { .fin-months__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.fin-months__item { display: flex; align-items: center; gap: var(--space-8); min-height: var(--target-min); cursor: pointer; }
+.fin-months__item input { flex: none; width: 24px; height: 24px; margin: 0; accent-color: var(--color-primary); }
+.fin-range { display: grid; gap: var(--space-8); padding: var(--space-12); border: 1px solid var(--color-border); border-radius: var(--radius-sm); }
+.fin-window { display: grid; gap: var(--space-12); padding: var(--space-12); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.fin-quote { display: grid; gap: var(--space-8); }
+.fin-quote__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-8); }
+.fin-unsplit { display: grid; gap: var(--space-4); }

@@ -1,3 +1,4 @@
+import { finBEn } from "./fin-b-en";
 import type { FinDictionary } from "./fin-es";
 
 /** English strings for the FMS-1 finance screens. Must satisfy the same type as Spanish. */
@@ -515,4 +516,5 @@ export const finEn: FinDictionary = {
     noOccurrences: "Nothing due this month.",
     data: "Details",
   },
+  ...finBEn,
 };

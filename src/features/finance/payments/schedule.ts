@@ -11,6 +11,10 @@ export const FREQUENCIES: readonly Frequency[] = ["monthly", "weekly", "biweekly
 const MONTH_ANCHORED = new Set<Frequency>(["bimonthly", "quarterly", "semiannual", "annual"]);
 const DAY_OF_MONTH = new Set<Frequency>(["monthly", "bimonthly", "quarterly", "semiannual", "annual"]);
 
+/** Las que aceptan «solo estos meses del año» (`months`): el paso de la frecuencia lo sustituye la lista de meses. */
+const ACCEPTS_MONTHS = new Set<Frequency>(["monthly", "biweekly", "bimonthly", "quarterly", "semiannual", "annual"]);
+export const usesMonths = (f: Frequency) => ACCEPTS_MONTHS.has(f);
+
 export interface ScheduleInput {
   frequency: Frequency;
   startDate: string;
@@ -21,9 +25,12 @@ export interface ScheduleInput {
   month: string;
   interval: string;
   holidayRule: "none" | "next" | "previous";
+  /** Meses del año (1..12) en que ocurre; vacío = según la frecuencia. */
+  months?: readonly number[];
 }
 
 export interface ScheduleFields {
+  months?: number[];
   frequency: Frequency;
   start_date: string;
   end_date?: string;
@@ -54,7 +61,9 @@ export function scheduleFields(input: ScheduleInput): ScheduleFields | null {
       fields.day = day;
     }
   }
-  if (usesMonth(input.frequency)) {
+  const months = usesMonths(input.frequency) ? [...new Set(input.months ?? [])].filter((m) => m >= 1 && m <= 12).sort((a, b) => a - b) : [];
+  if (months.length > 0) fields.months = months;
+  if (usesMonth(input.frequency) && months.length === 0) {
     const month = toInt(input.month, 1, 12);
     if (month === null) return null;
     fields.month = month;

@@ -7,6 +7,7 @@ import {
   isDecimalString,
   isNegativeAmount,
   isValidAmountInput,
+  splitEqual,
   spokenCop,
 } from "./money";
 
@@ -157,5 +158,22 @@ describe("captura", () => {
     expect(isDecimalString("1.5")).toBe(true);
     expect(isDecimalString(1.5)).toBe(false);
     expect(isDecimalString(null)).toBe(false);
+  });
+});
+
+describe("splitEqual", () => {
+  it("partes iguales al centavo y la última lleva la diferencia", () => {
+    expect(splitEqual("1200000", 4)).toEqual(["300000.00", "300000.00", "300000.00", "300000.00"]);
+    expect(splitEqual("100.00", 3)).toEqual(["33.33", "33.33", "33.34"]);
+    expect(splitEqual("0.10", 3)).toEqual(["0.03", "0.03", "0.04"]);
+  });
+  it("siempre suma el total", () => {
+    for (const [total, n] of [["1234567.89", 7], ["5.00", 24], ["999999999.99", 11]] as const) {
+      expect(addAmounts(...splitEqual(total, n))).toBe(addAmounts(total));
+    }
+  });
+  it("rechaza un número de partes inválido", () => {
+    expect(() => splitEqual("10", 0)).toThrow();
+    expect(() => splitEqual("10", 1.5)).toThrow();
   });
 });

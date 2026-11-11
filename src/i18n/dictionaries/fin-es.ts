@@ -1,3 +1,5 @@
+import { finBEs } from "./fin-b-es";
+
 /** Textos de las pantallas financieras de FMS-1 (español, es-CO). `fin-en.ts` tiene que cumplir el mismo tipo. */
 export const finEs = {
   currentPeriodParam: "actual",
@@ -513,6 +515,7 @@ export const finEs = {
     noOccurrences: "No toca este mes.",
     data: "Datos",
   },
+  ...finBEs,
 };
 
 export type FinDictionary = typeof finEs;

@@ -302,6 +302,317 @@ paths:
               schema:
                 $ref: '#/components/schemas/FmsError'
           description: Sin sesión.
+  /api/fms/v1/budgets:
+    get:
+      operationId: fmsBudgets
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Presupuestos con lo ejecutado (leído del libro), estado, ritmo y el
+        total mensual
+      parameters:
+      - in: query
+        name: all
+        schema:
+          type: boolean
+        description: Incluir los archivados.
+      - in: query
+        name: 'on'
+        schema:
+          type: string
+        description: Un día del periodo (YYYY-MM-DD); por defecto hoy en Bogotá.
+      tags:
+      - budgets
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budgets'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsBudgetCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Crear un presupuesto: dimensión + límite + periodo (no guarda ejecución)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - budgets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BudgetCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/budgets/{id}:
+    get:
+      operationId: fmsBudget
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Un presupuesto en el periodo que contiene `on`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: 'on'
+        schema:
+          type: string
+        description: Un día del periodo (YYYY-MM-DD); por defecto hoy en Bogotá.
+      tags:
+      - budgets
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    patch:
+      operationId: fmsBudgetPatch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cambiar el límite, el periodo, los umbrales, la etiqueta o archivarlo
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - budgets
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBudgetPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Budget'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/budgets/{id}/history:
+    get:
+      operationId: fmsBudgetHistory
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Presupuestado frente a real, periodo por periodo (barras pareadas)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: months
+        schema:
+          type: integer
+      tags:
+      - budgets
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BudgetHistory'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/budgets/suggestions:
+    get:
+      operationId: fmsBudgetSuggestions
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Límites sugeridos: el promedio de los últimos 3 meses por categoría'
+      tags:
+      - budgets
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BudgetSuggestions'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/calendar:
     get:
       operationId: fmsCalendar
@@ -1655,6 +1966,111 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/credit/installments:
+    get:
+      operationId: fmsCreditInstallments
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cuotas de préstamos y de compras a cuotas con tarjeta, por fecha (vencidas,
+        próximas y, con `state=all`, pagadas)
+      parameters:
+      - in: query
+        name: from
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: state
+        schema:
+          type: string
+        description: '`open` (por defecto), `overdue`, `paid` o `all`.'
+      - in: query
+        name: to
+        schema:
+          type: string
+      tags:
+      - credit
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditInstallmentPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/credit/interest:
+    get:
+      operationId: fmsCreditInterest
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Intereses por mes y obligación (corriente y de mora, pagados o cargados),
+        con la tasa vigente y la usura
+      parameters:
+      - in: query
+        name: from
+        schema:
+          type: string
+      - in: query
+        name: to
+        schema:
+          type: string
+      tags:
+      - credit
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreditInterest'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/dashboard:
     get:
       operationId: fmsDashboard
@@ -1686,6 +2102,433 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/debts:
+    get:
+      operationId: fmsDebts
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Deudas personales: «debo» y «me deben», con el saldo del libro'
+      parameters:
+      - in: query
+        name: direction
+        schema:
+          type: string
+        description: '`owe` o `owed`.'
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: '`open` o `settled`.'
+      tags:
+      - debts
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsDebtCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Registrar una deuda personal (prestaste o te prestaron): una cuenta
+        por cobrar o un pasivo'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - debts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebtCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debt'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debt'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/debts/{id}:
+    get:
+      operationId: fmsDebt
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Una deuda personal
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - debts
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debt'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    patch:
+      operationId: fmsDebtPatch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cambiar la fecha acordada, la nota o el recordatorio
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - debts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedDebtPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Debt'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/debts/{id}/payments:
+    get:
+      operationId: fmsDebtPayments
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Los abonos de la deuda (cada uno es un movimiento)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - debts
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtPayments'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    post:
+      operationId: fmsDebtPay
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Registrar un abono (parcial o total). Me deben: baja la cuenta por
+        cobrar; Debo: baja el pasivo. No es ingreso ni gasto'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - debts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DebtPay'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/debts/{id}/reminder:
+    get:
+      operationId: fmsDebtReminder
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'El texto del recordatorio para compartir («Hola, Camilo: te recuerdo
+        los $300.000 del 02/10»)'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: locale
+        schema:
+          type: string
+        description: '`es` (por defecto) o `en`.'
+      tags:
+      - debts
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtReminder'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/debts/summary:
+    get:
+      operationId: fmsDebtsSummary
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: '«Debo» y «Me deben»: los totales de las deudas abiertas'
+      tags:
+      - debts
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DebtSummary'
+          description: ''
         '401':
           content:
             application/json:
@@ -2091,6 +2934,287 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/goals:
+    get:
+      operationId: fmsGoals
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Metas: el progreso es el saldo de su cuenta, con el aporte mensual
+        necesario'
+      tags:
+      - goals
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goals'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsGoalCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Crear una meta: crea o enlaza un fondo de ahorro (o, en `pay_debt`,
+        enlaza el pasivo)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - goals
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/goals/{id}:
+    get:
+      operationId: fmsGoal
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Una meta
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - goals
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    patch:
+      operationId: fmsGoalPatch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cambiar el nombre, el objetivo, la fecha, el aporte planeado o archivarla
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - goals
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedGoalPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/goals/{id}/contribute:
+    post:
+      operationId: fmsGoalContribute
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Aportar a la meta: una transferencia a su fondo (no es gasto)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - goals
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalContribute'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/health:
     get:
       operationId: fmsHealth
@@ -2106,6 +3230,48 @@ paths:
               schema:
                 $ref: '#/components/schemas/FmsHealth'
           description: ''
+  /api/fms/v1/indicators:
+    get:
+      operationId: fmsIndicators
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Indicadores de planeación: valor, fórmula y tendencia de 6 meses'
+      parameters:
+      - in: query
+        name: month
+        schema:
+          type: string
+        description: YYYY-MM; por defecto el mes en curso.
+      tags:
+      - indicators
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Indicators'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/institutions:
     get:
       operationId: fmsInstitutions
@@ -2145,6 +3311,56 @@ paths:
               schema:
                 $ref: '#/components/schemas/Verify'
           description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/liquidity:
+    get:
+      operationId: fmsLiquidity
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Liquidez a 15, 30, 60 y 90 días **descontando el gasto variable** y
+        el primer día en negativo (estimación)
+      parameters:
+      - in: query
+        name: income_pct
+        schema:
+          type: string
+      - in: query
+        name: scenario
+        schema:
+          type: string
+      - in: query
+        name: variable_pct
+        schema:
+          type: string
+      tags:
+      - liquidity
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportLiquidity'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
         '401':
           content:
             application/json:
@@ -2393,6 +3609,184 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/loans/{id}/late:
+    get:
+      operationId: fmsLoanLate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Mora a una fecha: cuotas vencidas e interés de mora estimado (nunca
+        inventa la tasa)'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: 'on'
+        schema:
+          type: string
+        description: YYYY-MM-DD; por defecto hoy en Bogotá.
+      tags:
+      - loans
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LateQuote'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/loans/{id}/rates:
+    get:
+      operationId: fmsLoanRates
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Las tasas del préstamo con su vigencia y fuente (corriente y de mora)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - loans
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanRates'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    post:
+      operationId: fmsLoanRateCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Una tasa nueva con vigencia y fuente; la corriente recalcula las cuotas
+        pendientes desde su fecha
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - loans
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanRateCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanRates'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanRates'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/loans/{id}/schedule:
     get:
       operationId: fmsLoanSchedule
@@ -2481,6 +3875,7 @@ paths:
         name: classification
         schema:
           type: string
+        description: '`none` = sin clasificar.'
       - in: query
         name: cost_center
         schema:
@@ -2494,6 +3889,12 @@ paths:
         schema:
           type: string
       - in: query
+        name: ledger_account
+        schema:
+          type: string
+        description: 'Movimientos con una línea en esa cuenta del libro (FMS-2a: lo
+          que suma una fila de un informe).'
+      - in: query
         name: max_amount
         schema:
           type: string
@@ -2505,6 +3906,7 @@ paths:
         name: nature
         schema:
           type: string
+        description: '`none` = sin naturaleza.'
       - in: query
         name: origin
         schema:
@@ -5233,6 +6635,461 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/reports:
+    get:
+      operationId: fmsReports
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Los informes disponibles y los escenarios predefinidos
+      tags:
+      - reports
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportCatalog'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/reports/{key}:
+    get:
+      operationId: fmsReport
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Un informe con los filtros comunes: cifra principal, tablas y, por
+        fila, el filtro de «Ver movimientos»'
+      parameters:
+      - in: query
+        name: account
+        schema:
+          type: string
+      - in: query
+        name: card
+        schema:
+          type: string
+        description: No se combina con `account`.
+      - in: query
+        name: category
+        schema:
+          type: string
+        description: Incluye sus subcategorías.
+      - in: query
+        name: from
+        schema:
+          type: string
+        description: '`YYYY-MM-DD`.'
+      - in: query
+        name: horizon
+        schema:
+          type: string
+        description: 'Solo `projection`: `15`, `30`, `60`, `90` o `12m`.'
+      - in: query
+        name: income_pct
+        schema:
+          type: string
+        description: 'Solo `projection`: fracción editable (`0.05`).'
+      - in: path
+        name: key
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: month
+        schema:
+          type: string
+        description: '`YYYY-MM`; sustituye a `from` y `to`.'
+      - in: query
+        name: scenario
+        schema:
+          type: string
+        description: 'Solo `projection`: `base`, `optimistic` o `pessimistic`.'
+      - in: query
+        name: tag
+        schema:
+          type: string
+      - in: query
+        name: threshold
+        schema:
+          type: string
+        description: 'Solo `ant_expenses`: monto máximo (20000 por defecto).'
+      - in: query
+        name: to
+        schema:
+          type: string
+        description: '`YYYY-MM-DD`.'
+      - in: query
+        name: type
+        schema:
+          type: string
+        description: '`income`, `expense` o `transfer`.'
+      - in: query
+        name: variable_pct
+        schema:
+          type: string
+        description: 'Solo `projection`: fracción editable (`-0.10`).'
+      tags:
+      - reports
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/reports/{key}/export:
+    post:
+      operationId: fmsReportExport
+      description: 'Un `POST` que **devuelve el archivo** en la respuesta, transmitido
+        desde memoria: no se escribe en disco, no se guarda en caché (`Cache-Control:
+        private, no-store`) y ningún monto ni filtro va en la URL.'
+      summary: Exportar un informe a xlsx, csv o pdf (lo filtrado, con los filtros
+        y la fecha de generación en la cabecera)
+      parameters:
+      - in: path
+        name: key
+        schema:
+          type: string
+        required: true
+      tags:
+      - reports
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportExport'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Demasiadas peticiones (cupo de la ruta).
+  /api/fms/v1/simulators/compare:
+    post:
+      operationId: fmsSimCompare
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Comparar hasta 3 ofertas: cuota, interés total y costo total; la de
+        menor costo va marcada (sin escribir)'
+      tags:
+      - simulators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompareRequest'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Compare'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/simulators/extra-payment:
+    post:
+      operationId: fmsSimExtraPayment
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Abono extra a capital: sin abono, reducir plazo o reducir cuota, con
+        el ahorro en interés (sin escribir)'
+      tags:
+      - simulators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtraPaymentRequest'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtraPayment'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/simulators/installment:
+    post:
+      operationId: fmsSimInstallment
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Cuota fija / tabla de amortización: cuota, interés total, costo total
+        y tabla (sin escribir)'
+      tags:
+      - simulators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstallmentSimRequest'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstallmentSim'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/simulators/installment/export:
+    post:
+      operationId: fmsSimInstallmentExport
+      description: 'Un endpoint que devuelve un archivo (FMS-2a): ``POST``, cupo propio
+        ``export`` y respuesta transmitida (``download``).'
+      summary: Exportar la tabla de amortización a xlsx, csv o pdf (POST que devuelve
+        el archivo; nada en la URL ni en disco)
+      tags:
+      - simulators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstallmentExportRequest'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Demasiadas peticiones (cupo de la ruta).
+  /api/fms/v1/simulators/rates:
+    post:
+      operationId: fmsSimRates
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Conversor de tasas: una tasa en una convención → EA, EM, NMV, ET,
+        NTV y diaria (nunca se divide una efectiva entre 12)'
+      tags:
+      - simulators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateConvertRequest'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateConvert'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/subscriptions:
     get:
       operationId: fmsSubscriptions
@@ -5885,6 +7742,8 @@ components:
       - fund
       - credit_card
       - loan
+      - receivable
+      - personal_debt
       - income_category
       - expense_category
       - system
@@ -5898,6 +7757,8 @@ components:
         * `fund` - Fund
         * `credit_card` - Credit card
         * `loan` - Loan
+        * `receivable` - Receivable (they owe me)
+        * `personal_debt` - Personal debt (I owe)
         * `income_category` - Income category
         * `expense_category` - Expense category
         * `system` - System account
@@ -6068,10 +7929,14 @@ components:
       enum:
       - french
       - constant_capital
+      - interest_only
+      - custom
       type: string
       description: |-
         * `french` - french
         * `constant_capital` - constant_capital
+        * `interest_only` - interest_only
+        * `custom` - custom
     AmountDue:
       type: object
       properties:
@@ -6260,6 +8125,301 @@ components:
     BlankEnum:
       enum:
       - ''
+    Budget:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        dimension:
+          $ref: '#/components/schemas/BudgetDimensionEnum'
+        target_id:
+          type: string
+          format: uuid
+          description: La categoría, cuenta, centro de costo o etiqueta de la dimensión.
+        period:
+          $ref: '#/components/schemas/BudgetPeriodEnum'
+        period_start:
+          type: string
+          format: date
+        period_end:
+          type: string
+          format: date
+        limit:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        spent:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'Lo ejecutado: se **lee** de los asientos de gasto, nunca se
+            guarda.'
+        remaining:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: '`limit - spent`; negativo si se pasó.'
+        exceeded_by:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        percent:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Porcentaje con 2 decimales, para mostrar. El estado no sale
+            de él.
+        state:
+          allOf:
+          - $ref: '#/components/schemas/BudgetStateEnum'
+          description: |-
+            `normal` < umbral de atención (80 %), `attention` hasta 99 %, `exceeded` desde 100 % (con texto, no solo color).
+
+            * `normal` - normal
+            * `attention` - attention
+            * `exceeded` - exceeded
+        days_left:
+          type: integer
+        per_day:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que queda dividido entre los días que faltan (0 si se pasó).
+        pace:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: '«A este paso terminas en»: lo gastado llevado a todo el periodo.'
+        warn_percent:
+          type: integer
+        exceed_percent:
+          type: integer
+        active:
+          type: boolean
+        label:
+          type:
+          - string
+          - 'null'
+        movements_filter:
+          type: object
+          additionalProperties:
+            type: string
+          description: El filtro exacto de `GET movements` que lista lo que suma esta
+            cifra («Ver movimientos»).
+      required:
+      - active
+      - days_left
+      - dimension
+      - exceed_percent
+      - exceeded_by
+      - id
+      - label
+      - limit
+      - movements_filter
+      - pace
+      - per_day
+      - percent
+      - period
+      - period_end
+      - period_start
+      - remaining
+      - spent
+      - state
+      - target_id
+      - warn_percent
+    BudgetCreate:
+      type: object
+      properties:
+        dimension:
+          $ref: '#/components/schemas/BudgetDimensionEnum'
+        target_id:
+          type: string
+          format: uuid
+        limit:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        period:
+          allOf:
+          - $ref: '#/components/schemas/BudgetPeriodEnum'
+          default: monthly
+        custom_start:
+          type:
+          - string
+          - 'null'
+          format: date
+        custom_end:
+          type:
+          - string
+          - 'null'
+          format: date
+        warn_percent:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          default: 80
+        exceed_percent:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          default: 100
+        label:
+          type:
+          - string
+          - 'null'
+          maxLength: 80
+      required:
+      - dimension
+      - limit
+      - target_id
+    BudgetDimensionEnum:
+      enum:
+      - category
+      - subcategory
+      - account
+      - cost_center
+      - tag
+      type: string
+      description: |-
+        * `category` - category
+        * `subcategory` - subcategory
+        * `account` - account
+        * `cost_center` - cost_center
+        * `tag` - tag
+    BudgetHistory:
+      type: object
+      properties:
+        budget_id:
+          type: string
+          format: uuid
+        periods:
+          type: array
+          items:
+            $ref: '#/components/schemas/BudgetHistoryRow'
+      required:
+      - budget_id
+      - periods
+    BudgetHistoryRow:
+      type: object
+      properties:
+        period_start:
+          type: string
+          format: date
+        period_end:
+          type: string
+          format: date
+        limit:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Presupuestado.
+        spent:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Real.
+        percent:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        state:
+          $ref: '#/components/schemas/BudgetStateEnum'
+        movements_filter:
+          type: object
+          additionalProperties:
+            type: string
+          description: El filtro exacto de `GET movements` que lista lo que suma esta
+            cifra («Ver movimientos»).
+      required:
+      - limit
+      - movements_filter
+      - percent
+      - period_end
+      - period_start
+      - spent
+      - state
+    BudgetPeriodEnum:
+      enum:
+      - monthly
+      - biweekly
+      - annual
+      - custom
+      type: string
+      description: |-
+        * `monthly` - monthly
+        * `biweekly` - biweekly
+        * `annual` - annual
+        * `custom` - custom
+    BudgetStateEnum:
+      enum:
+      - normal
+      - attention
+      - exceeded
+      type: string
+      description: |-
+        * `normal` - normal
+        * `attention` - attention
+        * `exceeded` - exceeded
+    BudgetSuggestion:
+      type: object
+      properties:
+        category_id:
+          type: string
+          format: uuid
+        suggested_limit:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El promedio de los últimos 3 meses de esa categoría (con sus
+            subcategorías).
+      required:
+      - category_id
+      - suggested_limit
+    BudgetSuggestions:
+      type: object
+      properties:
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/BudgetSuggestion'
+      required:
+      - suggestions
+    BudgetTotal:
+      type: object
+      properties:
+        limit:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        spent:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        percent:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - limit
+      - percent
+      - spent
+    Budgets:
+      type: object
+      properties:
+        budgets:
+          type: array
+          items:
+            $ref: '#/components/schemas/Budget'
+        total:
+          allOf:
+          - $ref: '#/components/schemas/BudgetTotal'
+          description: Suma de los presupuestos mensuales por categoría o subcategoría.
+      required:
+      - budgets
+      - total
     Calendar:
       type: object
       properties:
@@ -6356,7 +8516,7 @@ components:
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '180000'
         direction:
-          $ref: '#/components/schemas/DirectionEnum'
+          $ref: '#/components/schemas/CalendarItemDirectionEnum'
         ref_kind:
           type: string
         ref_id:
@@ -6399,6 +8559,16 @@ components:
       - ref_id
       - ref_kind
       - shortfall
+    CalendarItemDirectionEnum:
+      enum:
+      - out
+      - in
+      - info
+      type: string
+      description: |-
+        * `out` - out
+        * `in` - in
+        * `info` - info
     Candidate:
       type: object
       properties:
@@ -6803,6 +8973,271 @@ components:
         * `mfa_required` - mfa_required
         * `account_blocked` - account_blocked
         * `consent_mismatch` - consent_mismatch
+    Column:
+      type: object
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/ReportColumnKindEnum'
+          description: |-
+            Cómo leer cada celda: montos y porcentajes son cadenas decimales exactas.
+
+            * `text` - text
+            * `money` - money
+            * `percent` - percent
+            * `date` - date
+            * `int` - int
+      required:
+      - key
+      - kind
+      - label
+    Compare:
+      type: object
+      properties:
+        offers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CompareOffer'
+        cheapest_index:
+          type: integer
+      required:
+      - cheapest_index
+      - offers
+    CompareOffer:
+      type: object
+      properties:
+        label:
+          type: string
+        summary:
+          $ref: '#/components/schemas/SimSummary'
+        cheapest:
+          type: boolean
+          description: 'La de menor costo financiero: el cliente la rotula con texto
+            («Menor costo total»).'
+        usury:
+          $ref: '#/components/schemas/Usury'
+      required:
+      - cheapest
+      - label
+      - summary
+      - usury
+    CompareRequest:
+      type: object
+      properties:
+        offers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Offer'
+          maxItems: 3
+          minItems: 1
+      required:
+      - offers
+    CreditInstallment:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/CreditInstallmentKindEnum'
+        obligation_id:
+          type: string
+          format: uuid
+          description: El préstamo o la tarjeta.
+        obligation_name:
+          type: string
+        number:
+          type: integer
+        due_date:
+          type: string
+          format: date
+        capital:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        insurance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        charges:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        state:
+          $ref: '#/components/schemas/CreditInstallmentStateEnum'
+        movement_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: La compra (tarjeta) o el pago (préstamo).
+      required:
+      - capital
+      - charges
+      - due_date
+      - insurance
+      - interest
+      - kind
+      - movement_id
+      - number
+      - obligation_id
+      - obligation_name
+      - state
+      - total
+    CreditInstallmentKindEnum:
+      enum:
+      - loan
+      - card_plan
+      type: string
+      description: |-
+        * `loan` - loan
+        * `card_plan` - card_plan
+    CreditInstallmentPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreditInstallment'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    CreditInstallmentStateEnum:
+      enum:
+      - pending
+      - overdue
+      - paid
+      - upcoming
+      - billed
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `overdue` - Overdue
+        * `paid` - Paid
+        * `upcoming` - Upcoming card installment
+        * `billed` - Billed card installment
+    CreditInterest:
+      type: object
+      properties:
+        date_from:
+          type: string
+          format: date
+        date_to:
+          type: string
+          format: date
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreditInterestRow'
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/CreditObligationRate'
+        total_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total_late_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - date_from
+      - date_to
+      - obligations
+      - rows
+      - total_interest
+      - total_late_interest
+    CreditInterestRow:
+      type: object
+      properties:
+        month:
+          type: string
+          format: date
+          description: Primer día del mes.
+        obligation_id:
+          type: string
+          format: uuid
+        obligation_name:
+          type: string
+        kind:
+          $ref: '#/components/schemas/ObligationKindEnum'
+        interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Interés corriente pagado o cargado.
+        late_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Interés de mora pagado.
+      required:
+      - interest
+      - kind
+      - late_interest
+      - month
+      - obligation_id
+      - obligation_name
+    CreditObligationRate:
+      type: object
+      properties:
+        obligation_id:
+          type: string
+          format: uuid
+        obligation_name:
+          type: string
+        kind:
+          $ref: '#/components/schemas/ObligationKindEnum'
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        rate_ea:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        usury_ea:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: La usura vigente (parámetro `USURY_RATE_EA`); `null` si no
+            hay.
+        above_usury:
+          type:
+          - boolean
+          - 'null'
+          description: Aviso, no bloqueo; `null` sin usura vigente.
+      required:
+      - above_usury
+      - convention
+      - kind
+      - obligation_id
+      - obligation_name
+      - rate
+      - rate_ea
+      - usury_ea
     Dashboard:
       type: object
       properties:
@@ -6852,16 +9287,221 @@ components:
       - rail
       - shortcuts
       - today
-    DirectionEnum:
+    DaysInYearEnum:
       enum:
-      - out
-      - in
-      - info
+      - 360
+      - 365
+      type: integer
+      description: |-
+        * `360` - 360
+        * `365` - 365
+    Debt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        direction:
+          $ref: '#/components/schemas/DebtDirectionEnum'
+        person:
+          type: string
+        principal:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'Lo que falta: el saldo de su cuenta en el libro.'
+        paid_percent:
+          type: integer
+        agreed_date:
+          type: string
+          format: date
+        due_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        overdue:
+          type: boolean
+        note:
+          type:
+          - string
+          - 'null'
+        remind_on:
+          type:
+          - string
+          - 'null'
+          format: date
+        remind_every_days:
+          type:
+          - integer
+          - 'null'
+        status:
+          $ref: '#/components/schemas/DebtStatusEnum'
+      required:
+      - account_id
+      - agreed_date
+      - balance
+      - direction
+      - due_date
+      - id
+      - note
+      - overdue
+      - paid_percent
+      - person
+      - principal
+      - remind_every_days
+      - remind_on
+      - status
+    DebtCreate:
+      type: object
+      properties:
+        direction:
+          $ref: '#/components/schemas/DebtDirectionEnum'
+        person:
+          type: string
+          maxLength: 80
+        principal:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        agreed_date:
+          type: string
+          format: date
+        due_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        note:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+        remind_on:
+          type:
+          - string
+          - 'null'
+          format: date
+        remind_every_days:
+          type:
+          - integer
+          - 'null'
+          maximum: 365
+          minimum: 1
+        account_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: La cuenta por la que se movió el dinero ese día; sin ella la
+            deuda ya existía y arranca con su saldo.
+      required:
+      - agreed_date
+      - direction
+      - person
+      - principal
+    DebtDirectionEnum:
+      enum:
+      - owe
+      - owed
       type: string
       description: |-
-        * `out` - out
-        * `in` - in
-        * `info` - info
+        * `owe` - I owe
+        * `owed` - They owe me
+    DebtPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Debt'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    DebtPay:
+      type: object
+      properties:
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Un abono, parcial o total; nunca más que el saldo.
+        date:
+          type: string
+          format: date
+        account_id:
+          type: string
+          format: uuid
+          description: 'Me deben: la cuenta que recibe. Debo: la que paga.'
+        note:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+      required:
+      - account_id
+      - amount
+      - date
+    DebtPayments:
+      type: object
+      properties:
+        debt_id:
+          type: string
+          format: uuid
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Movement'
+      required:
+      - debt_id
+      - payments
+    DebtReminder:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Texto listo para compartir; el servidor no lo envía.
+      required:
+      - text
+    DebtStatusEnum:
+      enum:
+      - open
+      - settled
+      type: string
+      description: |-
+        * `open` - Open
+        * `settled` - Settled
+    DebtSummary:
+      type: object
+      properties:
+        i_owe:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: '«Debo»: saldos de las deudas abiertas que debes.'
+        they_owe_me:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: '«Me deben»: saldos de las cuentas por cobrar abiertas.'
+      required:
+      - i_owe
+      - they_owe_me
     Duplicate:
       type: object
       properties:
@@ -7226,6 +9866,122 @@ components:
           description: 'Avisos nuevos (0 si ya estaban: idempotente).'
       required:
       - created
+    ExportFormatEnum:
+      enum:
+      - xlsx
+      - csv
+      - pdf
+      type: string
+      description: |-
+        * `xlsx` - xlsx
+        * `csv` - csv
+        * `pdf` - pdf
+    ExtraPayment:
+      type: object
+      properties:
+        after_installment:
+          type: integer
+        balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El saldo tras esa cuota.
+        extra:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        balance_after:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        none:
+          $ref: '#/components/schemas/ExtraScenario'
+        reduce_term:
+          $ref: '#/components/schemas/ExtraScenario'
+        reduce_installment:
+          $ref: '#/components/schemas/ExtraScenario'
+        installments_saved:
+          type: integer
+      required:
+      - after_installment
+      - balance
+      - balance_after
+      - extra
+      - installments_saved
+      - none
+      - reduce_installment
+      - reduce_term
+    ExtraPaymentRequest:
+      type: object
+      properties:
+        principal:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        rate_convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        term:
+          type: integer
+          maximum: 600
+          minimum: 2
+        after_installment:
+          type: integer
+          maximum: 599
+          minimum: 1
+        extra:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - after_installment
+      - extra
+      - principal
+      - rate
+      - rate_convention
+      - term
+    ExtraScenario:
+      type: object
+      properties:
+        payment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        installments_left:
+          type: integer
+        last_payment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Al reducir plazo, la última cuota es menor.
+        interest_left:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        interest_saved:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Frente a «sin abono»; 0 en esa columna.
+      required:
+      - installments_left
+      - interest_left
+      - interest_saved
+      - last_payment
+      - payment
+    FilterLabel:
+      type: object
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+      required:
+      - label
+      - value
     FixedExpenses:
       type: object
       properties:
@@ -7605,6 +10361,177 @@ components:
       required:
       - after
       - before
+    Goal:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        kind:
+          $ref: '#/components/schemas/GoalKindEnum'
+        status:
+          $ref: '#/components/schemas/GoalStatusEnum'
+        account_id:
+          type: string
+          format: uuid
+          description: El fondo (o, en `pay_debt`, el pasivo) cuyo saldo es el progreso.
+        target_amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        saved:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El saldo de su cuenta (en `pay_debt`, lo abonado a capital
+            desde la creación).
+        remaining:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        percent:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        reached:
+          type: boolean
+        target_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        months_left:
+          type:
+          - integer
+          - 'null'
+        monthly_needed:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que falta entre los meses que quedan, redondeado hacia arriba
+            al centavo.
+        planned_contribution:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que planeas aportar al mes; «Te queda» lo resta.
+        movements_filter:
+          type: object
+          additionalProperties:
+            type: string
+          description: El filtro exacto de `GET movements` que lista lo que suma esta
+            cifra («Ver movimientos»).
+      required:
+      - account_id
+      - id
+      - kind
+      - monthly_needed
+      - months_left
+      - movements_filter
+      - name
+      - percent
+      - planned_contribution
+      - reached
+      - remaining
+      - saved
+      - status
+      - target_amount
+      - target_date
+    GoalContribute:
+      type: object
+      properties:
+        from_account_id:
+          type: string
+          format: uuid
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        date:
+          type: string
+          format: date
+      required:
+      - amount
+      - date
+      - from_account_id
+    GoalCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        kind:
+          $ref: '#/components/schemas/GoalKindEnum'
+        target_amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        target_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        account_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Enlaza un fondo existente; sin él se crea uno.
+        debt_account_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: 'Solo `pay_debt`: el pasivo.'
+        planned_contribution:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - kind
+      - name
+      - target_amount
+    GoalKindEnum:
+      enum:
+      - vehicle
+      - vacation
+      - emergency_fund
+      - home
+      - pay_debt
+      - save_amount
+      type: string
+      description: |-
+        * `vehicle` - vehicle
+        * `vacation` - vacation
+        * `emergency_fund` - emergency_fund
+        * `home` - home
+        * `pay_debt` - pay_debt
+        * `save_amount` - save_amount
+    GoalStatusEnum:
+      enum:
+      - active
+      - archived
+      type: string
+      description: |-
+        * `active` - Active
+        * `archived` - Archived
+    Goals:
+      type: object
+      properties:
+        goals:
+          type: array
+          items:
+            $ref: '#/components/schemas/Goal'
+      required:
+      - goals
     GroupEnum:
       enum:
       - today
@@ -7615,6 +10542,21 @@ components:
         * `today` - today
         * `this_week` - this_week
         * `earlier` - earlier
+    Headline:
+      type: object
+      properties:
+        key:
+          type: string
+        kind:
+          $ref: '#/components/schemas/ReportColumnKindEnum'
+        value:
+          type:
+          - string
+          - 'null'
+      required:
+      - key
+      - kind
+      - value
     HolidayRuleEnum:
       enum:
       - none
@@ -7639,6 +10581,44 @@ components:
       required:
       - balance
       - days
+    Indicator:
+      type: object
+      properties:
+        key:
+          type: string
+        formula:
+          type: string
+          description: La fórmula visible al tocar la tarjeta.
+        value:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Porcentaje con 2 decimales; `null` si no hay base (nunca se
+            divide entre cero).
+        trend:
+          type: array
+          items:
+            $ref: '#/components/schemas/TrendPoint'
+      required:
+      - formula
+      - key
+      - trend
+      - value
+    Indicators:
+      type: object
+      properties:
+        month:
+          type: string
+          format: date
+        indicators:
+          type: array
+          items:
+            $ref: '#/components/schemas/Indicator'
+      required:
+      - indicators
+      - month
     InstallmentEffect:
       type: object
       properties:
@@ -7649,6 +10629,66 @@ components:
       required:
       - after
       - before
+    InstallmentExportRequest:
+      type: object
+      properties:
+        principal:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        rate_convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        term:
+          type: integer
+          maximum: 600
+          minimum: 1
+        system:
+          allOf:
+          - $ref: '#/components/schemas/AmortizationSystemEnum'
+          default: french
+        insurance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          default: '0'
+          description: Seguro por cuota.
+        upfront_fees:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          default: '0'
+          description: Cargos que se pagan al inicio.
+        custom_capitals:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+            example: '180000'
+          maxItems: 600
+        first_due_date:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: Pone fecha a cada cuota.
+        holiday_rule:
+          allOf:
+          - $ref: '#/components/schemas/HolidayRuleEnum'
+          default: none
+        format:
+          $ref: '#/components/schemas/ExportFormatEnum'
+      required:
+      - format
+      - principal
+      - rate
+      - rate_convention
+      - term
     InstallmentInput:
       type: object
       properties:
@@ -7694,6 +10734,78 @@ components:
       - purchase_value
       - total_interest
       - total_real_cost
+    InstallmentSim:
+      type: object
+      properties:
+        summary:
+          $ref: '#/components/schemas/SimSummary'
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/SimRow'
+        usury:
+          $ref: '#/components/schemas/Usury'
+      required:
+      - rows
+      - summary
+      - usury
+    InstallmentSimRequest:
+      type: object
+      properties:
+        principal:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        rate_convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        term:
+          type: integer
+          maximum: 600
+          minimum: 1
+        system:
+          allOf:
+          - $ref: '#/components/schemas/AmortizationSystemEnum'
+          default: french
+        insurance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          default: '0'
+          description: Seguro por cuota.
+        upfront_fees:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          default: '0'
+          description: Cargos que se pagan al inicio.
+        custom_capitals:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+            example: '180000'
+          maxItems: 600
+        first_due_date:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: Pone fecha a cada cuota.
+        holiday_rule:
+          allOf:
+          - $ref: '#/components/schemas/HolidayRuleEnum'
+          default: none
+      required:
+      - principal
+      - rate
+      - rate_convention
+      - term
     InstallmentSnapshot:
       type: object
       properties:
@@ -7755,28 +10867,6 @@ components:
           description: Cuántos cargos de interés se hicieron (0 si ya estaban).
       required:
       - posted
-    KeyEnum:
-      enum:
-      - card_payment
-      - card_cut
-      - fixed_due
-      - overdue
-      - loan_due
-      - subscription_confirm
-      - low_balance
-      - renewal
-      - period_start
-      type: string
-      description: |-
-        * `card_payment` - card_payment
-        * `card_cut` - card_cut
-        * `fixed_due` - fixed_due
-        * `overdue` - overdue
-        * `loan_due` - loan_due
-        * `subscription_confirm` - subscription_confirm
-        * `low_balance` - low_balance
-        * `renewal` - renewal
-        * `period_start` - period_start
     Kpi:
       type: object
       properties:
@@ -7785,7 +10875,7 @@ components:
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '180000'
           description: '«Te queda»: ingresos - gastado - abonos a capital - compromisos
-            pendientes del periodo.'
+            pendientes del periodo - aportes planeados a metas.'
         spent:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
@@ -7809,8 +10899,8 @@ components:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '180000'
-          description: 'Aportes planeados a metas (ahorro primero): 0 hasta que existan
-            las metas (v2).'
+          description: Aportes mensuales planeados a metas de ahorro activas (ahorro
+            primero), sin pasarse de lo que falta de cada una.
         available_today:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
@@ -7821,6 +10911,12 @@ components:
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '180000'
           description: '«Debes»: saldo de los pasivos.'
+        owed_to_me:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: '«Me deben»: saldo de las cuentas por cobrar (deudas personales
+            abiertas).'
         overdue_total:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
@@ -7833,6 +10929,7 @@ components:
       - loan_capital_paid
       - overdue_total
       - owed
+      - owed_to_me
       - remaining
       - spent
     LateKindEnum:
@@ -7847,6 +10944,79 @@ components:
         * `fixed` - fixed
         * `percent` - percent
         * `daily` - daily
+    LateQuote:
+      type: object
+      properties:
+        'on':
+          type: string
+          format: date
+        rate_missing:
+          type: boolean
+          description: 'No hay tasa de mora vigente (ni del préstamo ni el parámetro
+            `LATE_INTEREST_EA`): no se calcula, no se inventa.'
+        rate_ea:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        source:
+          oneOf:
+          - $ref: '#/components/schemas/LateRateSourceEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/LateRow'
+        total:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - 'on'
+      - rate_ea
+      - rate_missing
+      - rows
+      - source
+      - total
+    LateRateSourceEnum:
+      enum:
+      - loan
+      - parameter
+      type: string
+      description: |-
+        * `loan` - loan
+        * `parameter` - parameter
+    LateRow:
+      type: object
+      properties:
+        number:
+          type: integer
+        due_date:
+          type: string
+          format: date
+        days_late:
+          type: integer
+        capital:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Capital vencido, la base de la mora.
+        late_interest:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Estimado; `null` sin tasa de mora vigente.
+      required:
+      - capital
+      - days_late
+      - due_date
+      - late_interest
+      - number
     LineAccount:
       type: object
       properties:
@@ -7886,6 +11056,16 @@ components:
       - first_negative_date
       - horizons
       - missing
+    LiquidityHorizon:
+      type: object
+      properties:
+        days:
+          type: integer
+        balance:
+          type: string
+      required:
+      - balance
+      - days
     Loan:
       type: object
       properties:
@@ -7924,6 +11104,12 @@ components:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '180000'
+        other_charges:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        kind:
+          $ref: '#/components/schemas/LoanKindEnum'
         installments_paid:
           type: integer
         next_installment:
@@ -7941,9 +11127,11 @@ components:
       - id
       - installments_paid
       - insurance
+      - kind
       - name
       - next_due_date
       - next_installment
+      - other_charges
       - paid_percent
       - principal
       - rate
@@ -8007,6 +11195,47 @@ components:
           allOf:
           - $ref: '#/components/schemas/HolidayRuleEnum'
           default: next
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/LoanKindEnum'
+          default: personal
+        other_charges:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          default: '0'
+          description: Otros cargos por cuota.
+        custom_capitals:
+          type:
+          - array
+          - 'null'
+          items:
+            type: string
+            pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+            example: '180000'
+          description: 'Solo con `system = custom`: el capital de cada cuota menos
+            la última (la última cierra el saldo).'
+          maxItems: 600
+        rate_source:
+          type: string
+          default: Indicada al crear el préstamo.
+          description: De dónde sale la tasa (el contrato, el extracto...).
+          maxLength: 200
+        late_rate:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: Tasa de mora del contrato, si la conoces.
+        late_rate_convention:
+          allOf:
+          - $ref: '#/components/schemas/RateConventionEnum'
+          default: EA
+        late_rate_source:
+          type: string
+          default: ''
+          maxLength: 200
       required:
       - disbursement_date
       - first_due_date
@@ -8040,11 +11269,16 @@ components:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '180000'
+        charges:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Otros cargos de la cuota.
         payment:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '180000'
-          description: Capital + interés + seguro.
+          description: Capital + interés + seguro + otros cargos.
         status:
           $ref: '#/components/schemas/InstallmentStatusEnum'
         movement_id:
@@ -8057,17 +11291,48 @@ components:
           - string
           - 'null'
           format: date
+        paid_interest:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que de verdad se pagó de interés.
+        paid_late_interest:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que de verdad se pagó de mora.
       required:
       - adjusted_due_date
       - capital
+      - charges
       - due_date
       - insurance
       - interest
       - movement_id
       - number
+      - paid_interest
+      - paid_late_interest
       - paid_on
       - payment
       - status
+    LoanKindEnum:
+      enum:
+      - personal
+      - free_investment
+      - mortgage
+      - educational
+      - vehicle
+      type: string
+      description: |-
+        * `personal` - personal
+        * `free_investment` - free_investment
+        * `mortgage` - mortgage
+        * `educational` - educational
+        * `vehicle` - vehicle
     LoanPage:
       type: object
       properties:
@@ -8112,13 +11377,99 @@ components:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '180000'
+          description: Comisiones. Por defecto, los otros cargos de la tabla.
+        late_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
           default: '0'
+          description: Interés de mora cobrado (gasto «Recargos e intereses de mora»).
+            Ver `GET loans/{id}/late`.
         apply_gmf:
           type: boolean
           default: false
       required:
       - date
       - from_account_id
+    LoanRate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          $ref: '#/components/schemas/LoanRateKindEnum'
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        valid_from:
+          type: string
+          format: date
+        valid_to:
+          type:
+          - string
+          - 'null'
+          format: date
+        source:
+          type: string
+      required:
+      - convention
+      - id
+      - kind
+      - rate
+      - source
+      - valid_from
+      - valid_to
+    LoanRateCreate:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/LoanRateKindEnum'
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: Fracción (`0.015` = 1,5 %) en su convención.
+        rate_convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        valid_from:
+          type: string
+          format: date
+          description: Desde cuándo rige; cierra la vigente el día antes.
+        source:
+          type: string
+          description: De dónde sale (obligatoria).
+          maxLength: 200
+      required:
+      - kind
+      - rate
+      - rate_convention
+      - source
+      - valid_from
+    LoanRateKindEnum:
+      enum:
+      - current
+      - late
+      type: string
+      description: |-
+        * `current` - Current
+        * `late` - Late (mora)
+    LoanRates:
+      type: object
+      properties:
+        loan_id:
+          type: string
+          format: uuid
+        rates:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoanRate'
+      required:
+      - loan_id
+      - rates
     LoanSchedule:
       type: object
       properties:
@@ -8503,6 +11854,16 @@ components:
       required:
       - entries
       - movement_id
+    MovementFilterTypeEnum:
+      enum:
+      - income
+      - expense
+      - transfer
+      type: string
+      description: |-
+        * `income` - income
+        * `expense` - expense
+        * `transfer` - transfer
     MovementOriginEnum:
       enum:
       - manual
@@ -8515,6 +11876,9 @@ components:
       - loan_payment
       - loan_disbursement
       - recurrence
+      - debt_payment
+      - debt_opening
+      - goal_contribution
       type: string
       description: |-
         * `manual` - Manual
@@ -8527,6 +11891,9 @@ components:
         * `loan_payment` - Loan installment
         * `loan_disbursement` - Loan disbursement
         * `recurrence` - Recurrence
+        * `debt_payment` - Personal debt payment
+        * `debt_opening` - Personal debt lent or received
+        * `goal_contribution` - Goal contribution
     MovementPage:
       type: object
       properties:
@@ -8662,6 +12029,34 @@ components:
       required:
       - results
       - unread
+    NotificationRuleKeyEnum:
+      enum:
+      - card_payment
+      - card_cut
+      - fixed_due
+      - overdue
+      - loan_due
+      - subscription_confirm
+      - low_balance
+      - renewal
+      - period_start
+      - budget_warning
+      - budget_exceeded
+      - debt_reminder
+      type: string
+      description: |-
+        * `card_payment` - card_payment
+        * `card_cut` - card_cut
+        * `fixed_due` - fixed_due
+        * `overdue` - overdue
+        * `loan_due` - loan_due
+        * `subscription_confirm` - subscription_confirm
+        * `low_balance` - low_balance
+        * `renewal` - renewal
+        * `period_start` - period_start
+        * `budget_warning` - budget_warning
+        * `budget_exceeded` - budget_exceeded
+        * `debt_reminder` - debt_reminder
     NotificationsRead:
       type: object
       properties:
@@ -8681,6 +12076,14 @@ components:
       - updated
     NullEnum:
       type: 'null'
+    ObligationKindEnum:
+      enum:
+      - loan
+      - card
+      type: string
+      description: |-
+        * `loan` - loan
+        * `card` - card
     Occurrence:
       type: object
       properties:
@@ -8892,6 +12295,46 @@ components:
         * `paid` - Paid
         * `skipped` - Skipped
         * `split` - Split in installments
+    Offer:
+      type: object
+      properties:
+        label:
+          type: string
+          default: ''
+          maxLength: 40
+        principal:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        rate_convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        term:
+          type: integer
+          maximum: 600
+          minimum: 1
+        system:
+          allOf:
+          - $ref: '#/components/schemas/AmortizationSystemEnum'
+          default: french
+        insurance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          default: '0'
+        upfront_fees:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          default: '0'
+      required:
+      - principal
+      - rate
+      - rate_convention
+      - term
     Overdue:
       type: object
       properties:
@@ -9042,6 +12485,40 @@ components:
           type: boolean
         status:
           $ref: '#/components/schemas/AccountStatusEnum'
+    PatchedBudgetPatch:
+      type: object
+      properties:
+        limit:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        period:
+          $ref: '#/components/schemas/BudgetPeriodEnum'
+        custom_start:
+          type:
+          - string
+          - 'null'
+          format: date
+        custom_end:
+          type:
+          - string
+          - 'null'
+          format: date
+        warn_percent:
+          type: integer
+          maximum: 1000
+          minimum: 1
+        exceed_percent:
+          type: integer
+          maximum: 1000
+          minimum: 1
+        label:
+          type:
+          - string
+          - 'null'
+          maxLength: 80
+        active:
+          type: boolean
     PatchedCardPatch:
       type: object
       properties:
@@ -9106,6 +12583,53 @@ components:
           - $ref: '#/components/schemas/BlankEnum'
         archived:
           type: boolean
+    PatchedDebtPatch:
+      type: object
+      properties:
+        due_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        note:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+        remind_on:
+          type:
+          - string
+          - 'null'
+          format: date
+        remind_every_days:
+          type:
+          - integer
+          - 'null'
+          maximum: 365
+          minimum: 1
+    PatchedGoalPatch:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        target_amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        target_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        planned_contribution:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        status:
+          $ref: '#/components/schemas/GoalStatusEnum'
     PatchedMovementPatch:
       type: object
       description: La clasificación se cambia en cualquier estado; dinero, fecha,
@@ -9973,6 +13497,57 @@ components:
         * `NMV` - NMV
         * `NTV` - NTV
         * `NAV` - NAV
+    RateConvert:
+      type: object
+      properties:
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/RateLine'
+        usury:
+          $ref: '#/components/schemas/Usury'
+      required:
+      - lines
+      - usury
+    RateConvertRequest:
+      type: object
+      properties:
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: 'Fracción: `0.24` = 24 %.'
+        convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        days_in_year:
+          allOf:
+          - $ref: '#/components/schemas/DaysInYearEnum'
+          default: 365
+      required:
+      - convention
+      - rate
+    RateLine:
+      type: object
+      properties:
+        convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        percent:
+          type: string
+          description: La tasa en porcentaje con 4 decimales (`1.8088`).
+        days_in_year:
+          type:
+          - integer
+          - 'null'
+          description: 'Solo la diaria: la base de días.'
+      required:
+      - convention
+      - days_in_year
+      - percent
+      - rate
     ReconcileInput:
       type: object
       properties:
@@ -10644,11 +14219,253 @@ components:
           maxLength: 200
       required:
       - reason
+    Report:
+      type: object
+      properties:
+        report:
+          $ref: '#/components/schemas/ReportKeyEnum'
+        title:
+          type: string
+        generated_on:
+          type: string
+          format: date
+        filters:
+          type: array
+          items:
+            $ref: '#/components/schemas/FilterLabel'
+          description: Los filtros aplicados; van en la cabecera de la exportación.
+        headline:
+          type: array
+          items:
+            $ref: '#/components/schemas/Headline'
+          description: La cifra principal (y las de apoyo).
+        tables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Table'
+        notes:
+          type: array
+          items:
+            type: string
+      required:
+      - filters
+      - generated_on
+      - headline
+      - notes
+      - report
+      - tables
+      - title
+    ReportCatalog:
+      type: object
+      properties:
+        reports:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReportSpec'
+        scenarios:
+          type: array
+          items:
+            $ref: '#/components/schemas/Scenario'
+      required:
+      - reports
+      - scenarios
+    ReportColumnKindEnum:
+      enum:
+      - text
+      - money
+      - percent
+      - date
+      - int
+      type: string
+      description: |-
+        * `text` - text
+        * `money` - money
+        * `percent` - percent
+        * `date` - date
+        * `int` - int
+    ReportExport:
+      type: object
+      description: 'Los filtros del informe (los mismos de la consulta) más el formato.
+        Va en el **cuerpo** de un `POST`: ningún monto ni filtro en la URL.'
+      properties:
+        format:
+          $ref: '#/components/schemas/ExportFormatEnum'
+        month:
+          type: string
+          description: '`YYYY-MM`; sustituye a `from` y `to`.'
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        category:
+          type: string
+          format: uuid
+        account:
+          type: string
+          format: uuid
+        card:
+          type: string
+          format: uuid
+        tag:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/MovementFilterTypeEnum'
+        scenario:
+          $ref: '#/components/schemas/ReportScenarioEnum'
+        horizon:
+          $ref: '#/components/schemas/ReportHorizonEnum'
+        income_pct:
+          type: string
+        variable_pct:
+          type: string
+        threshold:
+          type: string
+      required:
+      - format
+    ReportHorizonEnum:
+      enum:
+      - '15'
+      - '30'
+      - '60'
+      - '90'
+      - 12m
+      type: string
+      description: |-
+        * `15` - 15
+        * `30` - 30
+        * `60` - 60
+        * `90` - 90
+        * `12m` - 12m
+    ReportKeyEnum:
+      enum:
+      - income_statement
+      - cash_flow
+      - net_worth
+      - debt
+      - recurring_expenses
+      - cards
+      - subscriptions
+      - budgets
+      - net_worth_evolution
+      - projection
+      - statistics
+      - ant_expenses
+      type: string
+      description: |-
+        * `income_statement` - income_statement
+        * `cash_flow` - cash_flow
+        * `net_worth` - net_worth
+        * `debt` - debt
+        * `recurring_expenses` - recurring_expenses
+        * `cards` - cards
+        * `subscriptions` - subscriptions
+        * `budgets` - budgets
+        * `net_worth_evolution` - net_worth_evolution
+        * `projection` - projection
+        * `statistics` - statistics
+        * `ant_expenses` - ant_expenses
+    ReportLiquidity:
+      type: object
+      properties:
+        scenario:
+          $ref: '#/components/schemas/ReportScenarioEnum'
+        available_today:
+          type: string
+        variable_spending_monthly:
+          type: string
+          description: El promedio de gasto variable de los últimos 3 meses.
+        horizons:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiquidityHorizon'
+        first_negative_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        missing:
+          type:
+          - string
+          - 'null'
+      required:
+      - available_today
+      - first_negative_date
+      - horizons
+      - missing
+      - scenario
+      - variable_spending_monthly
+    ReportScenarioEnum:
+      enum:
+      - base
+      - optimistic
+      - pessimistic
+      type: string
+      description: |-
+        * `base` - base
+        * `optimistic` - optimistic
+        * `pessimistic` - pessimistic
+    ReportSpec:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/ReportKeyEnum'
+        title:
+          type: string
+        projected:
+          type: boolean
+          description: 'Lleva estimaciones: el cliente lo rotula y lo distingue por
+            forma.'
+        default_months:
+          type: integer
+          description: Cuántos meses abarca el periodo por defecto.
+      required:
+      - default_months
+      - key
+      - projected
+      - title
+    Row:
+      type: object
+      properties:
+        cells:
+          type: array
+          items:
+            type:
+            - string
+            - 'null'
+        movements_filter:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            type: string
+          description: Parámetros de `GET movements` que listan lo que suma la fila
+            («Ver movimientos»); `null` si la cifra es un saldo.
+        ref:
+          oneOf:
+          - $ref: '#/components/schemas/RowRef'
+          - type: 'null'
+      required:
+      - cells
+      - movements_filter
+      - ref
+    RowRef:
+      type: object
+      properties:
+        kind:
+          type: string
+        id:
+          type: string
+      required:
+      - id
+      - kind
     Rule:
       type: object
       properties:
         key:
-          $ref: '#/components/schemas/KeyEnum'
+          $ref: '#/components/schemas/NotificationRuleKeyEnum'
         enabled:
           type: boolean
         offsets:
@@ -10677,7 +14494,7 @@ components:
       type: object
       properties:
         key:
-          $ref: '#/components/schemas/KeyEnum'
+          $ref: '#/components/schemas/NotificationRuleKeyEnum'
         enabled:
           type: boolean
         offsets:
@@ -10696,6 +14513,21 @@ components:
             $ref: '#/components/schemas/ChannelsEnum'
       required:
       - key
+    Scenario:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/ReportScenarioEnum'
+        income_pct:
+          type: string
+          description: 'Fracción: `0.05` = ingresos +5 %.'
+        variable_pct:
+          type: string
+          description: 'Fracción: `-0.10` = gasto variable -10 %.'
+      required:
+      - income_pct
+      - key
+      - variable_pct
     ScopeEnum:
       enum:
       - global
@@ -10740,6 +14572,123 @@ components:
       description: |-
         * `debit` - debit
         * `credit` - credit
+    SimRow:
+      type: object
+      properties:
+        number:
+          type: integer
+        due_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        opening:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        capital:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        insurance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        payment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Capital + interés.
+        total:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Capital + interés + seguro.
+        closing:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - capital
+      - closing
+      - due_date
+      - insurance
+      - interest
+      - number
+      - opening
+      - payment
+      - total
+    SimSummary:
+      type: object
+      properties:
+        principal:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        term:
+          type: integer
+        first_payment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: La primera cuota (capital + interés), sin seguro.
+        total_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total_insurance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        upfront_fees:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total_paid:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Σ cuotas (capital + interés).
+        total_cost:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Cuotas + seguro + cargos al inicio.
+        financial_cost:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que se paga de más sobre lo prestado.
+        monthly_rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        effective_annual_rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        cost_effective_annual_rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: La efectiva anual con seguro y cargos incluidos.
+      required:
+      - cost_effective_annual_rate
+      - effective_annual_rate
+      - financial_cost
+      - first_payment
+      - monthly_rate
+      - principal
+      - term
+      - total_cost
+      - total_insurance
+      - total_interest
+      - total_paid
+      - upfront_fees
     Simulate:
       type: object
       properties:
@@ -11068,6 +15017,36 @@ components:
       - owed
       - period
       - spent
+    Table:
+      type: object
+      properties:
+        key:
+          type: string
+        title:
+          type: string
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/Column'
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/Row'
+        totals:
+          type:
+          - array
+          - 'null'
+          items:
+            type:
+            - string
+            - 'null'
+          description: La suma de las filas mostradas.
+      required:
+      - columns
+      - key
+      - rows
+      - title
+      - totals
     TransferCreate:
       type: object
       properties:
@@ -11108,6 +15087,21 @@ components:
       - date
       - from_account_id
       - to_account_id
+    TrendPoint:
+      type: object
+      properties:
+        month:
+          type: string
+          format: date
+        value:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - month
+      - value
     UnitEnum:
       enum:
       - fraction
@@ -11173,6 +15167,25 @@ components:
       - source
       - valid_from
       - value
+    Usury:
+      type: object
+      properties:
+        ea:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: La usura vigente a la fecha (parámetro `USURY_RATE_EA`); `null`
+            si no hay.
+        exceeded:
+          type:
+          - boolean
+          - 'null'
+          description: Aviso (`warning`), no bloqueo.
+      required:
+      - ea
+      - exceeded
     Verify:
       type: object
       properties:

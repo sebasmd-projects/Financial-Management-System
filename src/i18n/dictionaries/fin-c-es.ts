@@ -375,7 +375,6 @@ export const finCEs = {
     emptyBody: "Registra movimientos o cambia el periodo y los filtros.",
     viewMovements: "Ver movimientos",
     total: "Total",
-    antsDrillNote: "Al abrir «Ver movimientos» la lista incluye también los gastos de esa categoría o contraparte mayores al umbral: el monto máximo no viaja en la URL.",
     chartOf: "Gráfica: {table}",
     phase: { real: "Real", current: "En curso", projected: "Proyectado" },
     projectedLegend: "Proyectado (barras con trama)",

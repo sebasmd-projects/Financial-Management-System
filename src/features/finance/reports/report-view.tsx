@@ -13,10 +13,10 @@ import { Icon } from "@/ui/icons";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { BarChart } from "../charts";
 import { scaleWidths } from "../charts-logic";
-import { drillHref } from "../drill";
-import { useAll, useHref, useResource } from "../hooks";
+import { DrillLink } from "../drill-link";
+import { useAll, useHref, useQuery } from "../hooks";
 import { Badge, Banner, Empty, ErrorState, Loading, Money, SelectField, Segmented, TextField } from "../kit";
-import { chartColumns, EMPTY_FILTERS, exportBody, filterParams, filtersReady, isDrillColumn, reportRoute, rowPhase, type PeriodMode, type ProjectionOptions, type ReportFilters } from "./logic";
+import { chartColumns, EMPTY_FILTERS, exportBody, filtersReady, queryBody, isDrillColumn, reportRoute, rowPhase, type PeriodMode, type ProjectionOptions, type ReportFilters } from "./logic";
 
 type Rep = Dictionary["fin"]["rep"];
 type Cells = Record<string, string>;
@@ -84,7 +84,6 @@ export function ReportTableView({ table }: { table: ReportTable }) {
     }
   };
   const first = (cells: readonly (string | null)[]) => (cells[0] === null ? "" : localizedCell(dict, cols[0].key, cells[0]));
-  const antsNote = table.key === "ants";
   return (
     <section className="rep-table" aria-label={label}>
       <ChartFor table={table} label={label} />
@@ -103,7 +102,7 @@ export function ReportTableView({ table }: { table: ReportTable }) {
           <tbody>
             {table.rows.map((row, r) => {
               const phase = rowPhase(table, row.cells);
-              const drill = row.movements_filter ? drillHref(href, row.movements_filter) : null;
+              const drill = row.movements_filter;
               const ref = refHref(row);
               return (
                 <tr key={r} className={phase ? `rep-row rep-row--${phase}` : undefined}>
@@ -127,13 +126,13 @@ export function ReportTableView({ table }: { table: ReportTable }) {
                       );
                     }
                     const numeric = c.kind === "money" || c.kind === "percent" || c.kind === "int";
-                    const linkable = drill !== null && c.kind === "money" && value !== null && isDrillColumn(c.key);
+                    const linkable = drill != null && c.kind === "money" && value !== null && isDrillColumn(c.key);
                     return (
                       <td key={c.key} className={numeric ? "table__num" : undefined}>
                         {linkable ? (
-                          <Link href={drill} aria-label={`${rep.viewMovements}: ${first(row.cells)} (${columnLabel(rep, table, c.key, c.label)})`}>
+                          <DrillLink filter={drill} aria-label={`${rep.viewMovements}: ${first(row.cells)} (${columnLabel(rep, table, c.key, c.label)})`}>
                             {content}
-                          </Link>
+                          </DrillLink>
                         ) : (
                           content
                         )}
@@ -162,7 +161,6 @@ export function ReportTableView({ table }: { table: ReportTable }) {
           )}
         </table>
       </div>
-      {antsNote && table.rows.length > 0 && <p className="hint">{rep.antsDrillNote}</p>}
     </section>
   );
 }
@@ -343,17 +341,17 @@ export function ExportBar({ reportKey, filters, extra }: { reportKey: ReportKey;
   );
 }
 
-/** Un informe completo: filtros, exportación y el cuerpo (cifras → gráfica → tabla). `before` y `extraParams` son para los controles propios de cada informe. */
-export function ReportView({ reportKey, extraParams, exportExtra, before }: { reportKey: ReportKey; extraParams?: Record<string, string | undefined>; exportExtra?: { projection?: ProjectionOptions; threshold?: string }; before?: ReactNode }) {
+/** Un informe completo: filtros, exportación y el cuerpo (cifras → gráfica → tabla). `before` y `extra` son para los controles propios de cada informe. */
+export function ReportView({ reportKey, extra, before }: { reportKey: ReportKey; extra?: { projection?: ProjectionOptions; threshold?: string }; before?: ReactNode }) {
   const { dict } = useI18n();
   const [filters, setFilters] = useState<ReportFilters>(EMPTY_FILTERS);
   const ready = filtersReady(filters);
-  const report = useResource<Report>(ready ? paths.report(reportKey, { ...filterParams(filters), ...extraParams }) : null);
+  const report = useQuery<Report>(paths.reportQuery(reportKey), ready ? queryBody(filters, extra) : null);
   return (
     <div className="rep-view">
       <FilterBar filters={filters} onChange={setFilters} />
       {before}
-      <ExportBar reportKey={reportKey} filters={filters} extra={exportExtra} />
+      <ExportBar reportKey={reportKey} filters={filters} extra={extra} />
       {!ready && <p className="muted" role="status">{dict.fin.rep.notReady}</p>}
       {ready && report.loading && !report.data && <Loading />}
       {ready && report.failure && <ErrorState message={errorText(report.failure, dict.fin.errors)} onRetry={report.reload} />}

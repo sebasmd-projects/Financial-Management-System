@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Account, Category, Movement, Page } from "@/api/models";
 import { paths } from "@/api/paths";
 import { formatDate, formatPeriod, periodOf, periodRange, shiftPeriod, todayBogota } from "@/lib/dates";
@@ -10,8 +10,8 @@ import { useI18n } from "@/i18n/provider";
 import type { RouteId } from "@/nav/routes";
 import { Icon } from "@/ui/icons";
 import { dayNet, groupByDate, signedAmount } from "../helpers";
-import { readDrill, type Drill } from "../drill";
-import { useAll, useHref, useResource } from "../hooks";
+import { clearDrill as clearStagedDrill, peekDrill, type Drill } from "../drill";
+import { useAll, useHref, useQuery } from "../hooks";
 import { Badge, Checkbox, Empty, ErrorState, LinkTabs, Loading, Money, Pager, ScreenHeader, SelectField } from "../kit";
 
 export type MovementsPreset = "all" | "income" | "expense" | "transfer";
@@ -25,8 +25,9 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
   const href = useHref();
   const search = useSearchParams();
   const [period, setPeriod] = useState(() => periodOf(todayBogota()));
-  // «Ver movimientos» desde un presupuesto, una meta o un informe: el filtro exacto llega en la cadena de consulta (sin montos).
-  const [drill, setDrill] = useState<Drill>(() => readDrill((key) => search.get(key)));
+  // «Ver movimientos» desde un presupuesto, una meta o un informe: el filtro exacto llega por memoria (nunca por la URL) y se envía en el cuerpo de POST movements/search.
+  const [drill, setDrill] = useState<Drill>(() => peekDrill());
+  useEffect(() => clearStagedDrill(), []);
   const [account, setAccount] = useState(search.get("cuenta") ?? drill.account ?? "");
   const [category, setCategory] = useState(drill.category ?? "");
   const [status, setStatus] = useState(drill.status ?? "");
@@ -39,14 +40,17 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
   const drilled = drill.from !== undefined || drill.to !== undefined;
   const range = drilled ? { from: drill.from, to: drill.to } : periodRange(period);
   const hasDrill = Object.keys(drill).length > 0;
-  const list = useResource<Page<Movement>>(
-    paths.movements({
+  const list = useQuery<Page<Movement>>(
+    paths.movementsSearch(),
+    {
       type: preset === "all" ? undefined : preset,
       from: range.from,
       to: range.to,
-      account,
-      category,
-      status,
+      account: account || undefined,
+      category: category || undefined,
+      status: status || undefined,
+      min_amount: drill.min_amount,
+      max_amount: drill.max_amount,
       tag: drill.tag,
       cost_center: drill.cost_center,
       counterparty: drill.counterparty,
@@ -56,7 +60,7 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
       show_annulled: showAnnulled || undefined,
       page,
       page_size: PAGE_SIZE,
-    }),
+    },
   );
 
   const groups = groupByDate(list.data?.results ?? []);

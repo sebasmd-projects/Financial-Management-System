@@ -2,7 +2,7 @@
  * Lógica pura de Informes (sin React): filtros comunes, cuerpo de la exportación, a qué pantalla va cada informe, qué columna
  * se grafica y cómo se rotula lo real y lo proyectado. Nunca `Number` para dinero; los filtros no llevan montos.
  */
-import type { ExportFormat, ReportExport, ReportHorizon, ReportKey, ReportScenario, ReportTable } from "@/api/models";
+import type { ExportFormat, ReportExport, ReportQuery, ReportHorizon, ReportKey, ReportScenario, ReportTable } from "@/api/models";
 import { percentToFraction } from "@/lib/amount-input";
 import { isBusinessDate } from "@/lib/dates";
 import type { RouteId } from "@/nav/routes";
@@ -74,14 +74,14 @@ export interface ProjectionOptions {
   variablePct?: string;
 }
 
-/** Umbral de gastos hormiga: valores predefinidos (la API lo recibe por la consulta del GET; ver la nota en `ant-expenses`). */
+/** Umbral de gastos hormiga: valores predefinidos; viaja en el cuerpo del POST. */
 export const ANT_THRESHOLDS = ["10000", "20000", "50000", "100000"] as const;
 export const DEFAULT_ANT_THRESHOLD = "20000";
 
-export function exportBody(f: ReportFilters, format: ExportFormat, extra: { projection?: ProjectionOptions; threshold?: string } = {}): ReportExport {
+/** El cuerpo de `POST reports/{clave}/query`: filtros, escenario y umbral van en el cuerpo, nunca en la URL. */
+export function queryBody(f: ReportFilters, extra: { projection?: ProjectionOptions; threshold?: string } = {}): ReportQuery {
   const p = filterParams(f);
-  const body: ReportExport = {
-    format,
+  const body: ReportQuery = {
     ...(p.month ? { month: p.month } : {}),
     ...(p.from && p.to ? { from: p.from, to: p.to } : {}),
     ...(p.category ? { category: p.category } : {}),
@@ -98,6 +98,10 @@ export function exportBody(f: ReportFilters, format: ExportFormat, extra: { proj
   }
   if (extra.threshold && extra.threshold !== DEFAULT_ANT_THRESHOLD) body.threshold = extra.threshold;
   return body;
+}
+
+export function exportBody(f: ReportFilters, format: ExportFormat, extra: { projection?: ProjectionOptions; threshold?: string } = {}): ReportExport {
+  return { format, ...queryBody(f, extra) };
 }
 
 /** Un porcentaje con signo opcional (`+5`, `-10`, `7,5`) → fracción con signo (`0.05`, `-0.1`); `null` si no vale. */

@@ -93,8 +93,7 @@ export function NetWorthScreen() {
 
 /**
  * Estadísticas (`/informes/estadisticas`): gasto por categoría, naturaleza, clasificación y día; y gastos hormiga con el umbral
- * como control. NOTA: el contrato solo recibe el umbral en la consulta del GET (en la exportación va en el cuerpo); es un
- * valor de configuración tomado de una lista fija, no un movimiento ni un saldo, y el de por defecto no se envía.
+ * como control (va en el cuerpo del POST, nunca en la URL).
  */
 export function StatisticsScreen() {
   const { dict } = useI18n();
@@ -112,8 +111,7 @@ export function StatisticsScreen() {
           <ReportView
             key="ant_expenses"
             reportKey="ant_expenses"
-            extraParams={threshold === DEFAULT_ANT_THRESHOLD ? undefined : { threshold }}
-            exportExtra={{ threshold }}
+            extra={{ threshold }}
             before={
               <div>
                 <SelectField label={rep.stats.threshold} hint={fill(rep.stats.thresholdHint, { amount: formatCop(DEFAULT_ANT_THRESHOLD) })} value={threshold} onChange={setThreshold} options={ANT_THRESHOLDS.map((value) => ({ value, label: formatCop(value) }))} />
@@ -156,7 +154,6 @@ export function ProjectionsScreen() {
   const variablePct = changed(variable, variableFraction, defaults?.variable_pct);
   const ready = !bad(incomeText, incomeFraction) && !bad(variableText, variableFraction);
   const options: ProjectionOptions = { scenario, horizon, incomePct, variablePct };
-  const params = { scenario, horizon, income_pct: incomePct, variable_pct: variablePct };
   const reset = () => {
     setIncome(null);
     setVariable(null);
@@ -179,7 +176,7 @@ export function ProjectionsScreen() {
       {ready ? (
         <>
           <Liquidity scenario={scenario} incomePct={incomePct} variablePct={variablePct} />
-          <ReportView key={`${scenario}-${horizon}-${incomePct ?? ""}-${variablePct ?? ""}`} reportKey="projection" extraParams={params} exportExtra={{ projection: options }} />
+          <ReportView key={`${scenario}-${horizon}-${incomePct ?? ""}-${variablePct ?? ""}`} reportKey="projection" extra={{ projection: options }} />
         </>
       ) : (
         <p className="muted" role="status">{t.fixPercents}</p>

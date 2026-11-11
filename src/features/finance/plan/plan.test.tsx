@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { clearDrill, peekDrill } from "../drill";
 import { byText, click, mountScreen, typeInto, wait, type Mounted } from "@/test/render";
 import { BudgetDetail } from "./budget-detail";
 import { BudgetsScreen } from "./budgets-screen";
@@ -10,6 +11,7 @@ vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams()
 
 let mounted: Mounted | null = null;
 afterEach(() => {
+  clearDrill();
   mounted?.unmount();
   mounted = null;
   vi.unstubAllGlobals();
@@ -105,14 +107,17 @@ describe("presupuestos", () => {
       },
     });
     const links = [...mounted.host.querySelectorAll("a")].map((a) => a.getAttribute("href"));
-    expect(links).toContain("/es/finanzas/movimientos/egresos?from=2026-11-01&to=2026-11-30&category=c-mercado");
-    expect(links).toContain("/es/finanzas/movimientos/egresos?from=2026-10-01&to=2026-10-31&category=c-mercado");
+    expect(links.filter((h) => h === "/es/finanzas/movimientos/egresos")).toHaveLength(2);
+    click(mounted.host.querySelector("a.button[href='/es/finanzas/movimientos/egresos']"));
+    expect(peekDrill()).toEqual({ from: "2026-11-01", to: "2026-11-30", category: "c-mercado" });
+    click(mounted.host.querySelector("table a[href='/es/finanzas/movimientos/egresos']"));
+    expect(peekDrill()).toEqual({ from: "2026-10-01", to: "2026-10-31", category: "c-mercado" });
     expect(mounted.text()).toContain("A este paso terminas en");
     expect(mounted.visible()).toContain("~$960.000");
     expect(mounted.host.querySelector("figure.chart")).toBeTruthy();
     expect(mounted.host.querySelector("figure details table")).toBeTruthy();
     expect(mounted.host.querySelector('[aria-hidden="true"].chart__rows')).toBeTruthy();
-    for (const href of links) expect(href).not.toMatch(/amount|000000/);
+    for (const href of links) expect(href).not.toMatch(/\?|amount|000000/);
   });
 });
 
@@ -132,7 +137,8 @@ describe("metas", () => {
     expect(text).toContain("$12.000.000");
     expect(text).toContain("26,67 %");
     expect(text).toContain("$733.333,34 al mes para llegar el 30/11/2027");
-    expect(mounted.host.querySelector('a[href="/es/finanzas/movimientos?account=acc-2"]')).toBeTruthy();
+    click(byText(mounted.host, "a", "Ver movimientos"));
+    expect(peekDrill()).toEqual({ account: "acc-2" });
   });
   it("Objetivos muestra el resto", async () => {
     mounted = await mountScreen(<GoalsScreen tab="objetivos" />, routes);

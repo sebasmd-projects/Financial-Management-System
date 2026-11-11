@@ -52,6 +52,35 @@ export function useResource<T>(path: string | null): Resource<T> {
   };
 }
 
+/**
+ * Una LECTURA por POST (`reports/{clave}/query`, `movements/search`): los filtros van en el cuerpo, nunca en la URL (regla del
+ * propietario). No escribe nada, así que no lleva `Idempotency-Key`. `null` = no pedir. Cancela al desmontar o al cambiar el cuerpo.
+ */
+export function useQuery<T>(path: string, body: unknown | null): Resource<T> {
+  const [nonce, setNonce] = useState(0);
+  const [done, setDone] = useState<{ key: string; result: ApiResult<T> } | null>(null);
+  const [last, setLast] = useState<T | null>(null);
+  const text = body === null ? null : JSON.stringify(body);
+  const key = `${path}#${text}#${nonce}`;
+  useEffect(() => {
+    if (text === null) return;
+    const controller = new AbortController();
+    void api.post<T>(path, JSON.parse(text) as unknown, { signal: controller.signal }).then((result) => {
+      if (controller.signal.aborted) return;
+      setDone({ key, result });
+      if (result.ok) setLast(result.data);
+    });
+    return () => controller.abort();
+  }, [path, text, key]);
+  const current = text !== null && done?.key === key ? done.result : null;
+  return {
+    loading: text !== null && current === null,
+    data: current?.ok ? current.data : last,
+    failure: current && !current.ok ? current : null,
+    reload: useCallback(() => setNonce((n) => n + 1), []),
+  };
+}
+
 /** Una lista paginada: los resultados de la página pedida. */
 export function useList<T>(path: string | null): Resource<Page<T>> & { items: T[] } {
   const resource = useResource<Page<T>>(path);

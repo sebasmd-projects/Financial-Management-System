@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { api } from "@/api";
 import type { Budget, BudgetHistory } from "@/api/models";
@@ -10,7 +9,7 @@ import { formatPercent, percentWidth } from "@/lib/percent";
 import { useI18n } from "@/i18n/provider";
 import { BarChart } from "../charts";
 import { scaleWidths } from "../charts-logic";
-import { drillHref } from "../drill";
+import { DrillLink } from "../drill-link";
 import { fill } from "../helpers";
 import { useHref, useResource, useSubmit } from "../hooks";
 import { Banner, ErrorState, Loading, Modal, Money, Progress, ScreenHeader, Section } from "../kit";
@@ -76,9 +75,9 @@ export function BudgetDetail({ id }: { id: string }) {
           </p>
         )}
         <div className="actions">
-          <Link className="button button--ghost" href={drillHref(href, b.movements_filter)}>
+          <DrillLink className="button button--ghost" filter={b.movements_filter}>
             {dict.fin.loans.viewMovements}
-          </Link>
+          </DrillLink>
           <button type="button" className="button button--ghost" onClick={() => setEditing(true)}>
             {t.edit}
           </button>
@@ -125,9 +124,9 @@ export function BudgetDetail({ id }: { id: string }) {
                       <th scope="row">{formatDate(row.period_start)} – {formatDate(row.period_end)}</th>
                       <td className="table__num"><Money value={row.limit} /></td>
                       <td className="table__num">
-                        <Link href={drillHref(href, row.movements_filter)} aria-label={`${dict.fin.loans.viewMovements}: ${formatDate(row.period_start)}`}>
+                        <DrillLink filter={row.movements_filter} aria-label={`${dict.fin.loans.viewMovements}: ${formatDate(row.period_start)}`}>
                           <Money value={row.spent} />
-                        </Link>
+                        </DrillLink>
                       </td>
                       <td className="table__num">{formatPercent(row.percent, locale)}</td>
                       <td>{dict.fin.plan.states[row.state]}</td>

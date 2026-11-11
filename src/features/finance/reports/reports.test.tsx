@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { clearDrill, peekDrill } from "../drill";
 import { byText, click, mountScreen, typeInto, wait, type Mounted } from "@/test/render";
 import { NetWorthScreen, ProjectionsScreen, ReportScreen, ReportsHome, StatisticsScreen } from "./reports-screens";
 
@@ -7,6 +8,7 @@ vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams()
 
 let mounted: Mounted | null = null;
 afterEach(() => {
+  clearDrill();
   mounted?.unmount();
   mounted = null;
   vi.unstubAllGlobals();
@@ -44,26 +46,29 @@ const json = (body: unknown) => ({ status: 200, json: body });
 
 describe("informe con filtros comunes", () => {
   it("cifra principal → gráfica → tabla; cada cifra abre sus movimientos con el filtro exacto (sin montos) y los totales suman", async () => {
-    mounted = await mountScreen(<ReportScreen reportKey="income_statement" />, { "GET /api/fms/v1/reports/income_statement": json(INCOME) });
+    mounted = await mountScreen(<ReportScreen reportKey="income_statement" />, { "POST /api/fms/v1/reports/income_statement/query": json(INCOME) });
     const text = mounted.visible();
     expect(text).toContain("Estado de resultados personal");
     expect(text).toContain("$3.200.000");
     expect(text).toContain("60 %");
     expect(text).toContain("Total");
     const links = [...mounted.host.querySelectorAll("table a")].map((a) => a.getAttribute("href"));
-    expect(links).toContain("/es/finanzas/movimientos/egresos?from=2026-11-01&to=2026-11-30&category=c-mercado");
-    expect(links).toContain("/es/finanzas/movimientos/egresos?from=2026-11-01&to=2026-11-30&category=c-trans");
-    expect(links).toContain("/es/finanzas/movimientos/egresos?from=2026-11-01&to=2026-11-30&classification=necessary");
-    for (const href of links) expect(href).not.toMatch(/amount|max_/);
+    // El filtro NO va en la URL: la URL es solo la pantalla; el filtro pasa por memoria.
+    for (const href of links) expect(href).not.toContain("?");
+    expect(links).toContain("/es/finanzas/movimientos/egresos");
+    click(mounted.host.querySelector("a[aria-label^='Ver movimientos: Mercado']"));
+    expect(peekDrill()).toEqual({ from: "2026-11-01", to: "2026-11-30", category: "c-mercado" });
+    click(mounted.host.querySelector("a[aria-label^='Ver movimientos: Transporte']"));
+    expect(peekDrill()).toEqual({ from: "2026-11-01", to: "2026-11-30", category: "c-trans", max_amount: "9" });
     expect(mounted.host.querySelector("a[aria-label^='Ver movimientos: Mercado']")).toBeTruthy();
     expect(mounted.host.querySelectorAll("figure.chart")).toHaveLength(2);
     expect(mounted.host.querySelector("figure details table")).toBeTruthy();
     expect(mounted.host.querySelector("tfoot")?.textContent).toContain("$2.000.000");
-    expect(mounted.mock.calls[0].url).toBe("/api/fms/v1/reports/income_statement");
+    expect(mounted.mock.calls[0]).toMatchObject({ method: "POST", url: "/api/fms/v1/reports/income_statement/query", body: {} });
   });
 
   it("en inglés lleva a su idioma los rótulos del servidor y las filas conocidas", async () => {
-    mounted = await mountScreen(<ReportScreen reportKey="income_statement" />, { "GET /api/fms/v1/reports/income_statement": json(INCOME) }, "en");
+    mounted = await mountScreen(<ReportScreen reportKey="income_statement" />, { "POST /api/fms/v1/reports/income_statement/query": json(INCOME) }, "en");
     const text = mounted.visible();
     expect(text).toContain("Expenses");
     expect(text).toContain("Necessary versus discretionary");
@@ -74,10 +79,9 @@ describe("informe con filtros comunes", () => {
     expect(text).not.toContain("Estado de resultados");
   });
 
-  it("los filtros comunes van al servidor (periodo, categoría, tipo) y ninguno es un monto", async () => {
+  it("los filtros comunes van en el CUERPO del POST (periodo, categoría, tipo); la URL nunca los lleva", async () => {
     const routes = {
-      "GET /api/fms/v1/reports/income_statement": json(INCOME),
-      "GET /api/fms/v1/reports/income_statement?month=2026-10&category=c-mercado&type=expense": json(INCOME),
+      "POST /api/fms/v1/reports/income_statement/query": json(INCOME),
       "GET /api/fms/v1/categories?page_size=200": json({ count: 1, page: 1, page_size: 200, results: [{ id: "c-mercado", name: "Mercado", kind: "expense", parent_id: null, path: ["Mercado"], account_id: "x", default_nature: "", default_classification: "", archived: false }] }),
       "GET /api/fms/v1/accounts?page_size=100": json({ count: 0, page: 1, page_size: 100, results: [] }),
       "GET /api/fms/v1/cards?page_size=100": json({ count: 0, page: 1, page_size: 100, results: [] }),
@@ -86,7 +90,6 @@ describe("informe con filtros comunes", () => {
     mounted = await mountScreen(<ReportScreen reportKey="income_statement" />, routes);
     click(byText<HTMLLabelElement>(mounted.host, "label", "Un mes").control ?? null);
     await wait();
-    // Mes anterior: el filtro de mes es AAAA-MM, no un monto.
     click(mounted.host.querySelector('button[aria-label="Mes anterior"]'));
     click(byText(mounted.host, "button", "Más filtros"));
     await wait();
@@ -94,14 +97,16 @@ describe("informe con filtros comunes", () => {
     typeInto(byText<HTMLLabelElement>(filters, "label", "Categoría").control as HTMLSelectElement, "c-mercado");
     typeInto(byText<HTMLLabelElement>(filters, "label", "Tipo de movimiento").control as HTMLSelectElement, "expense");
     await wait();
-    const urls = mounted.mock.calls.filter((c) => c.url.includes("/reports/")).map((c) => c.url);
-    expect(urls.some((u) => /\/reports\/income_statement\?month=\d{4}-\d{2}&category=c-mercado&type=expense$/.test(u))).toBe(true);
-    for (const url of urls) expect(url).not.toMatch(/amount|balance|total|price|value/);
+    const posts = mounted.mock.calls.filter((c) => c.url.endsWith("/query"));
+    expect((posts[posts.length - 1].body as Record<string, string>)).toMatchObject({ category: "c-mercado", type: "expense" });
+    expect((posts[posts.length - 1].body as { month: string }).month).toMatch(/^\d{4}-\d{2}$/);
+    for (const call of mounted.mock.calls) expect(call.url).not.toContain("?month");
+    for (const post of posts) expect(post.url).toBe("/api/fms/v1/reports/income_statement/query");
   });
 
   it("sin movimientos: estado vacío con el texto del diseño, nunca cifras inventadas", async () => {
     mounted = await mountScreen(<ReportScreen reportKey="cash_flow" />, {
-      "GET /api/fms/v1/reports/cash_flow": json({ ...INCOME, report: "cash_flow", headline: [], tables: [{ key: "cash_flow", title: "Flujo de caja mensual", columns: [col("month", "Mes", "date")], rows: [], totals: null }] }),
+      "POST /api/fms/v1/reports/cash_flow/query": json({ ...INCOME, report: "cash_flow", headline: [], tables: [{ key: "cash_flow", title: "Flujo de caja mensual", columns: [col("month", "Mes", "date")], rows: [], totals: null }] }),
     });
     expect(mounted.text()).toContain("Necesitas al menos un mes de movimientos para este informe");
     expect(mounted.host.querySelector("figure")).toBeNull();
@@ -122,10 +127,12 @@ describe("saldos y patrimonio", () => {
       headline: [{ key: "net_worth", kind: "money", value: "4000000.00" }],
       tables: [{ key: "assets", title: "Activos", columns: [col("group", "Grupo", "text"), col("account", "Cuenta", "text"), col("balance", "Saldo", "money"), col("percent", "%", "percent")], rows: [{ cells: ["liquid", "Ahorros", "5000000.00", "100.00"], movements_filter: { account: "acc-1" }, ref: { kind: "account", id: "acc-1" } }], totals: ["Total", null, "5000000.00", "100.00"] }],
     };
-    mounted = await mountScreen(<NetWorthScreen />, { "GET /api/fms/v1/reports/net_worth": json(worth) });
+    mounted = await mountScreen(<NetWorthScreen />, { "POST /api/fms/v1/reports/net_worth/query": json(worth) });
     const links = [...mounted.host.querySelectorAll("table a")].map((a) => a.getAttribute("href"));
     expect(links).toContain("/es/finanzas/cuentas/acc-1");
-    expect(links).toContain("/es/finanzas/movimientos?account=acc-1");
+    expect(links).toContain("/es/finanzas/movimientos");
+    click(mounted.host.querySelector("table a[aria-label^='Ver movimientos']"));
+    expect(peekDrill()).toEqual({ account: "acc-1" });
     expect(mounted.visible()).toContain("Líquido");
   });
 });
@@ -156,7 +163,7 @@ describe("proyección: real y proyectado sin depender del color", () => {
   const liquidity = { scenario: "base", available_today: "3420000.00", variable_spending_monthly: "1500000.00", horizons: [{ days: 15, balance: "2000000.00" }, { days: 30, balance: "1250000.00" }, { days: 60, balance: "-100000.00" }, { days: 90, balance: "-900000.00" }], first_negative_date: "2027-01-20", missing: "900000.00" };
   const routes = {
     "GET /api/fms/v1/reports": json(catalog),
-    "GET /api/fms/v1/reports/projection?scenario=base&horizon=12m": json(projection),
+    "POST /api/fms/v1/reports/projection/query": json(projection),
     "GET /api/fms/v1/liquidity?scenario=base": json(liquidity),
   };
 
@@ -182,18 +189,19 @@ describe("proyección: real y proyectado sin depender del color", () => {
     expect(text).toContain("Te faltarían $900.000");
   });
 
-  it("escenario y porcentajes editables: solo se envían los que cambió la persona", async () => {
-    const opt = "GET /api/fms/v1/reports/projection?scenario=optimistic&horizon=12m";
-    mounted = await mountScreen(<ProjectionsScreen />, { ...routes, [opt]: json(projection), "GET /api/fms/v1/liquidity?scenario=optimistic": json(liquidity), "GET /api/fms/v1/reports/projection?scenario=optimistic&horizon=12m&income_pct=0.08": json(projection), "GET /api/fms/v1/liquidity?scenario=optimistic&income_pct=0.08": json(liquidity) });
+  it("escenario y porcentajes editables: van en el cuerpo y solo los que cambió la persona", async () => {
+    mounted = await mountScreen(<ProjectionsScreen />, { ...routes, "GET /api/fms/v1/liquidity?scenario=optimistic": json(liquidity), "GET /api/fms/v1/liquidity?scenario=optimistic&income_pct=0.08": json(liquidity) });
     click(byText<HTMLLabelElement>(mounted.host, "label", "Optimista").control ?? null);
     await wait();
     const incomeField = byText<HTMLLabelElement>(mounted.host, "label", "Ingresos (% de cambio)").control as HTMLInputElement;
     expect(incomeField.value).toBe("5");
-    expect(mounted.mock.calls.some((c) => c.url === "/api/fms/v1/reports/projection?scenario=optimistic&horizon=12m")).toBe(true);
+    const bodies = () => mounted!.mock.calls.filter((c) => c.url.endsWith("/projection/query")).map((c) => c.body);
+    expect(bodies()).toContainEqual({ scenario: "optimistic", horizon: "12m" });
     typeInto(incomeField, "8");
     await wait();
-    expect(mounted.mock.calls.some((c) => c.url === "/api/fms/v1/reports/projection?scenario=optimistic&horizon=12m&income_pct=0.08")).toBe(true);
-    expect(mounted.mock.calls.some((c) => c.url.includes("variable_pct"))).toBe(false);
+    expect(bodies()).toContainEqual({ scenario: "optimistic", horizon: "12m", income_pct: "0.08" });
+    expect(JSON.stringify(bodies())).not.toContain("variable_pct");
+    for (const call of mounted.mock.calls.filter((c) => c.url.includes("/reports/"))) expect(call.url).not.toContain("?");
   });
 
   it("un porcentaje inválido no pide nada y lo dice", async () => {
@@ -209,7 +217,7 @@ describe("proyección: real y proyectado sin depender del color", () => {
 describe("gastos hormiga", () => {
   const ants = { ...INCOME, report: "ant_expenses", title: "Gastos hormiga", filters: [{ label: "Mes", value: "2026-11" }, { label: "Umbral", value: "20000" }], headline: [{ key: "monthly_total", kind: "money", value: "98000.00" }, { key: "yearly_total", kind: "money", value: "1176000.00" }], tables: [{ key: "ants", title: "Gastos hormiga", columns: [col("name", "Hormiga", "text"), col("count", "Veces", "int"), col("monthly", "Al mes", "money"), col("yearly", "Al año", "money")], rows: [{ cells: ["Café", "14", "98000.00", "1176000.00"], movements_filter: { type: "expense", classification: "discretionary", from: "2026-11-01", to: "2026-11-30", counterparty: "p-1", max_amount: "20000" }, ref: null }], totals: ["Total", "14", "98000.00", "1176000.00"] }] };
   it("«Café: 14 veces · $98.000 al mes · $1.176.000 al año»; el monto máximo del filtro no viaja en la URL", async () => {
-    mounted = await mountScreen(<StatisticsScreen />, { "GET /api/fms/v1/reports/statistics": json({ ...INCOME, report: "statistics", tables: [] }), "GET /api/fms/v1/reports/ant_expenses": json(ants) });
+    mounted = await mountScreen(<StatisticsScreen />, { "POST /api/fms/v1/reports/statistics/query": json({ ...INCOME, report: "statistics", tables: [] }), "POST /api/fms/v1/reports/ant_expenses/query": json(ants) });
     click(byText(mounted.host, "[role=tab]", "Gastos hormiga"));
     await wait();
     const text = mounted.visible();
@@ -217,23 +225,28 @@ describe("gastos hormiga", () => {
     expect(text).toContain("14");
     expect(text).toContain("$98.000");
     expect(text).toContain("$1.176.000");
-    const link = [...mounted.host.querySelectorAll("table a")].map((a) => a.getAttribute("href"))[0];
-    expect(link).toBe("/es/finanzas/movimientos/egresos?from=2026-11-01&to=2026-11-30&counterparty=p-1&classification=discretionary");
-    expect(text).toContain("el monto máximo no viaja en la URL");
+    const link = mounted.host.querySelector("table a")!;
+    expect(link.getAttribute("href")).toBe("/es/finanzas/movimientos/egresos");
+    click(link);
+    // El monto máximo ya viaja (en memoria, y luego en el cuerpo de movements/search), nunca en la URL.
+    expect(peekDrill()).toEqual({ from: "2026-11-01", to: "2026-11-30", counterparty: "p-1", classification: "discretionary", max_amount: "20000" });
+    expect(text).not.toContain("monto máximo no viaja");
   });
-  it("el umbral es un control: el de por defecto no se envía y uno distinto va al servidor", async () => {
-    mounted = await mountScreen(<StatisticsScreen />, { "GET /api/fms/v1/reports/statistics": json({ ...INCOME, report: "statistics", tables: [] }), "GET /api/fms/v1/reports/ant_expenses": json(ants), "GET /api/fms/v1/reports/ant_expenses?threshold=50000": json(ants) });
+  it("el umbral es un control: el de por defecto no se envía y uno distinto va en el cuerpo, nunca en la URL", async () => {
+    mounted = await mountScreen(<StatisticsScreen />, { "POST /api/fms/v1/reports/statistics/query": json({ ...INCOME, report: "statistics", tables: [] }), "POST /api/fms/v1/reports/ant_expenses/query": json(ants) });
     click(byText(mounted.host, "[role=tab]", "Gastos hormiga"));
     await wait();
-    expect(mounted.mock.calls.some((c) => c.url === "/api/fms/v1/reports/ant_expenses")).toBe(true);
+    const posts = () => mounted!.mock.calls.filter((c) => c.url === "/api/fms/v1/reports/ant_expenses/query");
+    expect(posts()[0].body).toEqual({});
     typeInto(byText<HTMLLabelElement>(mounted.host, "label", "Umbral por gasto").control as HTMLSelectElement, "50000");
     await wait();
-    expect(mounted.mock.calls.some((c) => c.url === "/api/fms/v1/reports/ant_expenses?threshold=50000")).toBe(true);
+    expect(posts().map((c) => c.body)).toContainEqual({ threshold: "50000" });
+    for (const call of mounted.mock.calls) expect(call.url).not.toContain("threshold");
   });
 });
 
 describe("exportar", () => {
-  const routes = { "GET /api/fms/v1/reports/income_statement": json(INCOME) };
+  const routes = { "POST /api/fms/v1/reports/income_statement/query": json(INCOME) };
   function stubUrl() {
     const events: string[] = [];
     vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: () => (events.push("create"), "blob:r"), revokeObjectURL: () => events.push("revoke") }));
@@ -245,7 +258,7 @@ describe("exportar", () => {
     mounted = await mountScreen(<ReportScreen reportKey="income_statement" />, { ...routes, "POST /api/fms/v1/reports/income_statement/export": { status: 200, body: "a,b\n" } });
     click(byText(mounted.host, "button", "CSV"));
     await wait();
-    const post = mounted.mock.calls.find((c) => c.method === "POST")!;
+    const post = mounted.mock.calls.find((c) => c.url.endsWith("/export"))!;
     expect(post.url).toBe("/api/fms/v1/reports/income_statement/export");
     expect(post.body).toEqual({ format: "csv" });
     expect(post.headers.get("X-CSRFToken")).toBe("tok-test");

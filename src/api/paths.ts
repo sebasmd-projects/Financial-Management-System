@@ -110,7 +110,8 @@ export const paths = {
   indicators: (month?: string) => `/indicators${query({ month })}`,
   // FMS-2a: informes
   reports: () => "/reports",
-  report: (key: string, params: Record<string, QueryValue> = {}) => `/reports/${id(key)}${query(params)}`,
+  reportQuery: (key: string) => `/reports/${id(key)}/query`,
+  movementsSearch: () => "/movements/search",
   reportExport: (key: string) => `/reports/${id(key)}/export`,
   liquidity: (params: Record<string, QueryValue> = {}) => `/liquidity${query(params)}`,
 };

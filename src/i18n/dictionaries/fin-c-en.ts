@@ -377,7 +377,6 @@ export const finCEn: typeof finCEs = {
     emptyBody: "Record transactions or change the period and the filters.",
     viewMovements: "View transactions",
     total: "Total",
-    antsDrillNote: "Opening «View transactions» also lists that category's or counterparty's expenses above the threshold: the maximum amount does not travel in the URL.",
     chartOf: "Chart: {table}",
     phase: { real: "Actual", current: "In progress", projected: "Projected" },
     projectedLegend: "Projected (hatched bars)",

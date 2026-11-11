@@ -140,6 +140,8 @@ export type Indicators = S["Indicators"];
 export type Report = S["Report"];
 export type ReportCatalog = S["ReportCatalog"];
 export type ReportExport = S["ReportExport"];
+export type ReportQuery = S["ReportQuery"];
+export type MovementSearch = S["MovementSearch"];
 export type ReportLiquidity = S["ReportLiquidity"];
 export type ReportTable = S["Table"];
 

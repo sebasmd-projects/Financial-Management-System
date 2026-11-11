@@ -10,7 +10,7 @@ import { formatDate, isBusinessDate, todayBogota } from "@/lib/dates";
 import { formatCop } from "@/lib/money";
 import { formatPercent, percentWidth } from "@/lib/percent";
 import { useI18n } from "@/i18n/provider";
-import { drillHref } from "../drill";
+import { DrillLink } from "../drill-link";
 import { fill, transferAccounts } from "../helpers";
 import { useAll, useHref, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, FormActions, Money, Progress, SelectField, TextField } from "../kit";
@@ -55,9 +55,9 @@ export function GoalCard({ goal, onContribute, detail = true }: { goal: Goal; on
             {t.contribute}
           </button>
         )}
-        <Link className="button button--ghost" href={drillHref(href, goal.movements_filter)}>
+        <DrillLink className="button button--ghost" filter={goal.movements_filter}>
           {dict.fin.loans.viewMovements}
-        </Link>
+        </DrillLink>
       </div>
     </article>
   );

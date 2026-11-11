@@ -1,34 +1,33 @@
-import { describe, expect, it } from "vitest";
-import { drillHref, drillRoute, readDrill, sanitizeDrill } from "./drill";
+import { afterEach, describe, expect, it } from "vitest";
+import { clearDrill, drillRoute, peekDrill, sanitizeDrill, stageDrill } from "./drill";
 
-const href = (id: string) => `/es/finanzas/${id}`;
+afterEach(clearDrill);
 
-describe("filtro «Ver movimientos»", () => {
-  it("conserva ids, fechas y clasificaciones y descarta lo demás", () => {
-    expect(sanitizeDrill({ type: "expense", from: "2026-11-01", to: "2026-11-30", category: "3f2a-uuid", amount: "5000", min_amount: "1", classification: "none", tag: "a b" })).toEqual({
+describe("filtro «Ver movimientos» (en memoria, nunca en la URL)", () => {
+  it("conserva ids, fechas, clasificaciones y montos del filtro, y descarta lo demás", () => {
+    expect(sanitizeDrill({ type: "expense", from: "2026-11-01", to: "2026-11-30", category: "3f2a-uuid", min_amount: "x", max_amount: "20000", classification: "none", tag: "a b", price: "1" })).toEqual({
       from: "2026-11-01",
       to: "2026-11-30",
       category: "3f2a-uuid",
       classification: "none",
+      max_amount: "20000",
     });
   });
-  it("la contraparte de un gasto hormiga viaja, pero su monto máximo no", () => {
-    expect(sanitizeDrill({ counterparty: "p-1", max_amount: "20000", classification: "discretionary" })).toEqual({ counterparty: "p-1", classification: "discretionary" });
+  it("la contraparte y el monto máximo de un gasto hormiga viajan en el filtro (ya no hay URL)", () => {
+    expect(sanitizeDrill({ counterparty: "p-1", max_amount: "20000.50" })).toEqual({ counterparty: "p-1", max_amount: "20000.50" });
   });
   it("una fecha que no existe no pasa", () => {
     expect(sanitizeDrill({ from: "2026-02-30" })).toEqual({});
   });
-  it("el tipo elige la pantalla; la URL no lleva montos", () => {
+  it("el tipo elige la pantalla", () => {
     expect(drillRoute({ type: "expense" })).toBe("movimientos-egresos");
     expect(drillRoute({ type: "income" })).toBe("movimientos-ingresos");
     expect(drillRoute({})).toBe("movimientos");
-    const url = drillHref(href, { type: "expense", from: "2026-11-01", to: "2026-11-30", category: "c1", amount: "99" });
-    expect(url).toBe("/es/finanzas/movimientos-egresos?from=2026-11-01&to=2026-11-30&category=c1");
-    expect(url).not.toMatch(/amount/);
   });
-  it("sin filtro válido es la pantalla sola, y se lee de los parámetros de búsqueda", () => {
-    expect(drillHref(href, null)).toBe("/es/finanzas/movimientos");
-    const params = new URLSearchParams("account=a1&ledger_account=<x>&status=confirmado");
-    expect(readDrill((k) => params.get(k))).toEqual({ account: "a1", status: "confirmado" });
+  it("se deja en memoria y se limpia", () => {
+    stageDrill({ category: "c1", type: "expense" });
+    expect(peekDrill()).toEqual({ category: "c1" });
+    clearDrill();
+    expect(peekDrill()).toEqual({});
   });
 });

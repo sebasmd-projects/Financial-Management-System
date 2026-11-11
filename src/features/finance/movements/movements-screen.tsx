@@ -49,6 +49,7 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
       status,
       tag: drill.tag,
       cost_center: drill.cost_center,
+      counterparty: drill.counterparty,
       ledger_account: drill.ledger_account,
       classification: drill.classification,
       nature: drill.nature,

@@ -25,6 +25,8 @@ export function BarChart({ caption, series, rows, hatchedLabel }: { caption: str
   const { dict } = useI18n();
   const id = useId();
   if (rows.length === 0) return null;
+  // La trama es la señal de «proyectado» cuando hay `hatchedLabel`; si no, distingue la segunda serie. Con varias series, cada barra lleva además su nombre escrito.
+  const hatchSecondSeries = series.length > 1 && !hatchedLabel;
   return (
     <figure className="chart" aria-labelledby={`${id}-cap`}>
       <figcaption id={`${id}-cap`} className="chart__caption">
@@ -34,7 +36,7 @@ export function BarChart({ caption, series, rows, hatchedLabel }: { caption: str
         <ul className="chart__legend" aria-label={dict.fin.charts.legend}>
           {series.map((name, index) => (
             <li key={name}>
-              <span className={`chart__swatch${index > 0 && series.length > 1 ? " chart__swatch--hatched" : ""}`} aria-hidden="true" />
+              <span className={`chart__swatch chart__swatch--${index % 4}${index > 0 && hatchSecondSeries ? " chart__swatch--hatched" : ""}`} aria-hidden="true" />
               {name}
             </li>
           ))}
@@ -53,8 +55,11 @@ export function BarChart({ caption, series, rows, hatchedLabel }: { caption: str
             <span className="chart__bars">
               {row.values.map((value, index) => (
                 <span key={index} className="chart__bar">
-                  <span className={`chart__fill chart__fill--${index % 4}${value.hatched || (series.length > 1 && index > 0) ? " chart__fill--hatched" : ""}`} style={{ width: `${Math.max(value.width, value.width > 0 ? 2 : 0)}%` }} />
-                  <span className="chart__value">{value.node}</span>
+                  <span className={`chart__fill chart__fill--${index % 4}${value.hatched || (hatchSecondSeries && index > 0) ? " chart__fill--hatched" : ""}`} style={{ width: `${Math.max(value.width, value.width > 0 ? 2 : 0)}%` }} />
+                  <span className="chart__value">
+                    {series.length > 1 && <span className="muted">{series[index]} </span>}
+                    {value.node}
+                  </span>
                 </span>
               ))}
             </span>

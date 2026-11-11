@@ -12,6 +12,9 @@ describe("filtro «Ver movimientos»", () => {
       classification: "none",
     });
   });
+  it("la contraparte de un gasto hormiga viaja, pero su monto máximo no", () => {
+    expect(sanitizeDrill({ counterparty: "p-1", max_amount: "20000", classification: "discretionary" })).toEqual({ counterparty: "p-1", classification: "discretionary" });
+  });
   it("una fecha que no existe no pasa", () => {
     expect(sanitizeDrill({ from: "2026-02-30" })).toEqual({});
   });

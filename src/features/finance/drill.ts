@@ -1,12 +1,13 @@
 /**
  * «Ver movimientos»: el filtro exacto con el que `GET movements` lista lo que suma una cifra (presupuesto, meta, fila de un
  * informe) viaja a la pantalla de Movimientos en la cadena de consulta. SOLO claves que no son montos (ids, fechas y
- * clasificaciones): el filtro nunca lleva un monto (regla del propietario), y lo que no está en la lista se descarta.
+ * clasificaciones): el filtro nunca lleva un monto (regla del propietario), y lo que no está en la lista se descarta. Por eso el
+ * `max_amount` de un gasto hormiga NO viaja: la lista incluye también gastos mayores al umbral y la pantalla lo avisa.
  */
 import type { RouteId } from "@/nav/routes";
 import { isBusinessDate } from "@/lib/dates";
 
-export const DRILL_KEYS = ["from", "to", "account", "category", "tag", "cost_center", "ledger_account", "classification", "nature", "status"] as const;
+export const DRILL_KEYS = ["from", "to", "account", "category", "tag", "cost_center", "counterparty", "ledger_account", "classification", "nature", "status"] as const;
 export type DrillKey = (typeof DRILL_KEYS)[number];
 export type Drill = Partial<Record<DrillKey, string>>;
 

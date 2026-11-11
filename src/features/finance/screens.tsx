@@ -17,6 +17,8 @@ import { BudgetsScreen } from "./plan/budgets-screen";
 import { GoalDetail } from "./plan/goal-detail";
 import { GoalsScreen } from "./plan/goals-screen";
 import { IndicatorsScreen } from "./plan/indicators-screen";
+import { CompareScreen } from "./scenarios/compare-screen";
+import { IndependenceScreen } from "./scenarios/independence-screen";
 import { ProjectionsScreen, ReportScreen, ReportsHome, StatisticsScreen } from "./reports/reports-screens";
 import { AccountDetail } from "./accounts/account-detail";
 import { AccountsScreen } from "./accounts/accounts-screen";
@@ -149,6 +151,10 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <StatisticsScreen />;
     case "informes-proyecciones":
       return <ProjectionsScreen />;
+    case "informes-comparar":
+      return <CompareScreen />;
+    case "informes-independencia":
+      return <IndependenceScreen />;
     case "informes-patrimonio":
       return <WealthScreen />;
     case "informes-activo":

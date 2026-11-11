@@ -1,0 +1,227 @@
+/* Pantallas financieras de FMS-1. Mobile first; todo con los tokens de `ui/tokens.css` (claro, oscuro, contraste ya medido). */
+
+/* ---------- Cabecera de pantalla ---------- */
+.fin-header { display: grid; gap: var(--space-4); }
+.fin-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: var(--target-min);
+  width: fit-content;
+  color: var(--color-text-secondary);
+  font: var(--text-body-s);
+  text-decoration: none;
+}
+.fin-back:hover { color: var(--color-primary); }
+.fin-header__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-8) var(--space-16); }
+.fin-header__titles { min-width: 0; overflow-wrap: anywhere; }
+.fin-header__actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+
+.screen--form { max-width: 640px; margin-inline: 0; }
+@media (min-width: 1024px) { .screen--form { margin-inline: auto; } }
+
+/* ---------- Estados ---------- */
+.fin-loading { height: 4px; border-radius: var(--radius-full); background: var(--color-track); overflow: hidden; }
+.fin-loading__bar { display: block; width: 40%; height: 100%; background: var(--color-primary); animation: fin-slide 1.1s var(--ease-standard) infinite; }
+@keyframes fin-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+.fin-retry { margin-top: var(--space-8); }
+.fin-stale { opacity: 0.55; transition: opacity var(--duration-fast) var(--ease-standard); }
+@media (prefers-reduced-motion: reduce) {
+  .fin-loading__bar { animation: none; width: 100%; opacity: 0.5; }
+}
+
+/* ---------- Dinero ---------- */
+.money { white-space: nowrap; }
+.money--positive { color: var(--color-positive); }
+.money--negative { color: var(--color-negative); }
+.money--warning { color: var(--color-warning); }
+.money--muted { color: var(--color-text-secondary); }
+.money--strike { text-decoration: line-through; color: var(--color-text-tertiary); }
+
+/* «Gastado» de una compra a cuotas: costo real grande y naranja; valor de la compra pequeño y rojo (decisión del propietario). */
+.spent { display: grid; gap: var(--space-2); padding: var(--space-12); border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); }
+.spent__total { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-8); font: var(--text-kpi); color: var(--chart-7); }
+.spent__purchase { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-8); font: var(--text-body-s); color: var(--color-negative); }
+.spent__label { font: var(--text-label); color: var(--color-text-secondary); }
+
+/* ---------- Insignias y progreso ---------- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-8);
+  border-radius: var(--radius-full);
+  font: var(--text-caption);
+  background: var(--color-surface-2);
+  color: var(--color-text-secondary);
+}
+.badge--info { background: var(--color-info-container); color: var(--color-on-info-container); }
+.badge--positive { background: var(--color-positive-container); color: var(--color-on-positive-container); }
+.badge--warning { background: var(--color-warning-container); color: var(--color-on-warning-container); }
+.badge--negative { background: var(--color-negative-container); color: var(--color-on-negative-container); }
+.badge--dashed { background: transparent; border: 1px dashed var(--color-border-strong); }
+
+.progress { height: 8px; border-radius: var(--radius-full); background: var(--color-track); overflow: hidden; }
+.progress__fill { height: 100%; border-radius: var(--radius-full); background: var(--color-primary); }
+.progress__fill--positive { background: var(--color-positive); }
+.progress__fill--warning { background: var(--color-warning); }
+.progress__fill--negative { background: var(--color-negative); }
+
+/* ---------- Campos ---------- */
+.fin-form { display: grid; gap: var(--space-16); }
+.fin-more { padding: var(--space-12); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.field { display: grid; gap: var(--space-4); min-width: 0; }
+.field__label { font: var(--text-label); color: var(--color-text-secondary); }
+.field__error { font: var(--text-caption); color: var(--color-negative); }
+.field .hint { margin-top: 0; }
+.input {
+  width: 100%;
+  min-height: var(--target-min);
+  padding: var(--space-8) var(--space-12);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font: var(--text-body);
+}
+textarea.input { resize: vertical; }
+.input[aria-invalid="true"] { border-color: var(--color-negative); }
+.input--amount { font: var(--text-kpi); letter-spacing: 0.01em; }
+.fin-amount-preview { font: var(--text-body-s); color: var(--color-text-secondary); }
+.fin-grid-2 { display: grid; gap: var(--space-16); grid-template-columns: 1fr; }
+@media (min-width: 480px) { .fin-grid-2 { grid-template-columns: 1fr 1fr; } }
+.fin-form-actions { margin-top: 0; }
+.fin-form-actions .button--block { margin-top: 0; }
+.fin-save { min-height: 52px; }
+.fin-disclosure { justify-content: space-between; width: 100%; }
+.fin-disclosure[aria-expanded="true"] .icon { transform: rotate(180deg); }
+.fin-phrase { padding: var(--space-8) var(--space-12); border-left: 3px solid var(--color-primary); background: var(--color-primary-container); color: var(--color-on-primary-container); border-radius: var(--radius-xs); font: var(--text-body-s); }
+.fin-sim { display: grid; gap: var(--space-8); }
+.fin-details summary { cursor: pointer; min-height: var(--target-min); display: flex; align-items: center; color: var(--color-primary); }
+
+/* Elección única: segmentos y fichas sobre radios nativos. */
+.choice { margin: 0; padding: 0; border: 0; min-width: 0; display: grid; gap: var(--space-4); }
+.choice__options { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.choice__option { position: relative; display: inline-flex; }
+.choice__option input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.choice__option span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--target-min);
+  padding: var(--space-8) var(--space-16);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  font: var(--text-label);
+  font-size: 0.9375rem;
+  text-align: center;
+}
+.choice__option input:checked + span { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-on-primary); }
+.choice__option input:focus-visible + span { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
+.choice__option input:disabled + span { opacity: 0.38; }
+.choice--segments .choice__options { gap: 0; flex-wrap: nowrap; width: 100%; }
+.choice--segments .choice__option { flex: 1 1 0; min-width: 0; }
+.choice--segments .choice__option span { width: 100%; border-radius: 0; padding-inline: var(--space-8); }
+.choice--segments .choice__option:first-child span { border-radius: var(--radius-full) 0 0 var(--radius-full); }
+.choice--segments .choice__option:last-child span { border-radius: 0 var(--radius-full) var(--radius-full) 0; }
+.choice--segments .choice__option + .choice__option span { border-left-width: 0; }
+
+.fin-recents { display: grid; gap: var(--space-8); }
+.fin-chips { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: var(--target-min);
+  padding: var(--space-8) var(--space-12);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  font: var(--text-label);
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+.chip:hover { background: var(--color-surface-2); }
+.chip:active { transform: scale(0.97); }
+
+/* ---------- Pestañas, periodo, paginación ---------- */
+.fin-tabs { display: flex; gap: var(--space-4); overflow-x: auto; border-bottom: 1px solid var(--color-border); }
+.fin-tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min);
+  padding: var(--space-8) var(--space-16);
+  border-bottom: 2px solid transparent;
+  color: var(--color-text-secondary);
+  font: var(--text-label);
+  font-size: 0.9375rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.fin-tab[aria-current="page"] { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+.fin-periodbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
+.fin-periodbar .title-s { flex: 1; text-align: center; min-width: 8ch; }
+.pager { display: flex; align-items: center; justify-content: center; gap: var(--space-16); }
+.fin-filters { display: grid; gap: var(--space-12); padding: var(--space-12); border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface); }
+@media (min-width: 600px) { .fin-filters { grid-template-columns: repeat(3, 1fr); align-items: end; } }
+
+/* ---------- Listas ---------- */
+.fin-list { display: grid; gap: var(--space-8); }
+.fin-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  min-height: 64px;
+  padding: var(--space-12) var(--space-16);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+a.fin-row:hover { background: var(--color-surface-2); }
+.fin-row--static { cursor: default; flex-wrap: wrap; }
+.fin-row__main { flex: 1; min-width: 0; display: grid; gap: var(--space-2); }
+.fin-row__link { color: inherit; text-decoration: none; }
+.fin-row__title { font: var(--text-title-s); overflow-wrap: anywhere; }
+.fin-row__sub { font: var(--text-body-s); overflow-wrap: anywhere; }
+.fin-row__badges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
+.fin-row__badges:empty { display: none; }
+.fin-row__amount { display: grid; justify-items: end; text-align: right; font: var(--text-title-s); }
+.fin-row__amount .fin-row__sub { font: var(--text-caption); }
+.fin-row--movement { min-height: 64px; }
+.fin-row--plan { align-items: stretch; }
+.fin-day { display: grid; gap: var(--space-8); margin-bottom: var(--space-16); }
+.fin-day__head { display: flex; justify-content: space-between; gap: var(--space-8); font: var(--text-label); color: var(--color-text-secondary); text-transform: none; }
+.fin-section { display: grid; gap: var(--space-8); }
+.fin-section__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); }
+
+/* ---------- Tarjetas informativas y KPI ---------- */
+.fin-card { display: grid; gap: var(--space-8); padding: var(--space-16); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.fin-big { font: var(--text-kpi); }
+.fin-big__label { font: var(--text-body-s); color: var(--color-text-secondary); }
+.fin-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8); margin: 0; }
+.fin-kpi { padding: var(--space-12); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.fin-kpi dd { margin: 0; }
+.fin-kpi__value { font: var(--text-title-l); }
+.fin-links { display: flex; flex-wrap: wrap; gap: var(--space-16); }
+.fin-links a { display: inline-flex; align-items: center; min-height: var(--target-min); }
+.deflist { display: grid; gap: var(--space-4); margin: 0; }
+.deflist__row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: var(--space-8); padding: var(--space-8) 0; border-bottom: 1px solid var(--color-border); }
+.deflist dt, .deflist dd { margin: 0; overflow-wrap: anywhere; }
+
+/* ---------- Tablas (asientos, planes, amortización) ---------- */
+.table-wrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font: var(--text-body-s); }
+.table th, .table td { padding: var(--space-8); border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: top; }
+.table thead th { font: var(--text-label); color: var(--color-text-secondary); }
+.table__num { text-align: right !important; font-variant-numeric: tabular-nums; }
+.table__caption { text-align: left; padding: var(--space-8) 0; font: var(--text-label); }
+.table__hit { background: var(--color-primary-container); }
+.table tfoot th, .table tfoot td { font-weight: 600; border-top: 2px solid var(--color-border-strong); }
+.entry { display: grid; gap: var(--space-4); padding: var(--space-8) var(--space-12); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow-x: auto; }
+
+/* ---------- Hoja modal de formularios ---------- */
+.sheet__body { flex: 1; overflow-y: auto; padding: var(--space-8) var(--space-16) calc(var(--space-16) + env(safe-area-inset-bottom)); }

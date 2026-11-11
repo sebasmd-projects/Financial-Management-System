@@ -1,4 +1,5 @@
 @import "../ui/tokens.css";
+@import "../features/finance/finance.css";
 
 /* ---------- Base ---------- */
 *,
@@ -32,7 +33,9 @@ a {
   color: var(--color-primary);
 }
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
   color: inherit;
 }

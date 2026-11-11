@@ -41,16 +41,13 @@ describe("almacén de sesión", () => {
     expect(calls).toHaveLength(1);
     expect(calls[0]).toMatchObject({ method: "GET", url: "/api/fms/v1/me", credentials: "same-origin", cache: "no-store" });
   });
-  it("401 → anónimo, con el login_url del cuerpo si es interno; sin él, el del CV", async () => {
-    const withUrl = storeWith({ status: 401, json: { login_url: "/en/account/login" } });
-    await withUrl.store.load();
-    expect(withUrl.store.getState()).toEqual({ status: "anonymous", loginUrl: "/en/account/login" });
+  it("401 → anónimo (el destino lo decide la compuerta con el idioma y la página actuales)", async () => {
     const bare = storeWith({ status: 401 });
     await bare.store.load();
-    expect(bare.store.getState()).toEqual({ status: "anonymous", loginUrl: "/es/account/login" });
-    const evil = storeWith({ status: 401, json: { login_url: "https://evil.example" } });
-    await evil.store.load();
-    expect(evil.store.getState()).toMatchObject({ loginUrl: "/es/account/login" });
+    expect(bare.store.getState()).toEqual({ status: "anonymous" });
+    const withBody = storeWith({ status: 401, json: { login_url: "https://evil.example" } });
+    await withBody.store.load();
+    expect(withBody.store.getState()).toEqual({ status: "anonymous" });
   });
   it("500 y cuerpo inválido → error de servidor; sin red → error de red", async () => {
     const server = storeWith({ status: 500 });
@@ -94,7 +91,7 @@ describe("gateView: qué pantalla toca", () => {
   const ready = (patch: Partial<MeResponse>): SessionState => ({ status: "ready", me: { ...ME, ...patch } });
   it("cargando, sin sesión y error", () => {
     expect(gateView({ status: "loading" })).toEqual({ kind: "loading" });
-    expect(gateView({ status: "anonymous", loginUrl: "/es/account/login" })).toEqual({ kind: "redirect", loginUrl: "/es/account/login" });
+    expect(gateView({ status: "anonymous" })).toEqual({ kind: "anonymous" });
     expect(gateView({ status: "error", reason: "network" })).toEqual({ kind: "error", reason: "network" });
   });
   it("sin finanzas activas → Activación (aunque ya tenga 2FA)", () => {

@@ -13,9 +13,9 @@ import { activationBlocker, activationErrorMessage, canActivate, shouldReloadAft
 
 const store = createSessionStore({ get: async () => ({ ok: false as const, status: 0, code: "network", data: undefined }) });
 
-function render(me: typeof ME, mode: "inactive" | "reconsent" | "mfa-only") {
+function render(me: typeof ME, mode: "inactive" | "reconsent" | "mfa-only", locale: "es" | "en" = "es") {
   return renderToStaticMarkup(
-    <I18nProvider locale="es" dict={es}>
+    <I18nProvider locale={locale} dict={locale === "es" ? es : en}>
       <SessionProvider store={store}>
         <Activation me={me} mode={mode} />
       </SessionProvider>
@@ -58,6 +58,14 @@ describe("pantalla de Activación", () => {
     expect(mfaOnly).toContain("Falta tu verificación en dos pasos");
     expect(mfaOnly).not.toContain('type="checkbox"');
     expect(mfaOnly).not.toContain('type="submit"');
+  });
+  it("en inglés: textos en inglés y términos y privacidad del CV en /en", () => {
+    const html = render(inactive, "inactive", "en");
+    expect(html).toContain("Activate your finances");
+    expect(html).toContain('href="/en/terms"');
+    expect(html).toContain('href="/en/privacy"');
+    expect(html).toContain("Complete two-step verification first.".length ? "Terms" : "");
+    expect(html).not.toContain("Activa tus finanzas");
   });
   it("main#contenido para el enlace «Saltar al contenido»", () => {
     expect(render(inactive, "inactive")).toMatch(/<main id="contenido" tabindex="-1"/);

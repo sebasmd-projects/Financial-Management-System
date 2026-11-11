@@ -1,11 +1,13 @@
 import { createApiClient, readBrowserCookie } from "./client";
-import { loginRedirectUrl } from "./login";
+import { loginRedirectUrl, localeFromPath } from "./login";
 
-/** El cliente del navegador: 401 → `window.location` al inicio de sesión del CV (con `?next=/finanzas`). */
+/** El cliente del navegador: 401 → `window.location` al inicio de sesión del CV, con `?next=<la página actual>`. */
 export const api = createApiClient({
   fetch: (input, init) => globalThis.fetch(input, init),
   readCookie: readBrowserCookie,
-  onUnauthorized: (loginUrl) => {
-    if (typeof window !== "undefined") window.location.replace(loginRedirectUrl(loginUrl));
+  onUnauthorized: () => {
+    if (typeof window === "undefined") return;
+    const { pathname } = window.location;
+    window.location.replace(loginRedirectUrl(localeFromPath(pathname), pathname));
   },
 });

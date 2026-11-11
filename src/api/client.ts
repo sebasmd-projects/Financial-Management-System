@@ -33,7 +33,7 @@ export interface RequestOptions {
   signal?: AbortSignal;
   /** `false` para no redirigir en un 401 (la compuerta lo maneja ella misma). */
   redirectOn401?: boolean;
-  /** Cuerpo del 401, para el `login_url` si el backend lo manda. */
+  /** Va en `Accept-Language`: Django escribe en ese idioma sus mensajes. */
   locale?: string;
 }
 
@@ -41,7 +41,7 @@ export interface ClientDeps {
   fetch: typeof fetch;
   /** Lee una cookie legible por JavaScript (la de CSRF, si no es HttpOnly). */
   readCookie: (name: string) => string | null;
-  onUnauthorized: (loginUrl?: string) => void;
+  onUnauthorized: () => void;
 }
 
 const SAFE_METHODS = new Set<Method>(["GET"]);
@@ -112,8 +112,7 @@ export function createApiClient(deps: ClientDeps) {
     }
 
     if (response.status === 401 && options.redirectOn401 !== false) {
-      const loginUrl = (data as { login_url?: unknown } | undefined)?.login_url;
-      deps.onUnauthorized(typeof loginUrl === "string" ? loginUrl : undefined);
+      deps.onUnauthorized();
     }
     if (response.ok) {
       if (data === undefined && response.status !== 204) return { ok: false, status: response.status, code: "invalid_response", data };

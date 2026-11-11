@@ -1,14 +1,16 @@
+"use client";
+
 import Link from "next/link";
-import { defaultLocale } from "@/i18n/config";
-import { getDictionary } from "@/i18n/get-dictionary";
+import { rootPath } from "@/config/paths";
+import { useI18n } from "@/i18n/provider";
 
 export default function NotFound() {
-  const dict = getDictionary(defaultLocale);
+  const { dict, locale } = useI18n();
   return (
     <div className="screen">
       <h1 className="title-l">{dict.notFound.title}</h1>
       <p className="muted">{dict.notFound.body}</p>
-      <Link href="/" className="button button--primary">
+      <Link href={rootPath(locale)} className="button button--primary">
         {dict.common.goToSummary}
       </Link>
     </div>

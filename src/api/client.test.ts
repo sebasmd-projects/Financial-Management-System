@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { mockFetch } from "@/test/mock-fetch";
 import { createApiClient, newIdempotencyKey } from "./client";
-import { DEFAULT_LOGIN_URL, loginRedirectUrl, safeInternalPath } from "./login";
+import { localeFromPath, loginRedirectUrl, safeInternalPath, safeNext, signupUrl } from "./login";
 
 function setup(routes: Parameters<typeof mockFetch>[0], cookies: Record<string, string> = {}) {
   const mock = mockFetch(routes);
@@ -87,14 +87,10 @@ describe("cliente de la API", () => {
     expect(await client.get("/boom")).toMatchObject({ ok: false, status: 500, code: "http_500" });
   });
 
-  it("401 → onUnauthorized (con el login_url del cuerpo si lo trae); redirectOn401: false lo calla", async () => {
-    const withUrl = setup({ "GET /api/fms/v1/me": { status: 401, json: { login_url: "/es/account/login" } } });
-    expect(await withUrl.client.get("/me")).toMatchObject({ ok: false, status: 401, code: "http_401" });
-    expect(withUrl.onUnauthorized).toHaveBeenCalledWith("/es/account/login");
-
-    const bare = setup({ "GET /api/fms/v1/me": { status: 401 } });
-    await bare.client.get("/me");
-    expect(bare.onUnauthorized).toHaveBeenCalledWith(undefined);
+  it("401 → onUnauthorized; redirectOn401: false lo calla", async () => {
+    const loud = setup({ "GET /api/fms/v1/me": { status: 401, json: { login_url: "/es/account/login" } } });
+    expect(await loud.client.get("/me")).toMatchObject({ ok: false, status: 401, code: "http_401" });
+    expect(loud.onUnauthorized).toHaveBeenCalledTimes(1);
 
     const quiet = setup({ "GET /api/fms/v1/me": { status: 401 } });
     await quiet.client.get("/me", { redirectOn401: false });
@@ -112,16 +108,32 @@ describe("cliente de la API", () => {
   });
 });
 
-describe("redirección al inicio de sesión", () => {
-  it("añade ?next=/finanzas", () => {
-    expect(loginRedirectUrl("/es/account/login")).toBe("/es/account/login?next=%2Ffinanzas");
-    expect(loginRedirectUrl(undefined)).toBe(`${DEFAULT_LOGIN_URL}?next=%2Ffinanzas`);
-    expect(loginRedirectUrl("/en/account/login?x=1")).toBe("/en/account/login?x=1&next=%2Ffinanzas");
+describe("redirección al inicio de sesión del CV", () => {
+  it("/<idioma>/account/login?next=<página actual de la app>", () => {
+    expect(loginRedirectUrl("es", "/es/finanzas/pagos/fijos")).toBe("/es/account/login?next=%2Fes%2Ffinanzas%2Fpagos%2Ffijos");
+    expect(loginRedirectUrl("en", "/en/finance/payments/fixed")).toBe("/en/account/login?next=%2Fen%2Ffinance%2Fpayments%2Ffixed");
+    expect(loginRedirectUrl("en", "/en/finance")).toBe("/en/account/login?next=%2Fen%2Ffinance");
+    expect(signupUrl("es", "/es/finanzas")).toBe("/es/account/signup?next=%2Fes%2Ffinanzas");
   });
-  it("no se deja llevar a otro sitio", () => {
-    for (const evil of ["https://evil.example/login", "//evil.example", "/\\evil.example", "javascript:alert(1)", "/ok\nSet-Cookie: x=1", "", 7, null]) {
-      expect(loginRedirectUrl(evil), String(evil)).toBe(`${DEFAULT_LOGIN_URL}?next=%2Ffinanzas`);
+  it("solo la ruta: sin consulta ni fragmento", () => {
+    expect(safeNext("es", "/es/finanzas/movimientos/egresos?x=1#y")).toBe("/es/finanzas/movimientos/egresos");
+  });
+  it("el destino siempre es de la app en ese idioma; si no, su raíz", () => {
+    for (const evil of ["https://evil.example/x", "//evil.example", "/es/otro-sitio", "/en/finance/x", "/es/finanzasx", "/es/finanzas/../../x\y", "javascript:alert(1)", ""]) {
+      expect(safeNext("es", evil), evil).toBe("/es/finanzas");
     }
+    expect(safeNext("en", "/es/finanzas/pagos")).toBe("/en/finance");
+  });
+  it("el idioma sale de la URL; sin idioma, español", () => {
+    expect(localeFromPath("/en/finance/payments")).toBe("en");
+    expect(localeFromPath("/es/finanzas")).toBe("es");
+    expect(localeFromPath("/zz/x")).toBe("es");
+    expect(localeFromPath("/")).toBe("es");
+  });
+  it("safeInternalPath rechaza lo que no es una ruta interna", () => {
     expect(safeInternalPath("/es/account/2fa", "/x")).toBe("/es/account/2fa");
+    for (const evil of ["https://evil.example/login", "//evil.example", "/\\evil.example", "javascript:alert(1)", "/ok\nSet-Cookie: x=1", "", 7, null]) {
+      expect(safeInternalPath(evil, "/fallback"), String(evil)).toBe("/fallback");
+    }
   });
 });

@@ -1,21 +1,23 @@
 import type { Metadata, Viewport } from "next";
 import { connection } from "next/server";
-import type { ReactNode } from "react";
 import { Gate } from "@/features/gate/gate";
 import { SessionProvider } from "@/features/session/provider";
-import { defaultLocale, htmlLang } from "@/i18n/config";
+import { defaultLocale, htmlLang, isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { I18nProvider } from "@/i18n/provider";
+import { siteOrigin } from "@/seo/site";
 import { inter, sora } from "@/ui/fonts/fonts";
 import { ThemeScript } from "@/ui/theme/theme-script";
-import "./globals.css";
+import "../globals.css";
 
-export const metadata: Metadata = {
-  title: { default: "Finanzas", template: "%s · Finanzas" },
-  // Privada: ni se indexa ni se sigue. (Las cabeceras de `proxy.ts` lo repiten.)
-  robots: { index: false, follow: false, nocache: true },
-  referrer: "same-origin",
-};
+// Por omisión, privada: ni se indexa ni se sigue. Solo la página de aterrizaje lo cambia (su `generateMetadata`).
+export function generateMetadata(): Metadata {
+  return {
+    metadataBase: new URL(siteOrigin()),
+    robots: { index: false, follow: false, nocache: true },
+    referrer: "same-origin",
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -27,11 +29,13 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children, params }: LayoutProps<"/[locale]">) {
   // La CSP lleva un nonce por petición (proxy.ts): una página prerrenderizada no lo tendría y `strict-dynamic`
   // bloquearía sus scripts. Esperar la petición hace dinámico todo el árbol.
   await connection();
-  const locale = defaultLocale;
+  const { locale: requested } = await params;
+  // Un prefijo que no es un idioma (`/zz`) no se rechaza aquí: la página responde 404 por su cuenta.
+  const locale = isLocale(requested) ? requested : defaultLocale;
   const dict = getDictionary(locale);
   return (
     // suppressHydrationWarning: el script del <head> pone `data-theme` en <html> antes de hidratar.

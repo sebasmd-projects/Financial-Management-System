@@ -14,11 +14,11 @@
  */
 import type { ApiClient } from "@/api/client";
 import type { MeResponse } from "@/api/types";
-import { DEFAULT_LOGIN_URL, safeInternalPath } from "@/api/login";
+import { safeInternalPath } from "@/api/login";
 
 export type SessionState =
   | { status: "loading" }
-  | { status: "anonymous"; loginUrl: string }
+  | { status: "anonymous" }
   | { status: "error"; reason: "network" | "server" }
   | { status: "ready"; me: MeResponse };
 
@@ -48,13 +48,13 @@ export function parseMe(value: unknown): MeResponse | null {
     consent: { required_version: consent.required_version as string, accepted_version: consent.accepted_version as string | null },
     // Solo rutas internas: un `mfa_setup_url` absoluto no se sigue.
     mfa_setup_url: safeInternalPath(v.mfa_setup_url, "/es/account/2fa"),
-    login_url: safeInternalPath(v.login_url, DEFAULT_LOGIN_URL),
+    login_url: safeInternalPath(v.login_url, "/es/account/login"),
   };
 }
 
 export type GateView =
   | { kind: "loading" }
-  | { kind: "redirect"; loginUrl: string }
+  | { kind: "anonymous" }
   | { kind: "error"; reason: "network" | "server" }
   /** Hay que activar (o aceptar una versión nueva de los términos). */
   | { kind: "activation"; me: MeResponse; reason: "inactive" | "reconsent" }
@@ -67,7 +67,7 @@ export function gateView(state: SessionState): GateView {
     case "loading":
       return { kind: "loading" };
     case "anonymous":
-      return { kind: "redirect", loginUrl: state.loginUrl };
+      return { kind: "anonymous" };
     case "error":
       return { kind: "error", reason: state.reason };
   }
@@ -108,8 +108,7 @@ export function createSessionStore(client: Pick<ApiClient, "get">) {
         const me = parseMe(result.data);
         set(me ? { status: "ready", me } : { status: "error", reason: "server" });
       } else if (result.status === 401) {
-        const loginUrl = (result.data as { login_url?: unknown } | undefined)?.login_url;
-        set({ status: "anonymous", loginUrl: safeInternalPath(loginUrl, DEFAULT_LOGIN_URL) });
+        set({ status: "anonymous" });
       } else {
         set({ status: "error", reason: result.status === 0 ? "network" : "server" });
       }

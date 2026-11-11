@@ -2,18 +2,20 @@
 
 import Link from "next/link";
 import { useI18n } from "@/i18n/provider";
-import { NEW_MOVEMENT_HREF, NOTIFICATIONS_HREF, PROFILE_HREF } from "@/nav/routes";
+import type { MeResponse } from "@/api/types";
+import { fmsHref, NEW_MOVEMENT_ROUTE, NOTIFICATIONS_ROUTE } from "@/nav/routes";
+import { UserMenu } from "./user-menu";
 import { Icon } from "@/ui/icons";
 import { ThemeToggle } from "@/ui/theme/theme-toggle";
 
 /** Cabecera: marca, «+ Movimiento (N)» y buscador en pantallas grandes; campana, tema y perfil siempre (diseño §1.1, §1.3). */
-export function TopBar({ onSearch }: { onSearch: () => void }) {
-  const { dict } = useI18n();
+export function TopBar({ onSearch, me }: { onSearch: () => void; me: MeResponse }) {
+  const { dict, locale } = useI18n();
   return (
     <header className="topbar">
       <span className="topbar__brand">{dict.appName}</span>
       <div className="topbar__actions">
-        <Link href={NEW_MOVEMENT_HREF} className="button button--accent topbar__new" aria-keyshortcuts="N">
+        <Link href={fmsHref(locale, NEW_MOVEMENT_ROUTE)} className="button button--accent topbar__new" aria-keyshortcuts="N">
           <Icon name="plus" size={20} />
           <span>{dict.nav.newMovement}</span>
           <kbd aria-hidden="true">N</kbd>
@@ -22,12 +24,10 @@ export function TopBar({ onSearch }: { onSearch: () => void }) {
           <Icon name="search" />
         </button>
         <ThemeToggle />
-        <Link href={NOTIFICATIONS_HREF} className="icon-button" aria-label={dict.nav.notifications}>
+        <Link href={fmsHref(locale, NOTIFICATIONS_ROUTE)} className="icon-button" aria-label={dict.nav.notifications}>
           <Icon name="bell" />
         </Link>
-        <Link href={PROFILE_HREF} className="icon-button" aria-label={dict.nav.profile}>
-          <Icon name="user" />
-        </Link>
+<UserMenu me={me} />
       </div>
     </header>
   );

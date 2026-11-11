@@ -1,9 +1,10 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { MeResponse } from "@/api/types";
-import { NEW_MOVEMENT_HREF } from "@/nav/routes";
+import { useI18n } from "@/i18n/provider";
+import { fmsHref, NEW_MOVEMENT_ROUTE } from "@/nav/routes";
 import { BottomTabBar } from "./bottom-tab-bar";
 import { MoreSheet } from "./more-sheet";
 import { resolveShortcut } from "./shortcuts";
@@ -17,8 +18,9 @@ const TYPING = /^(input|textarea|select)$/i;
  * `<main id="contenido">` (destino del enlace «Saltar al contenido»). Al navegar, el foco pasa al contenido para que un
  * lector de pantalla lo anuncie y quien usa teclado no empiece desde la cabecera.
  */
-export function AppShell({ children }: { me: MeResponse; children: ReactNode }) {
+export function AppShell({ me, children }: { me: MeResponse; children: ReactNode }) {
   const router = useRouter();
+  const { locale } = useI18n();
   const pathname = usePathname();
   const mainRef = useRef<HTMLElement>(null);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -47,20 +49,18 @@ export function AppShell({ children }: { me: MeResponse; children: ReactNode }) 
       const action = result.action;
       if (!action) return;
       if (action.type === "search") setMoreOpen(true);
-      else if (action.type === "new") router.push(NEW_MOVEMENT_HREF);
-      else router.push(action.to);
+      else if (action.type === "new") router.push(fmsHref(locale, NEW_MOVEMENT_ROUTE));
+      else router.push(fmsHref(locale, action.to === "/" ? "resumen" : action.to === "/movimientos" ? "movimientos" : "pagos"));
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [router]);
+  }, [router, locale]);
 
   return (
     <div className="shell">
-      <Suspense fallback={null}>
-        <Sidebar />
-      </Suspense>
+      <Sidebar />
       <div className="shell__body">
-        <TopBar onSearch={openMore} />
+        <TopBar onSearch={openMore} me={me} />
         <main id="contenido" ref={mainRef} tabIndex={-1} className="shell__main">
           {children}
         </main>

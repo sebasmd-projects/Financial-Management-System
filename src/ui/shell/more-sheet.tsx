@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/i18n/provider";
-import { PROFILE_HREF } from "@/nav/routes";
+import { fmsHref, PROFILE_ROUTE } from "@/nav/routes";
 import { searchScreens } from "@/nav/search";
 import { Icon } from "@/ui/icons";
 
@@ -12,7 +12,7 @@ import { Icon } from "@/ui/icons";
  * que ya atrapa el foco, cierra con Esc y devuelve el foco a quien lo abrió. Lista las 8 secciones con sus subelementos.
  */
 export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { dict } = useI18n();
+  const { dict, locale } = useI18n();
   const ref = useRef<HTMLDialogElement>(null);
   const [query, setQuery] = useState("");
 
@@ -59,7 +59,7 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
         {hits.map(({ section, items }) => (
           <section key={section.id} className="sheet__group">
             <h3 className="sheet__section">
-              <Link href={section.href} onClick={onClose} className="sheet__row">
+              <Link href={fmsHref(locale, section.route)} onClick={onClose} className="sheet__row">
                 <Icon name={section.icon} size={20} />
                 <span>{dict.nav.sections[section.id]}</span>
                 <Icon name="chevron-right" size={20} />
@@ -69,7 +69,7 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
               <ul>
                 {items.map((item) => (
                   <li key={item.id}>
-                    <Link href={item.href} onClick={onClose} className="sheet__row sheet__row--item">
+                    <Link href={fmsHref(locale, item.route)} onClick={onClose} className="sheet__row sheet__row--item">
                       {dict.nav.items[item.id]}
                     </Link>
                   </li>
@@ -80,7 +80,7 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
         ))}
       </nav>
       <div className="sheet__footer">
-        <Link href={PROFILE_HREF} onClick={onClose} className="sheet__row">
+        <Link href={fmsHref(locale, PROFILE_ROUTE)} onClick={onClose} className="sheet__row">
           <Icon name="user" size={20} />
           <span>{dict.nav.profile}</span>
           <Icon name="chevron-right" size={20} />

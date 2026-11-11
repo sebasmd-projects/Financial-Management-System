@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useI18n } from "@/i18n/provider";
-import { isItemActive, isSectionActive, SECTIONS, type SectionId } from "@/nav/routes";
+import { fmsHref, isItemActive, isSectionActive, SECTIONS, type SectionId } from "@/nav/routes";
 import { Icon } from "@/ui/icons";
 import { useMediaQuery } from "./use-media-query";
 
@@ -14,9 +14,8 @@ import { useMediaQuery } from "./use-media-query";
  * Los estados de plegado viven solo en memoria.
  */
 export function Sidebar() {
-  const { dict } = useI18n();
+  const { dict, locale } = useI18n();
   const pathname = usePathname();
-  const search = useSearchParams();
   const wide = useMediaQuery("(min-width: 1024px)");
   const [override, setOverride] = useState<boolean | null>(null);
   const [openSections, setOpenSections] = useState<Partial<Record<SectionId, boolean>>>({});
@@ -46,7 +45,7 @@ export function Sidebar() {
             return (
               <li key={section.id}>
                 <div className="sidebar__row">
-                  <Link href={section.href} className="sidebar__link" aria-current={active && !hasItems ? "page" : undefined} title={expanded ? undefined : label} aria-label={expanded ? undefined : label}>
+                  <Link href={fmsHref(locale, section.route)} className="sidebar__link" aria-current={active && !hasItems ? "page" : undefined} title={expanded ? undefined : label} aria-label={expanded ? undefined : label}>
                     <Icon name={section.icon} />
                     {expanded && <span>{label}</span>}
                   </Link>
@@ -67,7 +66,7 @@ export function Sidebar() {
                   <ul id={`sub-${section.id}`} className="sidebar__sub" hidden={!open}>
                     {section.items.map((item) => (
                       <li key={item.id}>
-                        <Link href={item.href} className="sidebar__sublink" aria-current={isItemActive(item, pathname, search) ? "page" : undefined}>
+                        <Link href={fmsHref(locale, item.route)} className="sidebar__sublink" aria-current={isItemActive(item, pathname) ? "page" : undefined}>
                           {dict.nav.items[item.id]}
                         </Link>
                       </li>

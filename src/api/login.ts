@@ -1,9 +1,5 @@
-import { BASE_PATH } from "@/config/paths";
-
-/** El inicio de sesión del CV si el backend no manda `login_url` (un 401 sin cuerpo). */
-export const DEFAULT_LOGIN_URL = "/es/account/login";
-/** Adónde vuelve la persona tras iniciar sesión: la app, nunca una ruta con datos. */
-export const LOGIN_NEXT = BASE_PATH;
+import { cvPath, rootPath } from "@/config/paths";
+import { defaultLocale, isLocale, type Locale } from "@/i18n/config";
 
 /**
  * Una ruta interna del mismo origen: empieza por una sola `/`, sin `//`, `\` ni caracteres de control (defensa contra
@@ -15,10 +11,30 @@ export function safeInternalPath(value: unknown, fallback: string): string {
   return value;
 }
 
-/** `/es/account/login?next=/finanzas` (conserva una consulta que ya tuviera). */
-export function loginRedirectUrl(loginUrl: unknown, next: string = LOGIN_NEXT): string {
-  const base = safeInternalPath(loginUrl, DEFAULT_LOGIN_URL);
-  const url = new URL(base, "https://placeholder.invalid");
-  url.searchParams.set("next", next);
-  return `${url.pathname}${url.search}${url.hash}`;
+/** El idioma de una URL de la app (`/en/finance/...` → `en`); el de respaldo si no lleva uno conocido. */
+export function localeFromPath(pathname: string): Locale {
+  const first = pathname.split("/").filter(Boolean)[0];
+  return isLocale(first) ? first : defaultLocale;
+}
+
+/**
+ * A dónde se vuelve tras iniciar sesión: la página actual de la app, solo la ruta (sin consulta ni fragmento) y solo si
+ * es de la app en ese idioma; si no, la raíz de la app. Nunca una URL de otro sitio.
+ */
+export function safeNext(locale: Locale, pathname: string): string {
+  const root = rootPath(locale);
+  const path = safeInternalPath(pathname.split(/[?#]/)[0], root);
+  // Ni `.` ni `..` (también codificados): `/es/finanzas/../../x` sale de la app al normalizarse.
+  if (/(^|\/)(\.|%2e){1,2}(\/|$)/i.test(path)) return root;
+  return path === root || path.startsWith(`${root}/`) ? path : root;
+}
+
+/** `/<idioma>/account/login?next=<ruta actual de la app>` (el inicio de sesión del CV). */
+export function loginRedirectUrl(locale: Locale, pathname: string): string {
+  return `${cvPath(locale, "account/login")}?next=${encodeURIComponent(safeNext(locale, pathname))}`;
+}
+
+/** Lo mismo para «Crear cuenta». */
+export function signupUrl(locale: Locale, pathname: string): string {
+  return `${cvPath(locale, "account/signup")}?next=${encodeURIComponent(safeNext(locale, pathname))}`;
 }

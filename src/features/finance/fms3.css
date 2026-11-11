@@ -12,3 +12,7 @@
 .imp-row__check { display: inline-flex; align-items: center; justify-content: center; flex: none; min-width: var(--target-min); min-height: var(--target-min); cursor: pointer; }
 .imp-row__check input { width: 24px; height: 24px; margin: 0; accent-color: var(--color-primary); }
 .imp-summary { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--space-4); }
+
+/* ---------- Patrimonio y vehículos ---------- */
+.wealth-row .progress { margin-top: var(--space-4); max-width: 320px; }
+.maint-row .actions { margin-top: var(--space-8); }

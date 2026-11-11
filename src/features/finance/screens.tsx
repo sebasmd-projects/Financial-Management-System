@@ -17,10 +17,12 @@ import { BudgetsScreen } from "./plan/budgets-screen";
 import { GoalDetail } from "./plan/goal-detail";
 import { GoalsScreen } from "./plan/goals-screen";
 import { IndicatorsScreen } from "./plan/indicators-screen";
-import { NetWorthScreen, ProjectionsScreen, ReportScreen, ReportsHome, StatisticsScreen } from "./reports/reports-screens";
+import { ProjectionsScreen, ReportScreen, ReportsHome, StatisticsScreen } from "./reports/reports-screens";
 import { AccountDetail } from "./accounts/account-detail";
 import { AccountsScreen } from "./accounts/accounts-screen";
 import { CurrenciesScreen } from "./currencies/currencies-screen";
+import { AssetDetail } from "./assets/asset-detail";
+import { WealthScreen } from "./assets/wealth-screen";
 import { CalendarScreen } from "./calendar/calendar-screen";
 import { CardDetail } from "./cards/card-detail";
 import { CardPay } from "./cards/card-pay";
@@ -147,7 +149,9 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
     case "informes-proyecciones":
       return <ProjectionsScreen />;
     case "informes-patrimonio":
-      return <NetWorthScreen />;
+      return <WealthScreen />;
+    case "informes-activo":
+      return <AssetDetail id={first} />;
     case "config-categorias":
       return <CategoriesScreen />;
     case "config-etiquetas":

@@ -133,6 +133,7 @@ export const paths = {
   assets: (params: Record<string, QueryValue> = {}) => `/assets${query({ page_size: 100, ...params })}`,
   asset: (assetId: string) => `/assets/${id(assetId)}`,
   assetValuations: (assetId: string, params: Record<string, QueryValue> = {}) => `/assets/${id(assetId)}/valuations${query({ page_size: 50, ...params })}`,
+  assetValuationCreate: (assetId: string) => `/assets/${id(assetId)}/valuations`,
   assetOdometer: (assetId: string) => `/assets/${id(assetId)}/odometer`,
   assetCosts: (assetId: string) => `/assets/${id(assetId)}/costs`,
   assetMaintenance: (assetId: string) => `/assets/${id(assetId)}/maintenance`,

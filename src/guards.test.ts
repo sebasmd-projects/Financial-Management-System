@@ -59,7 +59,8 @@ describe("el dinero no pasa por Number", () => {
 
 describe("nada de terceros", () => {
   it("el código y los estilos no cargan nada de otro origen", () => {
-    const external = /https?:\/\/(?!placeholder\.invalid)[^\s"'`)]+/;
+    // Excepciones: los espacios de nombres XML del sitemap (identificadores, no se descargan) y el origen de desarrollo.
+    const external = /https?:\/\/(?!localhost[:"']|www\.sitemaps\.org\/|www\.w3\.org\/)[^\s"'`)]+/;
     const offenders = [...code, ...styles].filter((path) => external.test(read(path)));
     expect(offenders.map(rel)).toEqual([]);
   });

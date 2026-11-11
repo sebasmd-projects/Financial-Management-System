@@ -62,6 +62,7 @@ Una sola tabla (`src/nav/routes.ts`) dice cómo se llama cada pantalla en cada i
 | `/_fms/_next/...` | Recursos de Next (`assetPrefix`), para no chocar con los del CV |
 | `/_fms/healthz` | Salud del contenedor (`ok`) |
 | `/_fms/sitemap.xml`, `/_fms/robots.txt` | Fragmentos del FMS (solo la aterrizaje) |
+| `/_fms/sw.js` | Service worker de los avisos Web Push (solo muestra avisos; no guarda nada). Se registra con el alcance del idioma (`/es/finanzas/`, `/en/finance/`) |
 
 **Lo que tiene que hacer nginx / el CV** (otro repositorio): enrutar a `fms-web:3100` los prefijos `^~ /es/finanzas`,
 `^~ /en/finance`, `= /finanzas`, `^~ /finanzas/`, `= /finance`, `^~ /finance/` y `^~ /_fms/`; pasar `Host` y no cachear;

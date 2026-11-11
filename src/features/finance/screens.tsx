@@ -11,6 +11,8 @@ import { CardPay } from "./cards/card-pay";
 import { CardSimulateScreen } from "./cards/card-purchase";
 import { CardStatement } from "./cards/card-statement";
 import { CategoriesScreen, TagsScreen } from "./catalog/catalog-screens";
+import { NotificationsScreen } from "./notifications/notifications-screen";
+import { RulesScreen } from "./notifications/rules-screen";
 import { LoanDetail } from "./loans/loan-detail";
 import { LoanTable } from "./loans/loan-table";
 import { LoansScreen } from "./loans/loans-screen";
@@ -87,6 +89,10 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <CategoriesScreen />;
     case "config-etiquetas":
       return <TagsScreen />;
+    case "config-reglas":
+      return <RulesScreen />;
+    case "notificaciones":
+      return <NotificationsScreen />;
     default:
       return null;
   }

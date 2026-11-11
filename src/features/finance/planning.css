@@ -76,3 +76,11 @@
 .calendar__needed { font: var(--text-label); }
 .calendar__negative { color: var(--color-negative); }
 .calendar__shortfall { color: var(--color-negative); }
+
+/* ---------- Avisos ---------- */
+.topbar__bell { position: relative; }
+.topbar__count { position: absolute; top: 2px; right: 2px; min-width: 18px; padding: 0 4px; border-radius: var(--radius-full); background: var(--color-negative-container); color: var(--color-on-negative-container); border: 1px solid var(--color-negative); font: var(--text-caption); line-height: 16px; text-align: center; }
+.notice { align-items: flex-start; flex-wrap: wrap; }
+.notice--unread { border-left: 3px solid var(--color-primary); }
+.notice__dot { display: inline-block; width: 8px; height: 8px; margin-right: var(--space-8); border-radius: var(--radius-full); background: var(--color-primary); }
+.notice__actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }

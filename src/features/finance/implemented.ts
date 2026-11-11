@@ -36,4 +36,6 @@ export const IMPLEMENTED: ReadonlySet<RouteId> = new Set<RouteId>([
   "credito-tabla",
   "config-categorias",
   "config-etiquetas",
+  "config-reglas",
+  "notificaciones",
 ]);

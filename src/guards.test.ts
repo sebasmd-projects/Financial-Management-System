@@ -26,6 +26,8 @@ const strip = (source: string) => source.replace(/\/\*[\s\S]*?\*\//g, "").replac
 const read = (path: string) => strip(readFileSync(path, "utf8"));
 
 const THEME_STORAGE = "src/ui/theme/storage.ts";
+const PUSH_MODULE = "src/features/finance/notifications/push.ts";
+const SW_SOURCE = "src/features/finance/notifications/sw-source.ts";
 
 describe("nada financiero en el navegador", () => {
   it("localStorage, sessionStorage, IndexedDB y Cache API solo en la preferencia de tema", () => {
@@ -42,8 +44,16 @@ describe("nada financiero en el navegador", () => {
   it("nada en consola", () => {
     expect(code.filter((path) => /\bconsole\s*\./.test(read(path))).map(rel)).toEqual([]);
   });
-  it("el service worker y el almacenamiento persistente no existen", () => {
-    expect(code.filter((path) => /serviceWorker|navigator\.storage/.test(read(path))).map(rel)).toEqual([]);
+  it("el almacenamiento persistente no existe, y el service worker solo se registra desde el módulo de Web Push", () => {
+    expect(code.filter((path) => /navigator\.storage/.test(read(path))).map(rel)).toEqual([]);
+    expect(code.filter((path) => rel(path) !== PUSH_MODULE && /serviceWorker/.test(read(path))).map(rel)).toEqual([]);
+  });
+  it("el código del service worker no puede interceptar ni guardar nada", () => {
+    const source = read(join(ROOT, SW_SOURCE));
+    expect(source).not.toMatch(/["']fetch["']|\bcaches\b|indexedDB|localStorage|sessionStorage/);
+  });
+  it("ningún módulo guarda la carga de un push ni lo que sea de la suscripción", () => {
+    expect(read(join(ROOT, PUSH_MODULE))).not.toMatch(/localStorage|sessionStorage|indexedDB|caches\s*\./);
   });
 });
 

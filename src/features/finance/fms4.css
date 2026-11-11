@@ -1,0 +1,15 @@
+/* FMS-3a (cortes 3.1 a 3.6): reglas propias, escenarios, UVR y compras compartidas. Mobile first; solo tokens de `ui/tokens.css`. */
+
+/* ---------- Montos por definir (falta la UVR): nunca un $0 ---------- */
+.money--pending { white-space: normal; display: inline-block; padding: 0 var(--space-4); border-radius: var(--radius-sm); background: var(--color-warning-container); color: var(--color-on-warning-container); font-style: italic; font-weight: 600; }
+
+/* ---------- Constructor de reglas ---------- */
+.auto-block { display: grid; gap: var(--space-12); min-width: 0; margin: 0; padding: var(--space-12); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.auto-block > legend { padding: 0 var(--space-4); font-weight: 600; }
+.auto-condition { display: grid; gap: var(--space-8); padding: var(--space-12); border: 1px dashed var(--color-border-strong); border-radius: var(--radius-md); min-width: 0; }
+.auto-rule .actions, .scen-row .actions { margin-top: var(--space-8); }
+
+/* ---------- Comparador de escenarios: tabla lado a lado dentro de su propio contenedor (la página no se desplaza) ---------- */
+.compare-table { min-width: 100%; }
+.compare-table th[scope="col"] { white-space: normal; min-width: 8rem; }
+.compare-table__diff th, .compare-table__diff td { font: var(--text-caption); border-top: 0; }

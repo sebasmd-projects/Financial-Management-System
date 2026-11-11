@@ -1,0 +1,207 @@
+/*
+ * Tokens de diseño «Añil y Guayaba» (docs/design-spec.md §4). Valores EXACTOS de la especificación; `tokens.test.ts` y
+ * `contrast.test.ts` los comparan con ella. 1 dp = 1 px CSS; los tamaños de texto van en rem para que escalen (§6).
+ *
+ * Tema: sigue al sistema (`prefers-color-scheme`) y se puede fijar con `data-theme="light|dark"` en <html>.
+ * El oscuro está dos veces (sistema y fijado): CSS no permite compartir el bloque entre un @media y un selector.
+ * Los egresos NO se pintan de rojo: `negative` es solo para vencido, saldo bajo cero y error (§4.1).
+ */
+:root {
+  color-scheme: light dark;
+
+  /* ---- Color: claro ---- */
+  --color-canvas: #f6f5f1;
+  --color-surface: #ffffff;
+  --color-surface-2: #edebe4;
+  --color-border: #d9d6cc;
+  --color-border-strong: #8a867a;
+  --color-track: #c9c5b8;
+  --color-text-primary: #1b1a17;
+  --color-text-secondary: #55524a;
+  --color-text-tertiary: #6b675d;
+  --color-primary: #2f3eb8;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #e3e6fb;
+  --color-on-primary-container: #1c2580;
+  --color-accent: #b8324f;
+  --color-on-accent: #ffffff;
+  --color-positive: #12704a;
+  --color-positive-container: #ddf3e7;
+  --color-on-positive-container: #0c5236;
+  --color-negative: #b3261e;
+  --color-negative-container: #fbe4e1;
+  --color-on-negative-container: #8c1d18;
+  --color-warning: #8a5a00;
+  --color-warning-container: #fbefd0;
+  --color-on-warning-container: #6b4600;
+  --color-info: #1f5fa8;
+  --color-info-container: #e0ecfa;
+  --color-on-info-container: #17497f;
+
+  /* Paleta categórica de gráficas (8 series) */
+  --chart-1: #2f3eb8;
+  --chart-2: #b8324f;
+  --chart-3: #0e7c86;
+  --chart-4: #8a5a00;
+  --chart-5: #6d3fb5;
+  --chart-6: #12704a;
+  --chart-7: #a1440b;
+  --chart-8: #55524a;
+
+  /* Elevación (claro: sombras; oscuro: más blanco sobre surface) */
+  --elevation-1: 0 1px 2px rgba(27, 26, 23, 0.08);
+  --elevation-2: 0 4px 12px rgba(27, 26, 23, 0.14);
+  --elevation-3: 0 8px 24px rgba(27, 26, 23, 0.2);
+  --scrim: rgba(17, 19, 24, 0.48);
+
+  /* ---- Tipografía (§4.2): Sora para cifras y títulos, Inter para lo demás; autoalojadas con next/font ---- */
+  --font-sora: var(--font-sora-loaded, "Sora"), system-ui, sans-serif;
+  --font-inter: var(--font-inter-loaded, "Inter"), system-ui, sans-serif;
+  --font-display: var(--font-sora);
+  --font-body: var(--font-inter);
+
+  --text-display: 600 2rem/2.375rem var(--font-display);
+  --text-kpi: 600 1.75rem/2.125rem var(--font-display);
+  --text-title-l: 600 1.375rem/1.75rem var(--font-display);
+  --text-title-m: 600 1.125rem/1.5rem var(--font-body);
+  --text-title-s: 600 1rem/1.375rem var(--font-body);
+  --text-body: 400 1rem/1.5rem var(--font-body);
+  --text-body-s: 400 0.875rem/1.25rem var(--font-body);
+  --text-label: 500 0.8125rem/1rem var(--font-body);
+  --text-caption: 400 0.75rem/1rem var(--font-body);
+  --text-micro: 500 0.6875rem/0.875rem var(--font-body);
+
+  /* ---- Espaciado (dp): 0, 2, 4, 8, 12, 16, 20, 24, 32, 40, 48 ---- */
+  --space-0: 0;
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+
+  /* ---- Radios ---- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+
+  /* ---- Movimiento (§4.3) ---- */
+  --duration-instant: 100ms;
+  --duration-fast: 180ms;
+  --duration-base: 240ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  /* ---- Objetivo táctil mínimo y anillo de foco (§5, §6) ---- */
+  --target-min: 44px;
+  --focus-ring: 2px solid var(--color-primary);
+  --focus-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-canvas: #111318;
+    --color-surface: #1a1d24;
+    --color-surface-2: #242833;
+    --color-border: #343947;
+    --color-border-strong: #7c8496;
+    --color-track: #4a5062;
+    --color-text-primary: #f1f1ee;
+    --color-text-secondary: #b9bcc6;
+    --color-text-tertiary: #9a9fad;
+    --color-primary: #a5aeff;
+    --color-on-primary: #121a66;
+    --color-primary-container: #2a3170;
+    --color-on-primary-container: #dde0ff;
+    --color-accent: #ff8fa3;
+    --color-on-accent: #4a0a1a;
+    --color-positive: #5fd39a;
+    --color-positive-container: #0f3d29;
+    --color-on-positive-container: #a6ebc8;
+    --color-negative: #ff8a80;
+    --color-negative-container: #4a1512;
+    --color-on-negative-container: #ffc9c4;
+    --color-warning: #f2c14e;
+    --color-warning-container: #453300;
+    --color-on-warning-container: #fbe3a6;
+    --color-info: #8cbff5;
+    --color-info-container: #12335a;
+    --color-on-info-container: #cfe4fb;
+    --chart-1: #a5aeff;
+    --chart-2: #ff8fa3;
+    --chart-3: #5fd0da;
+    --chart-4: #f2c14e;
+    --chart-5: #c9a6ff;
+    --chart-6: #5fd39a;
+    --chart-7: #ffa873;
+    --chart-8: #b9bcc6;
+    --elevation-1: 0 0 0 1px rgba(255, 255, 255, 0.04);
+    --elevation-2: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --elevation-3: 0 0 0 1px rgba(255, 255, 255, 0.11);
+    --scrim: rgba(17, 19, 24, 0.6);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-canvas: #111318;
+  --color-surface: #1a1d24;
+  --color-surface-2: #242833;
+  --color-border: #343947;
+  --color-border-strong: #7c8496;
+  --color-track: #4a5062;
+  --color-text-primary: #f1f1ee;
+  --color-text-secondary: #b9bcc6;
+  --color-text-tertiary: #9a9fad;
+  --color-primary: #a5aeff;
+  --color-on-primary: #121a66;
+  --color-primary-container: #2a3170;
+  --color-on-primary-container: #dde0ff;
+  --color-accent: #ff8fa3;
+  --color-on-accent: #4a0a1a;
+  --color-positive: #5fd39a;
+  --color-positive-container: #0f3d29;
+  --color-on-positive-container: #a6ebc8;
+  --color-negative: #ff8a80;
+  --color-negative-container: #4a1512;
+  --color-on-negative-container: #ffc9c4;
+  --color-warning: #f2c14e;
+  --color-warning-container: #453300;
+  --color-on-warning-container: #fbe3a6;
+  --color-info: #8cbff5;
+  --color-info-container: #12335a;
+  --color-on-info-container: #cfe4fb;
+  --chart-1: #a5aeff;
+  --chart-2: #ff8fa3;
+  --chart-3: #5fd0da;
+  --chart-4: #f2c14e;
+  --chart-5: #c9a6ff;
+  --chart-6: #5fd39a;
+  --chart-7: #ffa873;
+  --chart-8: #b9bcc6;
+  --elevation-1: 0 0 0 1px rgba(255, 255, 255, 0.04);
+  --elevation-2: 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --elevation-3: 0 0 0 1px rgba(255, 255, 255, 0.11);
+  --scrim: rgba(17, 19, 24, 0.6);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Movimiento reducido (§4.3): sin traslaciones ni escalas, solo fundidos de 120 ms. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fast: 120ms;
+    --duration-base: 120ms;
+    --duration-slow: 120ms;
+  }
+}

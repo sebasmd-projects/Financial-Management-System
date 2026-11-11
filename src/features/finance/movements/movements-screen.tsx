@@ -10,6 +10,7 @@ import { useI18n } from "@/i18n/provider";
 import type { RouteId } from "@/nav/routes";
 import { Icon } from "@/ui/icons";
 import { dayNet, groupByDate, signedAmount } from "../helpers";
+import { readDrill, type Drill } from "../drill";
 import { useAll, useHref, useResource } from "../hooks";
 import { Badge, Checkbox, Empty, ErrorState, LinkTabs, Loading, Money, Pager, ScreenHeader, SelectField } from "../kit";
 
@@ -24,22 +25,48 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
   const href = useHref();
   const search = useSearchParams();
   const [period, setPeriod] = useState(() => periodOf(todayBogota()));
-  const [account, setAccount] = useState(search.get("cuenta") ?? "");
-  const [category, setCategory] = useState("");
-  const [status, setStatus] = useState("");
+  // «Ver movimientos» desde un presupuesto, una meta o un informe: el filtro exacto llega en la cadena de consulta (sin montos).
+  const [drill, setDrill] = useState<Drill>(() => readDrill((key) => search.get(key)));
+  const [account, setAccount] = useState(search.get("cuenta") ?? drill.account ?? "");
+  const [category, setCategory] = useState(drill.category ?? "");
+  const [status, setStatus] = useState(drill.status ?? "");
   const [showAnnulled, setShowAnnulled] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(account !== "");
   const [page, setPage] = useState(1);
 
   const accounts = useAll<Account>(paths.accounts());
   const categories = useAll<Category>(paths.categories());
-  const range = periodRange(period);
+  const drilled = drill.from !== undefined || drill.to !== undefined;
+  const range = drilled ? { from: drill.from, to: drill.to } : periodRange(period);
+  const hasDrill = Object.keys(drill).length > 0;
   const list = useResource<Page<Movement>>(
-    paths.movements({ type: preset === "all" ? undefined : preset, from: range.from, to: range.to, account, category, status, show_annulled: showAnnulled || undefined, page, page_size: PAGE_SIZE }),
+    paths.movements({
+      type: preset === "all" ? undefined : preset,
+      from: range.from,
+      to: range.to,
+      account,
+      category,
+      status,
+      tag: drill.tag,
+      cost_center: drill.cost_center,
+      ledger_account: drill.ledger_account,
+      classification: drill.classification,
+      nature: drill.nature,
+      show_annulled: showAnnulled || undefined,
+      page,
+      page_size: PAGE_SIZE,
+    }),
   );
 
   const groups = groupByDate(list.data?.results ?? []);
   const activeFilters = [account, category, status].filter(Boolean).length + (showAnnulled ? 1 : 0);
+  const clearDrill = () => {
+    setDrill({});
+    setAccount("");
+    setCategory("");
+    setStatus("");
+    setPage(1);
+  };
   const reset = <T,>(setter: (value: T) => void) => (value: T) => {
     setter(value);
     setPage(1);
@@ -62,7 +89,17 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
         items={(Object.keys(PRESET_ROUTE) as MovementsPreset[]).map((key) => ({ href: href(PRESET_ROUTE[key]), label: t.presets[key], current: key === preset }))}
       />
 
+      {hasDrill && (
+        <p className="fin-phrase" role="status">
+          {drilled && drill.from && drill.to ? `${t.drillActive} ${formatDate(drill.from)} – ${formatDate(drill.to)}. ` : `${t.drillActive} `}
+          <button type="button" className="button button--ghost" onClick={clearDrill}>
+            {t.drillClear}
+          </button>
+        </p>
+      )}
       <div className="fin-periodbar">
+        {!drilled && (
+          <>
         <button type="button" className="icon-button" aria-label={t.previousPeriod} onClick={() => reset(setPeriod)(shiftPeriod(period, -1))}>
           <Icon name="arrow-left" />
         </button>
@@ -72,6 +109,8 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
         <button type="button" className="icon-button" aria-label={t.nextPeriod} onClick={() => reset(setPeriod)(shiftPeriod(period, 1))}>
           <Icon name="arrow-right" />
         </button>
+          </>
+        )}
         <button type="button" className="button button--ghost" aria-expanded={filtersOpen} aria-controls="movement-filters" onClick={() => setFiltersOpen((v) => !v)}>
           {t.filters}
           {activeFilters > 0 ? ` (${activeFilters})` : ""}
@@ -106,7 +145,7 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
       {list.failure && <ErrorState message={dict.fin.errors.generic} onRetry={list.reload} />}
       {list.data && groups.length === 0 && (
         <Empty
-          title={activeFilters > 0 ? t.noMatchTitle : fillPeriod(t.emptyTitle, formatPeriod(period, locale))}
+          title={activeFilters > 0 || hasDrill ? t.noMatchTitle : fillPeriod(t.emptyTitle, formatPeriod(period, locale))}
           body={activeFilters > 0 ? t.noMatchBody : t.emptyBody}
           icon="list"
           action={

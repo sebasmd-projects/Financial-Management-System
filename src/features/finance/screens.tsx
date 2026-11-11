@@ -3,6 +3,10 @@
 import { Suspense, type ReactNode } from "react";
 import type { RouteId } from "@/nav/routes";
 import { Loading } from "./kit";
+import { AmortizationsScreen } from "./credit/amortizations-screen";
+import { DebtsScreen } from "./credit/debts-screen";
+import { InstallmentsScreen } from "./credit/installments-screen";
+import { InterestScreen } from "./credit/interest-screen";
 import { AccountDetail } from "./accounts/account-detail";
 import { AccountsScreen } from "./accounts/accounts-screen";
 import { CalendarScreen } from "./calendar/calendar-screen";
@@ -85,6 +89,14 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <RecurrenceDetail id={first} />;
     case "creditos":
       return <LoansScreen />;
+    case "creditos-cuotas":
+      return <InstallmentsScreen />;
+    case "creditos-intereses":
+      return <InterestScreen />;
+    case "creditos-amortizaciones":
+      return <AmortizationsScreen />;
+    case "creditos-deudas":
+      return <DebtsScreen />;
     case "credito":
       return <LoanDetail id={first} />;
     case "credito-tabla":

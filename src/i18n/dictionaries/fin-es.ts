@@ -1,3 +1,4 @@
+import { finCEs } from "./fin-c-es";
 import { finBEs } from "./fin-b-es";
 
 /** Textos de las pantallas financieras de FMS-1 (español, es-CO). `fin-en.ts` tiene que cumplir el mismo tipo. */
@@ -36,6 +37,42 @@ export const finEs = {
     unknown_parameter: "No conocemos ese parámetro.",
     parameter_already_in_force: "Esa vigencia ya empezó y pudo usarse en estimaciones: no se borra, se cierra con una fecha final.",
     parameter_not_found: "No encontramos ese valor.",
+    tooMany: "Demasiadas solicitudes seguidas. Espera un momento e inténtalo de nuevo.",
+    custom_schedule_not_regenerable: "Un crédito con tabla personalizada no se recalcula: la tabla la defines tú.",
+    installment_already_paid: "Esa cuota ya está pagada.",
+    previous_installment_pending: "Antes hay una cuota pendiente: págala primero.",
+    rate_overlaps: "Esa vigencia se cruza con otra tasa del mismo tipo.",
+    capital_exceeds_balance: "El capital no puede ser mayor que el saldo.",
+    invalid_loan_terms: "Con estos datos la cuota no cubre el interés; revisa tasa, plazo o sistema.",
+    invalid_payment_split: "El reparto de la cuota no es válido; revisa capital, interés, seguro y cargos.",
+    invalid_rate: "La tasa no es válida.",
+    late_rate_needs_source: "Una tasa de mora necesita su fuente.",
+    invalid_loan_kind: "El tipo de crédito no es válido.",
+    invalid_source_account: "La cuenta de origen no es válida.",
+    invalid_target_account: "La cuenta de destino no es válida.",
+    debt_already_settled: "Esta deuda ya está saldada.",
+    payment_exceeds_balance: "El abono no puede ser mayor que el saldo de la deuda.",
+    invalid_debt_terms: "Los datos de la deuda no son válidos.",
+    invalid_reminder: "El recordatorio no es válido: revisa la fecha y los días.",
+    invalid_cash_account: "La cuenta elegida no sirve para este movimiento de dinero.",
+    note_too_long: "La nota es demasiado larga.",
+    budget_needs_expense_category: "Un presupuesto por categoría necesita una categoría de gasto.",
+    dimension_mismatch: "Lo que elegiste no corresponde a la dimensión del presupuesto.",
+    invalid_limit: "El límite debe ser mayor que cero.",
+    invalid_thresholds: "Los umbrales no son válidos: la atención va antes que el exceso.",
+    invalid_budget: "Los datos del presupuesto no son válidos.",
+    invalid_period: "El periodo no es válido.",
+    goal_archived: "La meta está archivada.",
+    goal_is_not_a_fund: "Esta meta no es un fondo: no admite aportes.",
+    pay_debt_needs_a_liability: "Una meta de pagar una deuda necesita enlazar una cuenta de pasivo.",
+    same_account: "El origen y el destino no pueden ser la misma cuenta.",
+    invalid_goal: "Los datos de la meta no son válidos.",
+    invalid_goal_account: "La cuenta de la meta no es válida.",
+    invalid_filter: "Uno de los filtros no es válido.",
+    invalid_date: "Una de las fechas no es válida.",
+    invalid_month: "El mes no es válido.",
+    period_too_long: "El periodo es demasiado largo para este informe.",
+    invalid_horizon: "El horizonte no es válido.",
   },
   common: {
     required: "obligatorio",
@@ -75,7 +112,7 @@ export const finEs = {
     every_n_days: "Cada N días",
     custom: "Personalizada",
   } as Record<string, string>,
-  systems: { french: "Cuota fija", constant_capital: "Capital constante" } as Record<string, string>,
+  systems: { french: "Cuota fija", constant_capital: "Capital constante", interest_only: "Solo interés, capital al final", custom: "Personalizado" } as Record<string, string>,
   months: ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"],
   weekdays: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"],
   relative: { today: "hoy", tomorrow: "mañana", inDays: "en {n} días", ago1: "hace 1 día", agoDays: "hace {n} días" },
@@ -154,6 +191,8 @@ export const finEs = {
     emptyBody: "Cuando registres un ingreso o un gasto lo verás aquí, agrupado por día.",
     addFirst: "Agregar movimiento",
     dayTotal: "Neto del día:",
+    drillActive: "Viene de un presupuesto, una meta o un informe. Filtro aplicado:",
+    drillClear: "Quitar el filtro",
     hasAttachments: "Tiene adjuntos",
   },
   form: {
@@ -534,6 +573,7 @@ export const finEs = {
     data: "Datos",
   },
   ...finBEs,
+  ...finCEs,
 };
 
 export type FinDictionary = typeof finEs;

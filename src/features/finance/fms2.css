@@ -1,0 +1,4 @@
+/* FMS-2a (cortes 2.1 a 2.4): créditos, simuladores, presupuestos y metas, informes. Mobile first; solo tokens de `ui/tokens.css`. */
+
+.fin-tab[aria-selected="true"] { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+.fin-tabs button.fin-tab { background: none; border-top: 0; border-left: 0; border-right: 0; cursor: pointer; }

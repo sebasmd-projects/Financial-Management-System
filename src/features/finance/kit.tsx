@@ -100,6 +100,19 @@ export function Money({ value, sign = "auto", kind, compact = false, estimated =
   );
 }
 
+/** Una plantilla con huecos `{name}` rellenos con elementos (p. ej. un `<Money>`): `Necesitas {amount} disponibles`. */
+export function Slots({ template, vars }: { template: string; vars: Record<string, ReactNode> }) {
+  const parts = template.split(/(\{\w+\})/g);
+  return (
+    <>
+      {parts.map((part, index) => {
+        const name = /^\{(\w+)\}$/.exec(part)?.[1];
+        return name !== undefined && name in vars ? <span key={index}>{vars[name]}</span> : part === "" ? null : <span key={index}>{part}</span>;
+      })}
+    </>
+  );
+}
+
 export function Badge({ tone = "neutral", children, dashed = false }: { tone?: "neutral" | "info" | "positive" | "warning" | "negative"; children: ReactNode; dashed?: boolean }) {
   return <span className={`badge badge--${tone}${dashed ? " badge--dashed" : ""}`}>{children}</span>;
 }

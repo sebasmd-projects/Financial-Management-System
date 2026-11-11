@@ -57,3 +57,22 @@
 .summary__alert--ok { color: var(--color-positive); }
 .summary__alert-text { flex: 1 1 auto; min-width: 0; color: inherit; text-decoration: none; }
 .summary__alert-pager { display: inline-flex; align-items: center; gap: var(--space-4); flex: none; font: var(--text-caption); }
+
+/* ---------- Calendario financiero (diseño §3.11) ---------- */
+.calendar__grid { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 2px; }
+.calendar__grid th { padding: var(--space-4) 0; font: var(--text-label); color: var(--color-text-secondary); text-align: center; }
+.calendar__cell { padding: 0; height: 56px; vertical-align: top; }
+.calendar__day { display: grid; align-content: space-between; justify-items: center; width: 100%; height: 100%; min-height: var(--target-min); padding: var(--space-4) 0; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: inherit; font: var(--text-body-s); cursor: pointer; }
+.calendar__day--today { border-color: var(--color-primary); font-weight: 600; }
+.calendar__day--selected { background: var(--color-primary-container); color: var(--color-on-primary-container); border-color: var(--color-primary); }
+.calendar__day--negative .calendar__num { color: var(--color-negative); text-decoration: underline; }
+.calendar__holiday { font: var(--text-caption); color: var(--color-info, var(--color-primary)); }
+.calendar__dots { display: inline-flex; align-items: center; gap: 2px; }
+.calendar__dot { width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-negative); }
+.calendar__dot--in { background: var(--color-positive); }
+.calendar__dot--info { background: transparent; border: 2px solid var(--color-text-secondary); }
+.calendar__more { font: var(--text-caption); }
+.calendar__detail { display: grid; gap: var(--space-8); }
+.calendar__needed { font: var(--text-label); }
+.calendar__negative { color: var(--color-negative); }
+.calendar__shortfall { color: var(--color-negative); }

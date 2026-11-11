@@ -11,7 +11,7 @@ import { Icon } from "@/ui/icons";
 import { setDraft } from "../draft-store";
 import { fill, relativeDays } from "../helpers";
 import { useHref, useResource } from "../hooks";
-import { Badge, DefinitionList, Empty, ErrorState, HiddenAmountsContext, Loading, Modal, Money, Progress, ScreenHeader, Section } from "../kit";
+import { Badge, DefinitionList, Empty, ErrorState, HiddenAmountsContext, Loading, Modal, Money, Progress, ScreenHeader, Section, Slots } from "../kit";
 import { alertTarget, barSegments, clampIndex, isFirstUse, railTarget } from "./logic";
 
 const PERIODS_BACK = 11;
@@ -183,9 +183,7 @@ function LiquiditySheet({ d }: { d: Dashboard }) {
           {missing && compareAmounts(missing, "0") > 0 && (
             <>
               {" "}
-              {t.liquidityMissing.split("{amount}")[0]}
-              <Money value={missing} />
-              {t.liquidityMissing.split("{amount}")[1]}
+              <Slots template={t.liquidityMissing} vars={{ amount: <Money value={missing} /> }} />
             </>
           )}
         </p>
@@ -204,7 +202,7 @@ function Rail({ items }: { items: readonly RailItem[] }) {
     <Section
       title={t.railTitle}
       aside={
-        <Link className="summary__link" href={href("pagos-calendario")}>
+        <Link className="summary__link" href={`${href("pagos-calendario")}?rango=30`}>
           {t.railCalendar}
           <Icon name="chevron-right" size={16} />
         </Link>
@@ -295,9 +293,7 @@ function FixedGrid({ d }: { d: Dashboard }) {
                     <span className="summary__tile-line muted">
                       {item.status === "partial" ? (
                         <>
-                          {t.fixedLeftLine.split("{amount}")[0]}
-                          <Money value={item.pending} />
-                          {t.fixedLeftLine.split("{amount}")[1]} · {formatDateShort(item.due_date)}
+                          <Slots template={t.fixedLeftLine} vars={{ amount: <Money value={item.pending} /> }} /> · {formatDateShort(item.due_date)}
                         </>
                       ) : item.status === "paid" ? (
                         <>

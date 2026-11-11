@@ -30,6 +30,7 @@ export const IMPLEMENTED: ReadonlySet<RouteId> = new Set<RouteId>([
   "pagos-suscripciones",
   "pagos-recurrencia-nueva",
   "pagos-recurrencia",
+  "pagos-calendario",
   "creditos",
   "credito",
   "credito-tabla",

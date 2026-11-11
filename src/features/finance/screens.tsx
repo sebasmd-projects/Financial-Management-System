@@ -5,6 +5,7 @@ import type { RouteId } from "@/nav/routes";
 import { Loading } from "./kit";
 import { AccountDetail } from "./accounts/account-detail";
 import { AccountsScreen } from "./accounts/accounts-screen";
+import { CalendarScreen } from "./calendar/calendar-screen";
 import { CardDetail } from "./cards/card-detail";
 import { CardPay } from "./cards/card-pay";
 import { CardSimulateScreen } from "./cards/card-purchase";
@@ -68,6 +69,8 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <FixedExpensesScreen />;
     case "pagos-fijo-pagar":
       return <OccurrencePay id={first} />;
+    case "pagos-calendario":
+      return <CalendarScreen />;
     case "pagos-suscripciones":
       return <SubscriptionsScreen />;
     case "pagos-recurrencia-nueva":

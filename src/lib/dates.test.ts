@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  addDays,
   addMonths,
   daysBetween,
   formatDate,
@@ -13,6 +14,7 @@ import {
   periodOf,
   relativeDay,
   todayBogota,
+  weekdayMonday,
 } from "./dates";
 
 describe("formatDate", () => {
@@ -129,5 +131,19 @@ describe("addMonths", () => {
     expect(addMonths("2028-01-31", 1)).toBe("2028-02-29");
     expect(addMonths("2026-11-30", 3)).toBe("2027-02-28");
     expect(addMonths("2026-12-10", 12)).toBe("2027-12-10");
+  });
+});
+
+describe("addDays y weekdayMonday", () => {
+  it("suma días cruzando mes y año", () => {
+    expect(addDays("2026-11-30", 1)).toBe("2026-12-01");
+    expect(addDays("2026-01-01", -1)).toBe("2025-12-31");
+    expect(addDays("2028-02-28", 1)).toBe("2028-02-29");
+    expect(addDays("2026-11-11", 30)).toBe("2026-12-11");
+  });
+  it("lunes es 0 y domingo 6", () => {
+    expect(weekdayMonday("2026-11-09")).toBe(0);
+    expect(weekdayMonday("2026-11-15")).toBe(6);
+    expect(weekdayMonday("2026-11-01")).toBe(6);
   });
 });

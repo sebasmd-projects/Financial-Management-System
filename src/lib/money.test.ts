@@ -7,6 +7,7 @@ import {
   isDecimalString,
   isNegativeAmount,
   isValidAmountInput,
+  percentOfTotal,
   splitEqual,
   spokenCop,
 } from "./money";
@@ -175,5 +176,19 @@ describe("splitEqual", () => {
   it("rechaza un número de partes inválido", () => {
     expect(() => splitEqual("10", 0)).toThrow();
     expect(() => splitEqual("10", 1.5)).toThrow();
+  });
+});
+
+describe("percentOfTotal", () => {
+  it("entero hacia abajo, acotado a 0..100", () => {
+    expect(percentOfTotal("2310000", "5200000")).toBe(44);
+    expect(percentOfTotal("5200000", "5200000")).toBe(100);
+    expect(percentOfTotal("9000000", "5200000")).toBe(100);
+  });
+  it("totales o partes en cero o negativos dan 0", () => {
+    expect(percentOfTotal("10", "0")).toBe(0);
+    expect(percentOfTotal("-10", "100")).toBe(0);
+    expect(percentOfTotal("10", "-100")).toBe(0);
+    expect(percentOfTotal("0", "100")).toBe(0);
   });
 });

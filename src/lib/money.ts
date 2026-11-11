@@ -184,3 +184,20 @@ export function splitEqual(total: string, parts: number): string[] {
   }
   return out;
 }
+
+/**
+ * Qué porcentaje entero (0 a 100, hacia abajo) es `part` de `total`, para anchos de barras. Sobre centavos con BigInt; un total
+ * en cero o negativo da 0 y una parte negativa cuenta como 0.
+ */
+export function percentOfTotal(part: string, total: string): number {
+  const p = parse(part);
+  const t = parse(total);
+  if (t.negative || t.cents === 0n || p.negative || p.cents === 0n) return 0;
+  const percent = (p.cents * 100n) / t.cents;
+  return percent > 100n ? 100 : parseInt10(percent);
+}
+
+/** `bigint` pequeño → número de pantalla (0..100); no es dinero. */
+function parseInt10(value: bigint): number {
+  return +value.toString();
+}

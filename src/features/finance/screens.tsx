@@ -21,10 +21,13 @@ import { OccurrencePay } from "./payments/occurrence-pay";
 import { RecurrenceDetail } from "./payments/recurrence-detail";
 import { RecurrenceForm } from "./payments/recurrence-form";
 import { SubscriptionsScreen } from "./payments/subscriptions";
+import { SummaryScreen } from "./summary/summary-screen";
 
 function render(routeId: RouteId, params: readonly string[]): ReactNode {
   const [first = "", second = ""] = params;
   switch (routeId) {
+    case "resumen":
+      return <SummaryScreen />;
     case "cuentas":
       return <AccountsScreen tab="todas" />;
     case "cuentas-bancos":

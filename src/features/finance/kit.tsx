@@ -5,9 +5,9 @@
  * progreso, estados vacío / cargando / error. Accesibles por teclado, con etiqueta visible y objetivos de 44 dp.
  */
 import Link from "next/link";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useId, useRef, type ReactNode } from "react";
 import { amountInputProblem } from "@/lib/amount-input";
-import { formatCop, formatCopCompact, spokenCop } from "@/lib/money";
+import { formatCop, formatCopCompact, HIDDEN_AMOUNT, spokenCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { Icon, type IconName } from "@/ui/icons";
 
@@ -80,18 +80,22 @@ export function Empty({ title, body, action, icon = "wallet" }: { title: string;
   );
 }
 
+/** «Ocultar montos» del Resumen: mientras vale `true`, todo `Money` debajo pinta `•••••`. Solo en memoria (no se guarda). */
+export const HiddenAmountsContext = createContext(false);
+
 /**
  * Un monto: el valor formateado (una sola función de formato, `lib/money.ts`) y, para el lector de pantalla, el valor
  * COMPLETO en palabras. El color nunca es la única señal: el signo (+/−) siempre va escrito.
  */
 export function Money({ value, sign = "auto", kind, compact = false, estimated = false, strike = false, tone }: { value: string; sign?: "auto" | "always"; kind?: "egreso" | "ingreso" | "transferencia"; compact?: boolean; estimated?: boolean; strike?: boolean; tone?: "positive" | "negative" | "warning" | "muted" }) {
-  const { locale } = useI18n();
-  const shown = compact ? formatCopCompact(value, { sign, estimated }) : formatCop(value, { sign, estimated });
+  const { dict, locale } = useI18n();
+  const hidden = useContext(HiddenAmountsContext);
+  const shown = hidden ? HIDDEN_AMOUNT : compact ? formatCopCompact(value, { sign, estimated }) : formatCop(value, { sign, estimated });
   const classes = ["money", "tabular", tone ? `money--${tone}` : "", strike ? "money--strike" : ""].filter(Boolean).join(" ");
   return (
     <span className={classes}>
       <span aria-hidden="true">{shown}</span>
-      <span className="visually-hidden">{spokenCop(value, kind, locale)}</span>
+      <span className="visually-hidden">{hidden ? dict.fin.dash.hiddenAmount : spokenCop(value, kind, locale)}</span>
     </span>
   );
 }

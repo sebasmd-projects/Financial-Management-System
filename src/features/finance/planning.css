@@ -84,3 +84,11 @@
 .notice--unread { border-left: 3px solid var(--color-primary); }
 .notice__dot { display: inline-block; width: 8px; height: 8px; margin-right: var(--space-8); border-radius: var(--radius-full); background: var(--color-primary); }
 .notice__actions { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+
+/* ---------- Conciliación (diseño §3.6) ---------- */
+.recon { display: grid; gap: var(--space-16); }
+.recon__summary { position: sticky; top: 0; z-index: 1; }
+.recon__row { display: flex; align-items: center; gap: var(--space-12); min-height: var(--target-min); padding: var(--space-8) 0; cursor: pointer; }
+.recon__row input { flex: none; width: 24px; height: 24px; margin: 0; accent-color: var(--color-primary); }
+.recon__row .fin-row__main { flex: 1 1 auto; }
+.recon__nonzero { display: inline-flex; align-items: center; gap: var(--space-4); }

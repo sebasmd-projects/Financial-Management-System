@@ -29,7 +29,7 @@ afterEach(() => {
 });
 
 function stubBrowser(permission: "granted" | "denied") {
-  const register = vi.fn(async (_url: string, _options: { scope: string }) => ({ pushManager: { getSubscription: async () => null, subscribe: vi.fn(async () => subscription) } }));
+  const register = vi.fn<(url: string, options: { scope: string }) => Promise<unknown>>(async () => ({ pushManager: { getSubscription: async () => null, subscribe: vi.fn(async () => subscription) } }));
   Object.defineProperty(navigator, "serviceWorker", { configurable: true, value: { register, ready: Promise.resolve({}), getRegistration: async () => undefined } });
   vi.stubGlobal("PushManager", class {});
   vi.stubGlobal("Notification", { permission: "default", requestPermission: async () => permission });

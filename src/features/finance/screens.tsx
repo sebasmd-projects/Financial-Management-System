@@ -23,6 +23,7 @@ import { FixedExpensesScreen } from "./payments/fixed-expenses";
 import { OccurrencePay } from "./payments/occurrence-pay";
 import { RecurrenceDetail } from "./payments/recurrence-detail";
 import { RecurrenceForm } from "./payments/recurrence-form";
+import { ReconcileScreen } from "./reconcile/reconcile-screen";
 import { SubscriptionsScreen } from "./payments/subscriptions";
 import { SummaryScreen } from "./summary/summary-screen";
 
@@ -43,6 +44,8 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <AccountsScreen tab="credito" />;
     case "cuenta":
       return <AccountDetail id={first} />;
+    case "cuenta-conciliar":
+      return <ReconcileScreen id={first} />;
     case "movimientos":
     case "movimientos-historial":
       return <MovementsScreen preset="all" routeId={routeId} />;

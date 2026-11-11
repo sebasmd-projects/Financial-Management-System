@@ -75,6 +75,11 @@ export function AccountDetail({ id }: { id: string }) {
             {t.transfer}
           </Link>
         )}
+        {(group === "bancos" || group === "efectivo") && (
+          <Link className="button button--ghost" href={href("cuenta-conciliar", [a.id])}>
+            {dict.fin.recon.action}
+          </Link>
+        )}
         <Link className="button button--ghost" href={`${href("movimientos")}?cuenta=${encodeURIComponent(a.id)}`}>
           {t.viewMovements}
         </Link>

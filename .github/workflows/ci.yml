@@ -25,6 +25,9 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm ci --ignore-scripts
       - run: npm run lint
+      # Los tipos de la API salen de `src/api/openapi-fms.yaml` (copia del contrato del backend): si no coinciden, falla.
+      - name: "Tipos de la API al día con el contrato"
+        run: npm run api:check
       # typegen genera los tipos de rutas (PageProps, LayoutProps) que tsc necesita sin compilar.
       - run: npx next typegen
       - run: npx tsc --noEmit

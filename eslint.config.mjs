@@ -10,7 +10,7 @@ const STORAGE = ["localStorage", "sessionStorage", "indexedDB", "caches"];
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "e2e/**", "next-env.d.ts"]),
+  globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "e2e/**", "next-env.d.ts", "src/api/schema.gen.ts"]),
   {
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/**/*.test.{ts,tsx}"],

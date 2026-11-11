@@ -52,6 +52,7 @@ export const paths = {
   categories: (params: Record<string, QueryValue> = {}) => `/categories${query({ page_size: 200, ...params })}`,
   category: (categoryId: string) => `/categories/${id(categoryId)}`,
   tags: () => `/tags${query({ page_size: 200 })}`,
+  costCenters: () => `/cost-centers${query({ page_size: 200 })}`,
   tag: (tagId: string) => `/tags/${id(tagId)}`,
   paymentMethods: () => "/payment-methods",
   institutions: () => "/institutions",

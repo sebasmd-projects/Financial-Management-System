@@ -20,6 +20,8 @@ export interface Mounted {
   root: Root;
   mock: ReturnType<typeof mockFetch>;
   text: () => string;
+  /** El texto que ve una persona: sin los valores completos que solo lee el lector de pantalla (`visually-hidden`). */
+  visible: () => string;
   unmount: () => void;
 }
 
@@ -37,6 +39,11 @@ export async function mountScreen(element: ReactElement, routes: Record<string, 
     root,
     mock,
     text: () => host.textContent ?? "",
+    visible: () => {
+      const clone = host.cloneNode(true) as HTMLElement;
+      clone.querySelectorAll(".visually-hidden").forEach((el) => el.remove());
+      return clone.textContent ?? "";
+    },
     unmount: () => {
       act(() => root.unmount());
       host.remove();

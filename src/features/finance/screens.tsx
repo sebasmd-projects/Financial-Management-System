@@ -12,6 +12,11 @@ import { CompareSimulator } from "./simulators/compare-sim";
 import { ExtraPaymentSimulator } from "./simulators/extra-sim";
 import { InstallmentSimulator } from "./simulators/installment-sim";
 import { RatesSimulator } from "./simulators/rates-sim";
+import { BudgetDetail } from "./plan/budget-detail";
+import { BudgetsScreen } from "./plan/budgets-screen";
+import { GoalDetail } from "./plan/goal-detail";
+import { GoalsScreen } from "./plan/goals-screen";
+import { IndicatorsScreen } from "./plan/indicators-screen";
 import { AccountDetail } from "./accounts/account-detail";
 import { AccountsScreen } from "./accounts/accounts-screen";
 import { CalendarScreen } from "./calendar/calendar-screen";
@@ -116,6 +121,18 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <LoanDetail id={first} />;
     case "credito-tabla":
       return <LoanTable id={first} />;
+    case "plan-presupuestos":
+      return <BudgetsScreen />;
+    case "plan-presupuesto":
+      return <BudgetDetail id={first} />;
+    case "plan-ahorro":
+      return <GoalsScreen tab="ahorro" />;
+    case "plan-objetivos":
+      return <GoalsScreen tab="objetivos" />;
+    case "plan-meta":
+      return <GoalDetail id={first} />;
+    case "plan-indicadores":
+      return <IndicatorsScreen />;
     case "config-categorias":
       return <CategoriesScreen />;
     case "config-etiquetas":

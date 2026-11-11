@@ -7,6 +7,11 @@ import { AmortizationsScreen } from "./credit/amortizations-screen";
 import { DebtsScreen } from "./credit/debts-screen";
 import { InstallmentsScreen } from "./credit/installments-screen";
 import { InterestScreen } from "./credit/interest-screen";
+import { CardSimulatorPicker } from "./simulators/card-sim-picker";
+import { CompareSimulator } from "./simulators/compare-sim";
+import { ExtraPaymentSimulator } from "./simulators/extra-sim";
+import { InstallmentSimulator } from "./simulators/installment-sim";
+import { RatesSimulator } from "./simulators/rates-sim";
 import { AccountDetail } from "./accounts/account-detail";
 import { AccountsScreen } from "./accounts/accounts-screen";
 import { CalendarScreen } from "./calendar/calendar-screen";
@@ -97,6 +102,16 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <AmortizationsScreen />;
     case "creditos-deudas":
       return <DebtsScreen />;
+    case "simulador-amortizacion":
+      return <InstallmentSimulator />;
+    case "simulador-tasas":
+      return <RatesSimulator />;
+    case "simulador-abono-extra":
+      return <ExtraPaymentSimulator />;
+    case "simulador-comparar":
+      return <CompareSimulator />;
+    case "simulador-compra-tarjeta":
+      return <CardSimulatorPicker />;
     case "credito":
       return <LoanDetail id={first} />;
     case "credito-tabla":

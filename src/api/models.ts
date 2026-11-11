@@ -117,6 +117,7 @@ export type RateConvert = S["RateConvert"];
 export type InstallmentSim = S["InstallmentSim"];
 export type InstallmentSimRequest = S["InstallmentSimRequest"];
 export type ExtraPayment = S["ExtraPayment"];
+export type ExtraScenario = S["ExtraScenario"];
 export type ExtraPaymentRequest = S["ExtraPaymentRequest"];
 export type Compare = S["Compare"];
 export type CompareRequest = S["CompareRequest"];

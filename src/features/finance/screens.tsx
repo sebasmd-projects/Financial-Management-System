@@ -19,6 +19,8 @@ import { GoalsScreen } from "./plan/goals-screen";
 import { IndicatorsScreen } from "./plan/indicators-screen";
 import { CompareScreen } from "./scenarios/compare-screen";
 import { IndependenceScreen } from "./scenarios/independence-screen";
+import { PersonScreen } from "./shared/person-screen";
+import { SharedScreen } from "./shared/shared-screen";
 import { ProjectionsScreen, ReportScreen, ReportsHome, StatisticsScreen } from "./reports/reports-screens";
 import { AccountDetail } from "./accounts/account-detail";
 import { AccountsScreen } from "./accounts/accounts-screen";
@@ -155,6 +157,10 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <CompareScreen />;
     case "informes-independencia":
       return <IndependenceScreen />;
+    case "compartidos":
+      return <SharedScreen />;
+    case "compartidos-persona":
+      return <PersonScreen id={first} />;
     case "informes-patrimonio":
       return <WealthScreen />;
     case "informes-activo":

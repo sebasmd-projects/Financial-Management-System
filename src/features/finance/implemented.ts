@@ -23,6 +23,8 @@ export const IMPLEMENTED: ReadonlySet<RouteId> = new Set<RouteId>([
   "movimiento",
   "movimiento-asientos",
   "movimiento-historial",
+  "compartidos",
+  "compartidos-persona",
   "tarjeta",
   "tarjeta-extracto",
   "tarjeta-pagar",

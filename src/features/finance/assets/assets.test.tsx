@@ -174,6 +174,38 @@ describe("detalle del activo y vehículo", () => {
     expect(record.headers.get("Idempotency-Key")).toBeTruthy();
   });
 
+  it("3.6: al registrar el kilometraje el mantenimiento pasa a «ya toca» aunque la fecha siga lejos, y la lista se vuelve a pedir", async () => {
+    let logged = false;
+    const before = { ...MAINT[0], every_months: 12, last_done_km: "180000.00", status: { state: "ok", reason: null, due_on: "2027-05-01", due_km: "185000", days_left: 171, km_left: "4600" } };
+    const after = { ...before, status: { state: "due", reason: "km", due_on: "2027-05-01", due_km: "185000", days_left: 171, km_left: "0" } };
+    view = await mountScreen(<AssetDetail id="a1" />, {
+      ...routes,
+      "GET /api/fms/v1/assets/a1/maintenance": () => ({ status: 200, json: [logged ? after : before] }),
+      "POST /api/fms/v1/assets/a1/odometer": () => {
+        logged = true;
+        return { status: 200, json: { ...VEHICLE, odometer_km: "186000.00" } };
+      },
+    });
+    expect(view.host.querySelector("[data-testid=due-now]")).toBeNull();
+    expect(view.visible()).toContain("Al día");
+    // El odómetro también se actualiza desde la sección de mantenimiento.
+    const buttons = [...view.host.querySelectorAll("button")].filter((b) => b.textContent === "Actualizar kilometraje");
+    expect(buttons.length).toBeGreaterThanOrEqual(2);
+    click(buttons[1]);
+    await wait();
+    typeInto(view.host.querySelector<HTMLInputElement>("dialog input[inputmode=numeric]")!, "186.000");
+    click(byText(view.host, "dialog button", "Guardar"));
+    await wait(60);
+    const due = view.host.querySelector("[data-testid=due-now]")!;
+    expect(due.textContent).toContain("Cambio de aceite: ya toca");
+    expect(due.textContent).toContain("por kilometraje");
+    const text = view.visible();
+    expect(text).toContain("Ya toca · por kilometraje");
+    expect(text).toContain("Ya llegaste a ese kilometraje");
+    expect(text).toContain("Faltan 171 días");
+    expect(text).not.toContain("Faltan 0 km");
+  });
+
   it("agregar el SOAT crea la recurrencia anual con aviso y lleva el valor solo en el cuerpo", async () => {
     view = await mountScreen(<AssetDetail id="a1" />, {
       ...routes,

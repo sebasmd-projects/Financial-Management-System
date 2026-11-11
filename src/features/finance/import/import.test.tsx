@@ -43,6 +43,7 @@ afterEach(() => {
 const base = {
   "GET /api/fms/v1/accounts?page_size=100": page([ACCOUNT]),
   "GET /api/fms/v1/imports?page_size=20&page=1": page([]),
+  "GET /api/fms/v1/import-mappings?page_size=100": page([]),
 };
 
 function chooseFile(host: HTMLElement, file: File) {
@@ -176,6 +177,19 @@ describe("importar extracto", () => {
     click(byText(view.host, "button", "Analizar archivo"));
     await wait();
     expect(view.visible()).toContain("Los archivos con macros no se aceptan");
+  });
+
+  it("lista los mapeos guardados y permite olvidar uno", async () => {
+    view = await mountScreen(<ImportScreen />, {
+      ...base,
+      "GET /api/fms/v1/import-mappings?page_size=100": page([{ id: "m-1", kind: "csv", name: "Bancolombia", mapping: REVIEW.mapping, last_used_at: "2026-11-10T12:00:00Z" }]),
+      "DELETE /api/fms/v1/import-mappings/m-1": { status: 204 },
+    });
+    expect(view.visible()).toContain("Bancolombia");
+    expect(view.visible()).toContain("Último uso: 10/11/2026");
+    click(byText(view.host, "button", "Olvidar"));
+    await wait();
+    expect(view.mock.calls.some((c) => c.method === "DELETE" && c.url.endsWith("/import-mappings/m-1"))).toBe(true);
   });
 
   it("en inglés", async () => {

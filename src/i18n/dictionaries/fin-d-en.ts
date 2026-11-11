@@ -260,6 +260,13 @@ export const finDEn = {
       viewMovements: "View movements",
       undone: "Import undone.",
     },
+    saved: {
+      title: "Mappings saved per bank",
+      intro: "They are reused automatically when the column titles match. Forgetting one only makes the next statement ask again.",
+      lastUsed: "Last used: {date}",
+      neverUsed: "Not used yet",
+      forget: "Forget",
+    },
     history: {
       title: "Previous imports",
       empty: "You have not imported any statements yet.",

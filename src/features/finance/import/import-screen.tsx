@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useId, useState } from "react";
 import { api } from "@/api";
 import { errorText } from "@/api/errors";
-import type { Account, ImportBatch, ImportMapping, ImportPreview, ImportPreviewRow, Page } from "@/api/models";
+import type { Account, ImportBatch, ImportMapping, ImportPreview, ImportPreviewRow, ImportSavedMapping, Page } from "@/api/models";
 import { paths, roots } from "@/api/paths";
 import { formatDate } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
@@ -232,6 +232,7 @@ export function ImportScreen() {
         </Section>
       )}
 
+      <SavedMappings />
       <BatchHistory history={history} page={historyPage} onPage={setHistoryPage} onUndo={setUndoing} />
 
       <Modal open={undoing !== null} title={t.history.undoTitle} onClose={() => setUndoing(null)}>
@@ -307,5 +308,43 @@ function UndoImport({ batch, onDone, onCancel }: { batch: ImportBatch; onDone: (
         </button>
       </FormActions>
     </div>
+  );
+}
+
+/** Los mapeos que se recuerdan por banco: se reutilizan solos; aquí se pueden olvidar. */
+function SavedMappings() {
+  const { dict } = useI18n();
+  const t = dict.fin.imp.saved;
+  const list = useResource<Page<ImportSavedMapping>>(paths.importMappings());
+  const submit = useSubmit();
+  const items = list.data?.results ?? [];
+  async function forget(id: string) {
+    const outcome = await submit.run({ forget: id }, () => api.delete(paths.importMapping(id)));
+    if (outcome.ok) list.reload();
+  }
+  if (list.data && items.length === 0) return null;
+  return (
+    <Section title={t.title}>
+      <p className="muted">{t.intro}</p>
+      {list.loading && !list.data && <Loading />}
+      {list.failure && <ErrorState message={dict.fin.errors.generic} onRetry={list.reload} />}
+      {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
+      <ul className="fin-list">
+        {items.map((item) => (
+          <li key={item.id} className="fin-row fin-row--static">
+            <span className="fin-row__main">
+              <span className="fin-row__title">{item.name || item.kind.toUpperCase()}</span>
+              <span className="fin-row__sub muted">
+                {item.kind.toUpperCase()} · {item.last_used_at ? fill(t.lastUsed, { date: formatDate(item.last_used_at.slice(0, 10)) }) : t.neverUsed}
+              </span>
+            </span>
+            <button type="button" className="button button--ghost" onClick={() => void forget(item.id)} disabled={submit.pending}>
+              {t.forget}
+              <span className="visually-hidden"> {item.name}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Section>
   );
 }

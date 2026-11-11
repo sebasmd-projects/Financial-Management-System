@@ -260,6 +260,13 @@ export const finDEs = {
       viewMovements: "Ver movimientos",
       undone: "Importación deshecha.",
     },
+    saved: {
+      title: "Mapeos guardados por banco",
+      intro: "Se reutilizan solos cuando el título de las columnas coincide. Olvidar uno solo hace que el próximo extracto vuelva a preguntar.",
+      lastUsed: "Último uso: {date}",
+      neverUsed: "Sin usar todavía",
+      forget: "Olvidar",
+    },
     history: {
       title: "Importaciones anteriores",
       empty: "Aún no has importado extractos.",

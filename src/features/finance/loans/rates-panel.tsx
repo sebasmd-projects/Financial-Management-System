@@ -10,6 +10,7 @@ import { formatPercent } from "@/lib/percent";
 import { useI18n } from "@/i18n/provider";
 import { RATE_CONVENTIONS, type RateConventionCode } from "../cards/cards-screen";
 import { useResource, useSubmit } from "../hooks";
+import { UsuryRateCheck } from "../credit/usury-check";
 import { Badge, Banner, ErrorState, FormActions, Loading, Modal, Section, SelectField, TextField } from "../kit";
 
 /** Tasas con vigencia (§3.8): cada tasa lleva su fuente; una tasa corriente nueva cierra la vigente y recalcula lo pendiente. */
@@ -91,6 +92,7 @@ function RateForm({ loanId, onDone, onCancel }: { loanId: string; onDone: () => 
         <TextField label={dict.fin.loans.fields.rate} hint={dict.fin.cards.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" required error={touched && rateValue === null ? dict.fin.cards.rateInvalid : null} />
         <SelectField label={dict.fin.loans.fields.convention} value={convention} onChange={(v) => setConvention(v as RateConventionCode)} options={RATE_CONVENTIONS.map((c) => ({ value: c, label: c }))} />
       </div>
+      <UsuryRateCheck rate={rateValue} convention={convention} on={validFrom} />
       <TextField label={t.validFrom} type="date" value={validFrom} onChange={setValidFrom} required />
       <TextField label={t.source} hint={t.sourceHint} value={source} onChange={setSource} maxLength={120} required error={touched && source.trim() === "" ? dict.fin.errors.source_required : null} />
       <p className="hint">{kind === "current" ? t.recalcHint : t.lateHint}</p>

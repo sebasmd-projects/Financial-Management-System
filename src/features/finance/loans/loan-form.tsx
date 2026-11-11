@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/api";
-import type { Account, AmortizationSystem, Institution, LoanKind } from "@/api/models";
+import type { Account, AmortizationSystem, Institution, Loan, LoanKind } from "@/api/models";
 import { paths, roots } from "@/api/paths";
 import { normalizeAmountInput, percentToFraction } from "@/lib/amount-input";
 import { toInt } from "@/lib/ints";
@@ -13,13 +13,14 @@ import { RATE_CONVENTIONS, type RateConventionCode } from "../cards/cards-screen
 import { transferAccounts } from "../helpers";
 import { useAll, useResource, useSubmit } from "../hooks";
 import { AmountField, Banner, FormActions, SelectField, TextArea, TextField } from "../kit";
+import { UsuryRateCheck } from "../credit/usury-check";
 import { parseCustomCapitals } from "./loan-logic";
 
 export const LOAN_KINDS: readonly LoanKind[] = ["personal", "free_investment", "mortgage", "educational", "vehicle"];
 export const SYSTEMS: readonly AmortizationSystem[] = ["french", "constant_capital", "interest_only", "custom"];
 
 /** Alta de un préstamo (§3.8): tipo, los cuatro sistemas de amortización (nunca se supone uno), seguro, otros cargos y tasa de mora con su fuente. */
-export function LoanForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => void }) {
+export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; onCancel: () => void }) {
   const { dict, locale } = useI18n();
   const t = dict.fin.loans;
   const c = dict.fin.credit;
@@ -84,8 +85,8 @@ export function LoanForm({ onDone, onCancel }: { onDone: () => void; onCancel: (
       ...(account ? { disbursement_account_id: account } : {}),
       ...(institution ? { institution_id: toInt(institution) } : {}),
     };
-    const result = await submit.run(body, (key) => api.post(roots.loans, body, { idempotencyKey: key, locale }));
-    if (result.ok) onDone();
+    const result = await submit.run(body, (key) => api.post<Loan>(roots.loans, body, { idempotencyKey: key, locale }));
+    if (result.ok) onDone(result.data);
   }
   const req = dict.fin.common.requiredField;
   const bad = dict.fin.common.invalidAmount;
@@ -99,6 +100,7 @@ export function LoanForm({ onDone, onCancel }: { onDone: () => void; onCancel: (
         <TextField label={t.fields.rate} hint={dict.fin.cards.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" required error={touched && rateValue === null ? dict.fin.cards.rateInvalid : null} />
         <SelectField label={t.fields.convention} value={convention} onChange={(v) => setConvention(v as RateConventionCode)} options={RATE_CONVENTIONS.map((x) => ({ value: x, label: x }))} />
       </div>
+      <UsuryRateCheck rate={rateValue} convention={convention} on={disbursement} />
       <TextField label={c.form.rateSource} hint={c.form.rateSourceHint} value={rateSource} onChange={setRateSource} maxLength={120} />
       <TextField label={t.fields.term} hint={t.fields.termHint} value={term} onChange={setTerm} inputMode="numeric" maxLength={3} required error={touched && termValue === null ? t.termInvalid : null} />
       <SelectField label={t.fields.system} hint={c.form.systemHints[system]} value={system} onChange={(v) => setSystem(v as AmortizationSystem)} options={SYSTEMS.map((s) => ({ value: s, label: dict.fin.systems[s] }))} />

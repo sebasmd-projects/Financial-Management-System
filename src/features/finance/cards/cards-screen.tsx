@@ -11,6 +11,7 @@ import { formatCop } from "@/lib/money";
 import { formatDateShort, todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
+import { UsuryRateCheck } from "../credit/usury-check";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, Empty, ErrorState, FormActions, Loading, Modal, Money, Progress, Section, SelectField, TextField } from "../kit";
 
@@ -182,6 +183,7 @@ function CardForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => vo
         <TextField label={t.fields.rate} hint={t.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" error={touched && rateValue === null ? t.rateInvalid : null} />
         <SelectField label={t.fields.convention} value={convention} onChange={(v) => setConvention(v as RateConventionCode)} options={RATE_CONVENTIONS.map((c) => ({ value: c, label: c }))} />
       </div>
+      <UsuryRateCheck rate={rateValue} convention={convention} />
       <AmountField label={t.fields.owed} hint={t.fields.owedHint} value={owed} onChange={setOwed} error={touched && owedValue === null ? dict.fin.common.invalidAmount : null} />
       <TextField label={dict.fin.accounts.fields.last4} value={last4} onChange={setLast4} inputMode="numeric" maxLength={4} error={last4Bad ? dict.fin.accounts.last4Invalid : null} />
       {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}

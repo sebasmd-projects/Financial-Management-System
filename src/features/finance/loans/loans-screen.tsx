@@ -9,7 +9,7 @@ import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
 import { CreditTabs } from "../credit/credit-tabs";
 import { useAll, useHref } from "../hooks";
-import { Badge, Empty, ErrorState, Loading, Modal, Money, Progress, ScreenHeader } from "../kit";
+import { Badge, Banner, Empty, ErrorState, Loading, Modal, Money, Progress, ScreenHeader } from "../kit";
 import { LoanForm } from "./loan-form";
 
 /** Préstamos (`/creditos`, diseño §3.8): saldo, avance, próxima cuota y alta. */
@@ -19,6 +19,7 @@ export function LoansScreen() {
   const href = useHref();
   const loans = useAll<Loan>(paths.loans());
   const [creating, setCreating] = useState(false);
+  const [aboveUsury, setAboveUsury] = useState(false);
   return (
     <div className="screen">
       <ScreenHeader
@@ -32,6 +33,7 @@ export function LoansScreen() {
         }
       />
       <CreditTabs current="creditos" />
+      {aboveUsury && <Banner tone="warning">{dict.fin.usury.created}</Banner>}
       {loans.loading && !loans.data && <Loading />}
       {loans.failure && <ErrorState message={dict.fin.errors.generic} onRetry={loans.reload} />}
       {loans.data && loans.items.length === 0 && (
@@ -56,6 +58,7 @@ export function LoansScreen() {
                   <span className="fin-row__badges">
                     <Badge>{dict.fin.credit.kinds[loan.kind]}</Badge>
                     <Badge>{dict.fin.systems[loan.system] ?? loan.system}</Badge>
+                    {loan.warnings?.some((w) => w.code === "rate_above_usury") && <Badge tone="warning">{dict.fin.usury.badge}</Badge>}
                   </span>
                   <span className="fin-row__sub muted">
                     {t.balance} <Money value={loan.balance} /> {t.of} <Money value={loan.principal} />
@@ -85,8 +88,9 @@ export function LoansScreen() {
       <Modal open={creating} title={t.add} onClose={() => setCreating(false)}>
         <LoanForm
           onCancel={() => setCreating(false)}
-          onDone={() => {
+          onDone={(created) => {
             setCreating(false);
+            setAboveUsury(Boolean(created?.warnings?.some((w) => w.code === "rate_above_usury")));
             loans.reload();
           }}
         />

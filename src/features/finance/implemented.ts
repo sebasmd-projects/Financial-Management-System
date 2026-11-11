@@ -22,6 +22,7 @@ export const IMPLEMENTED: ReadonlySet<RouteId> = new Set<RouteId>([
   "movimiento-nuevo",
   "movimiento",
   "movimiento-asientos",
+  "movimiento-historial",
   "tarjeta",
   "tarjeta-extracto",
   "tarjeta-pagar",
@@ -62,5 +63,6 @@ export const IMPLEMENTED: ReadonlySet<RouteId> = new Set<RouteId>([
   "config-reglas",
   "config-parametros",
   "config-monedas",
+  "config-auditoria",
   "notificaciones",
 ]);

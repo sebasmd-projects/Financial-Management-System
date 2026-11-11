@@ -23,6 +23,7 @@ import { AccountsScreen } from "./accounts/accounts-screen";
 import { CurrenciesScreen } from "./currencies/currencies-screen";
 import { AssetDetail } from "./assets/asset-detail";
 import { WealthScreen } from "./assets/wealth-screen";
+import { AuditScreen, MovementHistory } from "./audit/audit-screen";
 import { CalendarScreen } from "./calendar/calendar-screen";
 import { CardDetail } from "./cards/card-detail";
 import { CardPay } from "./cards/card-pay";
@@ -158,6 +159,10 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <TagsScreen />;
     case "config-monedas":
       return <CurrenciesScreen />;
+    case "config-auditoria":
+      return <AuditScreen />;
+    case "movimiento-historial":
+      return <MovementHistory id={first} />;
     case "config-parametros":
       return <ParametersScreen />;
     case "config-reglas":

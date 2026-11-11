@@ -268,7 +268,7 @@ function BatchHistory({ history, page, onPage, onUndo }: { history: ReturnType<t
           {batches.map((batch) => (
             <li key={batch.id} className="fin-row fin-row--static">
               <span className="fin-row__main">
-                <span className="fin-row__title">{formatDate(batch.created_at.slice(0, 10))}</span>
+                <span className="fin-row__title">{formatDate(batch.created_at)}</span>
                 <span className="fin-row__sub muted">{fill(t.file, { name: batch.filename ?? t.noName })}</span>
                 <span className="fin-row__sub muted">{fill(t.summary, { created: String(batch.created_count), confirmed: String(batch.confirmed_count), skipped: String(batch.skipped_count) })}</span>
                 <Badge tone={batch.status === "undone" ? "neutral" : "positive"}>{t.status[batch.status]}</Badge>
@@ -335,7 +335,7 @@ function SavedMappings() {
             <span className="fin-row__main">
               <span className="fin-row__title">{item.name || item.kind.toUpperCase()}</span>
               <span className="fin-row__sub muted">
-                {item.kind.toUpperCase()} · {item.last_used_at ? fill(t.lastUsed, { date: formatDate(item.last_used_at.slice(0, 10)) }) : t.neverUsed}
+                {item.kind.toUpperCase()} · {item.last_used_at ? fill(t.lastUsed, { date: formatDate(item.last_used_at) }) : t.neverUsed}
               </span>
             </span>
             <button type="button" className="button button--ghost" onClick={() => void forget(item.id)} disabled={submit.pending}>

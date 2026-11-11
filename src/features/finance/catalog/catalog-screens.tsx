@@ -7,7 +7,9 @@ import { paths, roots } from "@/api/paths";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
 import { useAll, useSubmit } from "../hooks";
-import { Badge, Banner, Checkbox, Empty, ErrorState, FormActions, Loading, Modal, ScreenHeader, Section, Segmented, SelectField, TextField } from "../kit";
+import { Badge, Banner, Checkbox, Empty, ErrorState, FormActions, Loading, Modal, ScreenHeader, Section, Segmented, SelectField, Tabs, TextField } from "../kit";
+import { AttributesPanel } from "../classification/attributes-panel";
+import { CostCentersPanel } from "../classification/cost-centers-panel";
 
 /** Categorías (`/configuracion/categorias`): árbol de egresos e ingresos, alta, cambio de nombre y archivo (nada se borra). */
 export function CategoriesScreen() {
@@ -112,8 +114,8 @@ function CategoryForm({ category, all, onDone, onCancel }: { category: Category 
   );
 }
 
-/** Etiquetas (`/configuracion/etiquetas`): alta, cambio de nombre y archivo. */
-export function TagsScreen() {
+/** Etiquetas: alta, cambio de nombre y archivo. */
+function TagsPanel() {
   const { dict, locale } = useI18n();
   const t = dict.fin.tags;
   const tags = useAll<Named>(paths.tags());
@@ -143,17 +145,13 @@ export function TagsScreen() {
   }
 
   return (
-    <div className="screen">
-      <ScreenHeader
-        title={dict.screens["config-etiquetas"]}
-        eyebrow={dict.nav.sections.config}
-        actions={
-          <button type="button" className="button button--primary" onClick={() => open("new")}>
-            <Icon name="plus" size={20} />
-            {t.add}
-          </button>
-        }
-      />
+    <div className="fin-stack">
+      <div className="actions">
+        <button type="button" className="button button--primary" onClick={() => open("new")}>
+          <Icon name="plus" size={20} />
+          {t.add}
+        </button>
+      </div>
       {tags.loading && !tags.data && <Loading />}
       {tags.failure && <ErrorState message={dict.fin.errors.generic} onRetry={tags.reload} />}
       {tags.data && tags.items.length === 0 && <Empty title={t.emptyTitle} body={t.emptyBody} icon="list" />}
@@ -188,6 +186,26 @@ export function TagsScreen() {
           </FormActions>
         </form>
       </Modal>
+    </div>
+  );
+}
+
+/**
+ * Etiquetas (`/configuracion/etiquetas`) y, desde FMS-2b (corte 2.8, diseño §3.15), los centros de costo y los atributos
+ * personalizados: las tres formas de clasificar un movimiento además de su categoría.
+ */
+export function TagsScreen() {
+  const { dict } = useI18n();
+  const t = dict.fin.cls.tabs;
+  const [tab, setTab] = useState<"tags" | "centers" | "attributes">("tags");
+  return (
+    <div className="screen">
+      <ScreenHeader title={dict.screens["config-etiquetas"]} eyebrow={dict.nav.sections.config} />
+      <Tabs label={t.label} value={tab} onChange={setTab} tabs={[{ value: "tags", label: t.tags }, { value: "centers", label: t.centers }, { value: "attributes", label: t.attributes }]}>
+        {tab === "tags" && <TagsPanel />}
+        {tab === "centers" && <CostCentersPanel />}
+        {tab === "attributes" && <AttributesPanel />}
+      </Tabs>
     </div>
   );
 }

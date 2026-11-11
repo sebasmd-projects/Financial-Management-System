@@ -38,5 +38,6 @@ export const IMPLEMENTED: ReadonlySet<RouteId> = new Set<RouteId>([
   "config-categorias",
   "config-etiquetas",
   "config-reglas",
+  "config-parametros",
   "notificaciones",
 ]);

@@ -46,7 +46,12 @@ cd e2e && npm ci && npm test     # humo de la compuerta con la API simulada (e2e
   páginas; sin scripts ni fuentes de terceros (Sora e Inter autoalojadas).
 * **La compuerta** (`src/features/session/store.ts`) pregunta a `/api/fms/v1/me` desde el navegador; el control de acceso real
   es de la API (sesión, MFA y dueño en cada petición).
-* Los tipos de la API (`src/api/types.ts`) están escritos a mano; se sustituyen por los generados del `openapi-fms.yaml` en FMS-1.
+* Los modelos de la API salen de los tipos generados del `openapi-fms.yaml` (`npm run api:types`; `api:check` falla si no están al día).
+* **Web Push** (solo si el backend reporta VAPID): el service worker (`/_fms/sw.js`, `src/features/finance/notifications/`) solo
+  muestra avisos; no tiene `fetch`, no guarda nada y la carga del push se muestra y se descarta. Al servidor van el endpoint y las
+  claves de la suscripción. Se registra con el alcance del idioma (`/es/finanzas/`, `/en/finance/`) desde `push.ts`, el único
+  módulo que toca `navigator.serviceWorker` (lo vigila `src/guards.test.ts`).
+* «Ocultar montos» del Resumen vive solo en memoria: no se recuerda por dispositivo (eso exigiría almacenamiento del navegador).
 
 ### Rutas por idioma, SEO y nginx
 

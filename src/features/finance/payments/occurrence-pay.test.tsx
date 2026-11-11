@@ -70,7 +70,7 @@ describe("pagar una ocurrencia con ventanas de pago", () => {
   });
 
   it("sin tasa de mora con vigencia: lo dice claro, lleva a Parámetros y no inventa un total (es y en)", async () => {
-    for (const [dict, locale, title, linkPart] of [[es, "es", "Falta registrar la tasa de mora", "/es/finanzas/configuracion/parametros"], [en, "en", "The late-payment rate is missing", "/en/finance/settings/parameters"]] as const) {
+    for (const [dict, locale, title, linkPart] of [[es, "es", "Falta registrar la tasa de mora", "/es/finanzas/configuracion/parametros?clave=LATE_INTEREST_EA"], [en, "en", "The late-payment rate is missing", "/en/finance/settings/parameters?clave=LATE_INTEREST_EA"]] as const) {
       const mock = mockFetch({
         "GET /api/fms/v1/occurrences/occ-1": { status: 200, json: { ...OCCURRENCE, overdue: true, payment_state: "late", amount_due: null } },
         "GET /api/fms/v1/accounts?page_size=100": { status: 200, json: ACCOUNTS },

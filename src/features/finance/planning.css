@@ -92,3 +92,6 @@
 .recon__row input { flex: none; width: 24px; height: 24px; margin: 0; accent-color: var(--color-primary); }
 .recon__row .fin-row__main { flex: 1 1 auto; }
 .recon__nonzero { display: inline-flex; align-items: center; gap: var(--space-4); }
+
+/* ---------- Parámetros ---------- */
+.params__row { width: 100%; text-align: left; cursor: pointer; }

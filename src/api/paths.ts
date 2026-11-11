@@ -77,6 +77,7 @@ export const paths = {
   notificationPrefs: () => "/notification-prefs",
   notificationRules: () => "/notification-rules",
   parameterCatalog: () => "/parameters/catalog",
+  parameters: (key: string) => `/parameters${query({ key })}`,
   userParameters: (key?: string) => `/user-parameters${query({ key })}`,
   userParameter: (parameterId: string) => `/user-parameters/${id(parameterId)}`,
   reconciliations: (accountId?: string) => `/reconciliations${query({ account: accountId, page_size: 20 })}`,

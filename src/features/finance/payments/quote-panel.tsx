@@ -7,6 +7,7 @@ import { compareAmounts, negateAmount } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { fill } from "../helpers";
 import { useHref } from "../hooks";
+import { LATE_RATE_KEY } from "./conditions";
 import { Badge, Banner, DefinitionList, ErrorState, Loading, Money } from "../kit";
 
 /** El aviso de que falta la tasa de mora con vigencia: dice qué hacer y lleva a Parámetros. Nunca se inventa una tasa. */
@@ -21,7 +22,7 @@ export function LateRateMissing() {
       </p>
       <p>{t.lateRateMissing}</p>
       <p>
-        <Link className="button button--ghost" href={href("config-parametros")}>
+        <Link className="button button--ghost" href={`${href("config-parametros")}?clave=${LATE_RATE_KEY}`}>
           {t.lateRateMissingLink}
         </Link>
       </p>

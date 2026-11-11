@@ -11,7 +11,7 @@ import { fill } from "../helpers";
 import { useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, DefinitionList, Empty, ErrorState, FormActions, Loading, Modal, ScreenHeader, TextArea, TextField } from "../kit";
 import { LATE_RATE_KEY } from "../payments/conditions";
-import { displayValue, newValueBody, type NewValueProblems, type Unit } from "./logic";
+import { displayValue, newValueBody, type NewValueProblems, type Unit, UVR_PARAMETER } from "./logic";
 
 /** Parámetros Colombia (`/configuración/parámetros`, diseño §3.15): catálogo con valor vigente, fuente y vigencia; valores propios con fuente obligatoria. */
 export function ParametersScreen() {
@@ -49,7 +49,7 @@ export function ParametersScreen() {
                   <span className="fin-row__sub">
                     {p.value !== null ? (
                       <>
-                        <strong>{displayValue(p.unit, p.value, locale)}</strong>
+                        <strong>{displayValue(p.unit, p.value, locale, p.key)}</strong>
                         {p.valid_from ? ` · ${fill(t.from, { date: formatDate(p.valid_from) })}` : ""}
                         {p.valid_to ? ` ${fill(t.until, { date: formatDate(p.valid_to) })}` : ` · ${t.open}`}
                       </>
@@ -82,7 +82,7 @@ export function ParametersScreen() {
   );
 }
 
-function ParameterDetail({ entry, onChanged }: { entry: ParameterCatalog; onChanged: () => void }) {
+export function ParameterDetail({ entry, onChanged }: { entry: ParameterCatalog; onChanged: () => void }) {
   const { dict, locale } = useI18n();
   const t = dict.fin.params;
   const global = useResource<Parameter[]>(paths.parameters(entry.key));
@@ -132,7 +132,7 @@ function ParameterDetail({ entry, onChanged }: { entry: ParameterCatalog; onChan
           {mine.data.map((row) => (
             <li key={row.id} className="fin-row fin-row--static">
               <div className="fin-row__main">
-                <span className="fin-row__title">{displayValue(entry.unit, row.value, locale)}</span>
+                <span className="fin-row__title">{displayValue(entry.unit, row.value, locale, entry.key)}</span>
                 <span className="fin-row__sub muted">
                   {fill(t.from, { date: formatDate(row.valid_from) })} {row.valid_to ? fill(t.until, { date: formatDate(row.valid_to) }) : `· ${t.open}`}
                 </span>
@@ -192,7 +192,7 @@ function ParameterDetail({ entry, onChanged }: { entry: ParameterCatalog; onChan
           {global.data.map((row) => (
             <li key={`${row.key}-${row.valid_from}`} className="fin-row fin-row--static">
               <div className="fin-row__main">
-                <span className="fin-row__title">{displayValue(entry.unit, row.value, locale)}</span>
+                <span className="fin-row__title">{displayValue(entry.unit, row.value, locale, entry.key)}</span>
                 <span className="fin-row__sub muted">
                   {fill(t.from, { date: formatDate(row.valid_from) })} {row.valid_to ? fill(t.until, { date: formatDate(row.valid_to) }) : `· ${t.open}`}
                 </span>
@@ -218,7 +218,7 @@ function AddValueForm({ entry, onSaved, onCancel }: { entry: ParameterCatalog; o
   const [validTo, setValidTo] = useState("");
   const [source, setSource] = useState("");
   const [touched, setTouched] = useState(false);
-  const { body, problems } = newValueBody({ unit: entry.unit, value, validFrom, validTo, source });
+  const { body, problems } = newValueBody({ unit: entry.unit, key: entry.key, value, validFrom, validTo, source });
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -233,7 +233,7 @@ function AddValueForm({ entry, onSaved, onCancel }: { entry: ParameterCatalog; o
     <form onSubmit={onSubmit} noValidate className="fin-form fin-window">
       <h3 className="title-s">{t.addTitle}</h3>
       <p className="muted">{t.addIntro}</p>
-      <ValueField unit={entry.unit} value={value} onChange={setValue} problems={touched ? problems : {}} />
+      <ValueField unit={entry.unit} paramKey={entry.key} value={value} onChange={setValue} problems={touched ? problems : {}} />
       <div className="fin-grid-2">
         <TextField label={t.validFrom} type="date" value={validFrom} onChange={setValidFrom} required error={touched && problems.validFrom ? dict.fin.common.requiredField : null} />
         <TextField label={t.validTo} type="date" value={validTo} onChange={setValidTo} hint={t.validToHint} error={touched && problems.range ? t.invalidRange : null} />
@@ -257,9 +257,10 @@ function AddValueForm({ entry, onSaved, onCancel }: { entry: ParameterCatalog; o
   );
 }
 
-function ValueField({ unit, value, onChange, problems }: { unit: Unit; value: string; onChange: (v: string) => void; problems: NewValueProblems }) {
+function ValueField({ unit, paramKey, value, onChange, problems }: { unit: Unit; paramKey: string; value: string; onChange: (v: string) => void; problems: NewValueProblems }) {
   const { dict } = useI18n();
   const t = dict.fin.params;
+  if (paramKey === UVR_PARAMETER) return <TextField label={dict.fin.uvr.valueUvr} hint={dict.fin.uvr.valueUvrHint} value={value} onChange={onChange} inputMode="decimal" maxLength={20} required error={problems.value ? dict.fin.uvr.invalidUvr : null} />;
   if (unit === "amount") return <AmountField label={t.valueAmount} value={value} onChange={onChange} required error={problems.value ? t.invalidValue : null} />;
   return (
     <TextField

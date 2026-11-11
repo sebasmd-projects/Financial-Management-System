@@ -232,6 +232,7 @@ function ConfirmForm({ movement, onDone, onCancel }: { movement: Movement; onDon
 /** Anular (motivo obligatorio → reverso) y Ajustar (nuevo monto + motivo → asiento de ajuste): nunca se borra ni se retoca. */
 function ReasonForm({ kind, movement, onDone, onCancel }: { kind: "annul" | "adjust"; movement: Movement; onDone: () => void; onCancel: () => void }) {
   const { dict } = useI18n();
+  const href = useHref();
   const t = dict.fin.detail;
   const submit = useSubmit();
   const [reason, setReason] = useState("");
@@ -251,7 +252,18 @@ function ReasonForm({ kind, movement, onDone, onCancel }: { kind: "annul" | "adj
       <p className="muted">{kind === "annul" ? (movement.status === "pendiente" ? t.discardIntro : t.annulIntro) : t.adjustIntro}</p>
       {kind === "adjust" && <AmountField apiCode={submit.errorCode} label={t.newAmount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />}
       <TextArea label={t.reason} value={reason} onChange={setReason} required maxLength={280} hint={t.reasonHint} />
-      {submit.error && submit.errorCode !== "too_many_decimals" && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
+      {submit.error && submit.errorCode !== "too_many_decimals" && (
+        <Banner tone="negative" live="assertive">
+          {submit.error}
+          {/* El gasto de una compra compartida (y las transferencias a sus cuentas por cobrar) no se anulan a mano: se cancela la compra. */}
+          {submit.errorCode === "part_of_shared_purchase" && (
+            <>
+              {" "}
+              <Link href={href("compartidos")}>{dict.fin.shared.goCancel}</Link>
+            </>
+          )}
+        </Banner>
+      )}
       <Buttons pending={submit.pending} label={kind === "annul" ? (movement.status === "pendiente" ? t.discard : t.annul) : t.adjust} onCancel={onCancel} disabled={!valid} />
     </form>
   );

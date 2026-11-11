@@ -138,6 +138,20 @@ describe("Resumen", () => {
     expect(host.textContent).toContain("Te quedó en el periodo");
   });
 
+  it("una cuota en UVR sin UVR vigente: el riel y la alerta dicen «monto por definir», nunca $0, y el aviso lleva a registrar la UVR", async () => {
+    mount({
+      ...DASH,
+      rail: [{ kind: "loan_installment", name: "Hipoteca UVR", amount: null, index_missing: true, date: today, days_left: 0, state: "today", ref_kind: "loan", ref_id: "loan-uvr" }],
+      alerts: [{ kind: "due_today", severity: "warning", name: "Hipoteca UVR", amount: null, index_missing: true, date: today, ref_kind: "loan", ref_id: "loan-uvr" }],
+      notices: [{ code: "index_missing", key: "UVR_VALUE" }],
+    });
+    await wait();
+    expect(host.querySelector(".summary__rail-amount")?.textContent).toBe("monto por definir (falta la UVR)");
+    expect(host.querySelector(".summary__alert")?.textContent).toContain("monto por definir (falta la UVR)");
+    expect(host.querySelector(".summary__rail-amount")?.textContent).not.toContain("$0");
+    expect(host.querySelector('a[href="/es/finanzas/configuracion/parametros?clave=UVR_VALUE"]')?.textContent).toBe("Registrar el valor de la UVR");
+  });
+
   it("si la API falla, lo dice con «Reintentar»", async () => {
     mockFetchFail();
     await wait();

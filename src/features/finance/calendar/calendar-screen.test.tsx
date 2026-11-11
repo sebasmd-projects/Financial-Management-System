@@ -112,4 +112,27 @@ describe("calendario financiero", () => {
     await wait();
     expect(host.textContent).toContain("No pudimos cargar el calendario");
   });
+
+  it("una cuota en UVR sin UVR vigente sale como «monto por definir» y nunca como $0; el aviso enlaza a registrar la UVR", async () => {
+    const pending = { ...ITEM, name: "Hipoteca UVR", amount: null, index_missing: true, ref_id: "occ-uvr" };
+    const overduePending = { date: addDays(today, -3), name: "Cuota UVR vencida", amount: null, index_missing: true, kind: "loan_installment", ref_kind: "loan", ref_id: "loan-9", days_late: 3 };
+    mount({
+      [`GET /api/fms/v1/calendar?view=month&date=${today}`]: {
+        status: 200,
+        json: { ...CAL, days: [day(today, { items: [pending], needed: "0", balance_before: "1900000.00", balance_after: "1900000.00" })], overdue: { items: [overduePending], total: "0" }, notices: [{ code: "index_missing", key: "UVR_VALUE" }] },
+      },
+    });
+    await wait();
+    const text = visible(host);
+    expect(text).toContain("Hipoteca UVR");
+    expect(text).toContain("monto por definir (falta la UVR)");
+    expect(host.querySelector(".money--pending")).not.toBeNull();
+    expect(host.querySelector('a[href="/es/finanzas/configuracion/parametros?clave=UVR_VALUE"]')).not.toBeNull();
+    // en los vencidos también
+    act(() => [...host.querySelectorAll<HTMLInputElement>('input[type="radio"]')].find((r) => r.nextElementSibling?.textContent?.startsWith("Vencidos"))!.click());
+    await wait();
+    expect(visible(host)).toContain("Cuota UVR vencida");
+    expect([...host.querySelectorAll(".money--pending")].length).toBeGreaterThanOrEqual(1);
+    expect(visible(host)).not.toContain("Cuota UVR vencida $0");
+  });
 });

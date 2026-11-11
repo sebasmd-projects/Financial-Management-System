@@ -1,7 +1,7 @@
 import type { RouteId } from "@/nav/routes";
 
 /**
- * Las pantallas que ya existen (FMS-1, cortes 1.1–1.6, y FMS-1b, cortes 1.7–1.10). El resto de la tabla de rutas sigue siendo la pantalla de relleno de
+ * Las pantallas que ya existen (FMS-1, FMS-2 y FMS-3a: cortes 1.1 a 3.6). El resto de la tabla de rutas sigue siendo la pantalla de relleno de
  * FMS-0 hasta que su corte llegue. Es un módulo SIN `"use client"` para que la página (servidor) pueda consultarlo.
  */
 export const IMPLEMENTED: ReadonlySet<RouteId> = new Set<RouteId>([
@@ -23,6 +23,8 @@ export const IMPLEMENTED: ReadonlySet<RouteId> = new Set<RouteId>([
   "movimiento",
   "movimiento-asientos",
   "movimiento-historial",
+  "compartidos",
+  "compartidos-persona",
   "tarjeta",
   "tarjeta-extracto",
   "tarjeta-pagar",
@@ -56,6 +58,8 @@ export const IMPLEMENTED: ReadonlySet<RouteId> = new Set<RouteId>([
   "informe",
   "informes-estadisticas",
   "informes-proyecciones",
+  "informes-comparar",
+  "informes-independencia",
   "informes-patrimonio",
   "informes-activo",
   "config-categorias",

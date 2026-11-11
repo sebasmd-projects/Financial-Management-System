@@ -9,7 +9,7 @@ import { parsePositiveAmount } from "@/lib/amount-input";
 import { formatDate, todayBogota } from "@/lib/dates";
 import { formatKm } from "@/lib/decimal";
 import { toInt } from "@/lib/ints";
-import { absAmount, isNegativeAmount } from "@/lib/money";
+import { absAmount, isNegativeAmount, isZeroAmount } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
 import { DrillLink } from "../drill-link";
@@ -22,28 +22,45 @@ type Notice = (text: string) => void;
 
 /** El vehículo (diseño §3.13): odómetro, costos anuales como recurrencias con aviso, mantenimiento por fecha o kilometraje y costo por mes y por km. */
 export function VehicleSection({ asset, vehicle, onChanged }: { asset: Asset; vehicle: Vehicle; onChanged: () => void }) {
+  const { dict } = useI18n();
+  const t = dict.fin.assets.vehicle;
   const [notice, setNotice] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  // Subir el odómetro cambia el estado de TODOS los mantenimientos («lo que ocurra primero»): la lista se vuelve a pedir.
+  const [odometerVersion, setOdometerVersion] = useState(0);
   return (
     <div className="fin-stack" data-testid="vehicle-section">
       {notice && <Banner tone="positive">{notice}</Banner>}
-      <VehicleInfo asset={asset} vehicle={vehicle} onChanged={onChanged} notice={setNotice} />
+      <VehicleInfo vehicle={vehicle} onOdometer={() => setEditing(true)} />
       <CostSummary asset={asset} />
       <AnnualCosts asset={asset} notice={setNotice} />
-      <MaintenanceList asset={asset} vehicle={vehicle} notice={setNotice} onChanged={onChanged} />
+      <MaintenanceList key={odometerVersion} asset={asset} vehicle={vehicle} notice={setNotice} onChanged={onChanged} onOdometer={() => setEditing(true)} />
+      <Modal open={editing} title={t.odometerTitle} onClose={() => setEditing(false)}>
+        <OdometerForm
+          assetId={asset.id}
+          current={vehicle.odometer_km}
+          onCancel={() => setEditing(false)}
+          onDone={() => {
+            setEditing(false);
+            setNotice(t.odometerSaved);
+            setOdometerVersion((v) => v + 1);
+            onChanged();
+          }}
+        />
+      </Modal>
     </div>
   );
 }
 
-function VehicleInfo({ asset, vehicle, onChanged, notice }: { asset: Asset; vehicle: Vehicle; onChanged: () => void; notice: Notice }) {
+function VehicleInfo({ vehicle, onOdometer }: { vehicle: Vehicle; onOdometer: () => void }) {
   const { dict } = useI18n();
   const t = dict.fin.assets.vehicle;
-  const [editing, setEditing] = useState(false);
   const brandModel = [vehicle.brand, vehicle.model].filter(Boolean).join(" ");
   return (
     <Section
       title={t.title}
       aside={
-        <button type="button" className="button button--ghost" onClick={() => setEditing(true)}>
+        <button type="button" className="button button--ghost" onClick={onOdometer}>
           {t.updateOdometer}
         </button>
       }
@@ -56,18 +73,6 @@ function VehicleInfo({ asset, vehicle, onChanged, notice }: { asset: Asset; vehi
           { label: t.odometer, value: <span className="tabular" data-testid="odometer">{fill(t.odometerOn, { km: formatKm(vehicle.odometer_km), date: formatDate(vehicle.odometer_on) })}</span> },
         ]}
       />
-      <Modal open={editing} title={t.odometerTitle} onClose={() => setEditing(false)}>
-        <OdometerForm
-          assetId={asset.id}
-          current={vehicle.odometer_km}
-          onCancel={() => setEditing(false)}
-          onDone={() => {
-            setEditing(false);
-            notice(t.odometerSaved);
-            onChanged();
-          }}
-        />
-      </Modal>
     </Section>
   );
 }
@@ -254,13 +259,15 @@ function CostForm({ assetId, onDone, onCancel }: { assetId: string; onDone: () =
 
 const STATE_TONE = { ok: "positive", soon: "warning", due: "warning", overdue: "negative" } as const;
 
-function MaintenanceList({ asset, vehicle, notice, onChanged }: { asset: Asset; vehicle: Vehicle; notice: Notice; onChanged: () => void }) {
+function MaintenanceList({ asset, vehicle, notice, onChanged, onOdometer }: { asset: Asset; vehicle: Vehicle; notice: Notice; onChanged: () => void; onOdometer: () => void }) {
   const { dict } = useI18n();
   const t = dict.fin.assets.vehicle;
   const list = useResource<Maintenance[]>(paths.assetMaintenance(asset.id));
   const [adding, setAdding] = useState(false);
   const [recording, setRecording] = useState<Maintenance | null>(null);
   const items = list.data ?? [];
+  // «Ya toca»: lo que se cumplió primero, por fecha o por kilometraje (aunque la fecha siga lejos).
+  const toDo = items.filter((item) => item.active && (item.status.state === "due" || item.status.state === "overdue"));
   return (
     <Section
       title={t.maintenanceTitle}
@@ -274,6 +281,19 @@ function MaintenanceList({ asset, vehicle, notice, onChanged }: { asset: Asset; 
       {list.loading && !list.data && <Loading />}
       {list.failure && <ErrorState message={dict.fin.errors.generic} onRetry={list.reload} />}
       {list.data && items.length === 0 && <Empty icon="calendar" title={t.maintenanceEmpty} />}
+      {items.length > 0 && <p className="hint">{fill(t.odometerHint, { km: formatKm(vehicle.odometer_km) })} <button type="button" className="button button--ghost" onClick={onOdometer}>{t.updateOdometer}</button></p>}
+      {toDo.length > 0 && (
+        <Banner tone="warning" live="polite">
+          <ul data-testid="due-now">
+            {toDo.map((item) => (
+              <li key={item.id}>
+                <strong>{fill(t.dueNow, { name: item.name })}</strong>
+                {item.status.reason ? ` · ${t.reasons[item.status.reason]}` : ""}
+              </li>
+            ))}
+          </ul>
+        </Banner>
+      )}
       {items.length > 0 && (
         <ul className="fin-list">
           {items.map((item) => (
@@ -345,7 +365,7 @@ function MaintenanceRow({ item, onRecord, onChanged }: { item: Maintenance; onRe
             {status.due_km && (
               <span className="fin-row__sub muted">
                 {fill(t.dueKm, { km: formatKm(status.due_km) })}
-                {status.km_left !== null ? ` · ${isNegativeAmount(status.km_left) ? fill(t.kmOver, { km: formatKm(absAmount(status.km_left)) }) : fill(t.kmLeft, { km: formatKm(status.km_left) })}` : ""}
+                {status.km_left !== null ? ` · ${isNegativeAmount(status.km_left) ? fill(t.kmOver, { km: formatKm(absAmount(status.km_left)) }) : isZeroAmount(status.km_left) ? t.kmReached : fill(t.kmLeft, { km: formatKm(status.km_left) })}` : ""}
               </span>
             )}
           </>

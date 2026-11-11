@@ -12,6 +12,7 @@ import { setDraft } from "../draft-store";
 import { fill, relativeDays } from "../helpers";
 import { useHref, useResource } from "../hooks";
 import { Badge, DefinitionList, Empty, ErrorState, HiddenAmountsContext, Loading, Modal, Money, Progress, ScreenHeader, Section, Slots } from "../kit";
+import { AmountOrPending, IndexNoticeBanner, PendingAmount } from "../uvr/pending";
 import { alertTarget, barSegments, clampIndex, isFirstUse, railTarget } from "./logic";
 
 const PERIODS_BACK = 11;
@@ -63,6 +64,7 @@ export function SummaryScreen() {
 
         {data.loading && !d && <Loading />}
         {data.failure && <ErrorState message={t.loadError} onRetry={data.reload} />}
+        {d && <IndexNoticeBanner notices={d.notices} />}
         {d && (
           <div className={`summary__grid${data.loading ? " fin-stale" : ""}`}>
             <KpiCard d={d} past={past} onLeft={() => setSheet("left")} onLiquidity={() => setSheet("liquidity")} />
@@ -227,7 +229,7 @@ function Rail({ items }: { items: readonly RailItem[] }) {
                     <span>{item.name}</span>
                   </span>
                   <span className="summary__rail-amount">
-                    <Money value={item.amount} />
+                    <AmountOrPending value={item.amount} />
                   </span>
                   <span className="summary__rail-date muted">
                     {fill(item.kind === "card_cut" ? t.railCut : t.railDue, { date: formatDateShort(item.date) })} · {rel}
@@ -393,6 +395,12 @@ function Alerts({ d }: { d: Dashboard }) {
           <>
             {" · "}
             <Money value={alert.amount} />
+          </>
+        )}
+        {alert.amount === null && alert.index_missing && (
+          <>
+            {" · "}
+            <PendingAmount />
           </>
         )}
       </Link>

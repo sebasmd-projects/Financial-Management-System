@@ -7,6 +7,7 @@ import { paths } from "@/api/paths";
 import { useI18n } from "@/i18n/provider";
 import { useHref, useResource, useSubmit } from "../hooks";
 import { Banner, Checkbox, ErrorState, FormActions, Loading, ScreenHeader, TextField } from "../kit";
+import { CustomRules } from "../automation/custom-rules";
 import { isTime, offsetsText, parseOffsets, timeInput } from "./logic";
 
 interface Draft {
@@ -33,6 +34,7 @@ export function RulesScreen() {
       {rules.failure && <ErrorState message={dict.fin.errors.generic} onRetry={rules.reload} />}
       {rules.data && <RulesForm rules={rules.data} onSaved={rules.reload} />}
       <p className="muted">{t.rulesIntro}</p>
+      <CustomRules />
     </div>
   );
 }

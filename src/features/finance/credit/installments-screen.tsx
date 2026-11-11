@@ -5,10 +5,12 @@ import { useState } from "react";
 import type { CreditInstallment, Page } from "@/api/models";
 import { paths } from "@/api/paths";
 import { daysBetween, formatDate, todayBogota } from "@/lib/dates";
+import { formatRate, formatUnits } from "@/lib/decimal";
 import { useI18n } from "@/i18n/provider";
 import { relativeDays } from "../helpers";
 import { useHref, useResource } from "../hooks";
 import { Badge, Empty, ErrorState, Loading, Money, Pager, ScreenHeader, Segmented } from "../kit";
+import { AmountOrPending } from "../uvr/pending";
 import { CreditTabs } from "./credit-tabs";
 
 type State = "open" | "overdue" | "paid" | "all";
@@ -52,14 +54,26 @@ export function InstallmentsScreen() {
                   <span className="fin-row__sub muted">
                     {t.number.replace("{n}", String(row.number))} · {formatDate(row.due_date)} ({relativeDays(daysBetween(today, row.due_date), dict.fin.relative)})
                   </span>
-                  <span className="fin-row__sub muted">
-                    {dict.fin.loans.split.capital} <Money value={row.capital} /> · {dict.fin.loans.split.interest} <Money value={row.interest} />
-                    {row.insurance !== "0.00" && row.insurance !== "0" ? (
-                      <>
-                        {" "}· {dict.fin.loans.split.insurance} <Money value={row.insurance} />
-                      </>
-                    ) : null}
-                  </span>
+                  {row.unit === "UVR" ? (
+                    <span className="fin-row__sub muted">
+                      {dict.fin.loans.split.capital} {formatUnits(row.capital, "UVR")} · {dict.fin.loans.split.interest} {formatUnits(row.interest, "UVR")}
+                      {row.insurance !== "0.00" && row.insurance !== "0" ? ` · ${dict.fin.loans.split.insurance} ${formatUnits(row.insurance, "UVR")}` : ""}
+                    </span>
+                  ) : (
+                    <span className="fin-row__sub muted">
+                      {dict.fin.loans.split.capital} <Money value={row.capital} /> · {dict.fin.loans.split.interest} <Money value={row.interest} />
+                      {row.insurance !== "0.00" && row.insurance !== "0" ? (
+                        <>
+                          {" "}· {dict.fin.loans.split.insurance} <Money value={row.insurance} />
+                        </>
+                      ) : null}
+                    </span>
+                  )}
+                  {row.unit === "UVR" && (
+                    <span className="fin-row__sub muted">
+                      {row.uvr_value && row.uvr_on ? dict.fin.uvr.estimateWith.replace("{uvr}", formatRate(row.uvr_value)).replace("{date}", formatDate(row.uvr_on)) : dict.fin.uvr.noUvrYet}
+                    </span>
+                  )}
                   <span className="fin-row__badges">
                     <Badge>{t.kinds[row.kind]}</Badge>
                     {row.state === "overdue" && <Badge tone="negative">{t.states.overdue}</Badge>}
@@ -68,7 +82,14 @@ export function InstallmentsScreen() {
                   </span>
                 </span>
                 <span className="fin-row__amount">
-                  <Money value={row.total} />
+                  {row.unit === "UVR" ? (
+                    <>
+                      <AmountOrPending value={row.peso_total ?? null} estimated />
+                      <span className="fin-row__sub muted tabular">{formatUnits(row.total, "UVR")}</span>
+                    </>
+                  ) : (
+                    <Money value={row.total} />
+                  )}
                 </span>
               </Link>
             </li>

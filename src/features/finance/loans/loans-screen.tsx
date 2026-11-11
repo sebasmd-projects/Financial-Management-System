@@ -5,11 +5,13 @@ import { useState } from "react";
 import type { Loan } from "@/api/models";
 import { paths } from "@/api/paths";
 import { formatDate } from "@/lib/dates";
+import { formatUnits } from "@/lib/decimal";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
 import { CreditTabs } from "../credit/credit-tabs";
 import { useAll, useHref } from "../hooks";
 import { Badge, Banner, Empty, ErrorState, Loading, Modal, Money, Progress, ScreenHeader } from "../kit";
+import { indexOf, isUvr } from "../uvr/logic";
 import { LoanForm } from "./loan-form";
 
 /** Préstamos (`/creditos`, diseño §3.8): saldo, avance, próxima cuota y alta. */
@@ -58,16 +60,18 @@ export function LoansScreen() {
                   <span className="fin-row__badges">
                     <Badge>{dict.fin.credit.kinds[loan.kind]}</Badge>
                     <Badge>{dict.fin.systems[loan.system] ?? loan.system}</Badge>
+                    {isUvr(loan) && <Badge tone="info">{dict.fin.uvr.units.UVR}</Badge>}
+                    {indexOf(loan) && <Badge tone="info">{dict.fin.uvr.variableBadge}</Badge>}
                     {loan.warnings?.some((w) => w.code === "rate_above_usury") && <Badge tone="warning">{dict.fin.usury.badge}</Badge>}
                   </span>
                   <span className="fin-row__sub muted">
-                    {t.balance} <Money value={loan.balance} /> {t.of} <Money value={loan.principal} />
+                    {t.balance} <Money value={loan.balance} /> {t.of} {isUvr(loan) ? <span className="tabular">{formatUnits(loan.principal, "UVR")}</span> : <Money value={loan.principal} />}
                   </span>
                   <Progress percent={loan.paid_percent} label={`${t.paidPercent}: ${loan.paid_percent}%`} tone="positive" />
                   <span className="fin-row__sub muted">
                     {loan.next_installment ? (
                       <>
-                        {t.installment} <Money value={loan.next_installment.payment} /> · {t.next} {formatDate(loan.next_installment.adjusted_due_date)}
+                        {t.installment} {isUvr(loan) ? <span className="tabular">{formatUnits(loan.next_installment.payment, "UVR")}</span> : <Money value={loan.next_installment.payment} />} · {t.next} {formatDate(loan.next_installment.adjusted_due_date)}
                       </>
                     ) : (
                       t.noNext

@@ -15,6 +15,7 @@ import { useHref, useResource } from "../hooks";
 import { Banner, Empty, ErrorState, Loading, Money, ScreenHeader, Segmented, SelectField, Section, Tabs, TextField } from "../kit";
 import { ANT_THRESHOLDS, DEFAULT_ANT_THRESHOLD, isReportKey, REPORT_KEYS, reportRoute, signedPercentToFraction, type ProjectionOptions } from "./logic";
 import { ReportView } from "./report-view";
+import { ProjectionTabs } from "../scenarios/scenario-tabs";
 
 /** `/informes`: el catálogo de los informes (los 10 del propietario más Estadísticas y Gastos hormiga). */
 export function ReportsHome() {
@@ -166,6 +167,7 @@ export function ProjectionsScreen() {
   return (
     <div className="screen">
       <ScreenHeader title={dict.screens["informes-proyecciones"]} eyebrow={dict.screens.informes} back={{ href: href("informes"), label: dict.screens.informes }} />
+      <ProjectionTabs current="informes-proyecciones" />
       <Banner tone="warning" live="off">{t.estimateNote}</Banner>
       <Segmented legend={t.scenario} value={scenario} onChange={(v) => { setScenario(v as ReportScenario); reset(); }} options={SCENARIOS.map((s) => ({ value: s, label: t.scenarios[s] }))} />
       <div className="fin-grid-2">

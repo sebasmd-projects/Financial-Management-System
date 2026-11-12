@@ -45,6 +45,7 @@ paths:
       tags:
       - accounts
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -64,7 +65,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsAccountCreate
       description: |-
@@ -89,6 +91,7 @@ paths:
               $ref: '#/components/schemas/AccountCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -120,7 +123,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -150,6 +154,7 @@ paths:
       tags:
       - accounts
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -169,7 +174,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -198,6 +204,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedAccountPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -223,7 +230,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -259,6 +267,7 @@ paths:
               $ref: '#/components/schemas/ShareAccount'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -284,7 +293,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -314,6 +324,7 @@ paths:
               $ref: '#/components/schemas/FmsActivationRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -368,6 +379,7 @@ paths:
       tags:
       - assets
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -393,7 +405,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsAssetCreate
       description: |-
@@ -418,6 +431,7 @@ paths:
               $ref: '#/components/schemas/AssetCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -449,7 +463,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -485,6 +500,7 @@ paths:
       tags:
       - assets
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -504,7 +520,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -533,6 +550,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedAssetPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -558,7 +576,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -583,6 +602,7 @@ paths:
       tags:
       - assets
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -602,7 +622,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -633,6 +654,7 @@ paths:
       tags:
       - assets
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -654,7 +676,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -697,6 +720,7 @@ paths:
               $ref: '#/components/schemas/VehicleCostCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -728,7 +752,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -765,6 +790,7 @@ paths:
       tags:
       - assets
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -786,7 +812,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -828,6 +855,7 @@ paths:
               $ref: '#/components/schemas/MaintenanceCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -859,7 +887,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -901,6 +930,7 @@ paths:
               $ref: '#/components/schemas/VehicleOdometer'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -926,7 +956,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -970,6 +1001,7 @@ paths:
       tags:
       - assets
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -995,7 +1027,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -1032,6 +1065,7 @@ paths:
               $ref: '#/components/schemas/AssetValuationCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -1063,7 +1097,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -1132,6 +1167,7 @@ paths:
       tags:
       - audit
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1167,6 +1203,7 @@ paths:
       tags:
       - audit
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1198,6 +1235,7 @@ paths:
       tags:
       - automation
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1217,7 +1255,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/automation/rules:
     get:
       operationId: fmsCustomRules
@@ -1237,6 +1276,7 @@ paths:
       tags:
       - automation
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1262,7 +1302,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsCustomRuleCreate
       description: |-
@@ -1287,6 +1328,7 @@ paths:
               $ref: '#/components/schemas/CustomRuleCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -1318,7 +1360,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -1342,6 +1385,7 @@ paths:
       tags:
       - automation
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1361,7 +1405,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -1389,6 +1434,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedCustomRulePatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1414,7 +1460,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -1443,6 +1490,7 @@ paths:
       tags:
       - automation
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -1458,7 +1506,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -1495,6 +1544,7 @@ paths:
             schema:
               $ref: '#/components/schemas/RuleTestRequest'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1526,7 +1576,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -1555,6 +1606,7 @@ paths:
               $ref: '#/components/schemas/RulePreviewRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1580,7 +1632,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -1609,6 +1662,7 @@ paths:
       tags:
       - budgets
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1634,7 +1688,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsBudgetCreate
       description: |-
@@ -1658,6 +1713,7 @@ paths:
               $ref: '#/components/schemas/BudgetCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -1689,7 +1745,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -1724,6 +1781,7 @@ paths:
       tags:
       - budgets
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1749,7 +1807,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -1777,6 +1836,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedBudgetPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1802,7 +1862,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -1836,6 +1897,7 @@ paths:
       tags:
       - budgets
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1861,7 +1923,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -1878,6 +1941,7 @@ paths:
       tags:
       - budgets
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1897,7 +1961,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/calendar:
     get:
       operationId: fmsCalendar
@@ -1925,6 +1990,7 @@ paths:
       tags:
       - calendar
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1950,7 +2016,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/cards:
     get:
       operationId: fmsCards
@@ -1971,6 +2038,7 @@ paths:
       tags:
       - cards
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -1990,7 +2058,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsCardCreate
       description: |-
@@ -2014,6 +2083,7 @@ paths:
               $ref: '#/components/schemas/CardCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -2045,7 +2115,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2075,6 +2146,7 @@ paths:
       tags:
       - cards
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -2094,7 +2166,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2122,6 +2195,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedCardPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -2147,7 +2221,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2191,6 +2266,7 @@ paths:
               $ref: '#/components/schemas/Advance'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -2222,7 +2298,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2266,6 +2343,7 @@ paths:
               $ref: '#/components/schemas/Charge'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -2297,7 +2375,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2333,6 +2412,7 @@ paths:
             schema:
               $ref: '#/components/schemas/Interest'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -2358,7 +2438,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2396,6 +2477,7 @@ paths:
               $ref: '#/components/schemas/CardPay'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -2427,7 +2509,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2463,6 +2546,7 @@ paths:
       tags:
       - cards
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -2484,7 +2568,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2522,6 +2607,7 @@ paths:
               $ref: '#/components/schemas/PurchaseCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -2553,7 +2639,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2590,6 +2677,7 @@ paths:
               $ref: '#/components/schemas/Simulate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -2615,7 +2703,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2650,6 +2739,7 @@ paths:
       tags:
       - cards
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -2675,7 +2765,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2709,6 +2800,7 @@ paths:
       tags:
       - categories
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -2728,7 +2820,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsCategoryCreate
       description: |-
@@ -2753,6 +2846,7 @@ paths:
               $ref: '#/components/schemas/CategoryCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -2784,7 +2878,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2820,6 +2915,7 @@ paths:
       tags:
       - categories
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -2839,7 +2935,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2867,6 +2964,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedCategoryPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -2892,7 +2990,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -2924,6 +3023,7 @@ paths:
       tags:
       - cost-centers
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -2943,7 +3043,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsCostCenterCreate
       description: |-
@@ -2968,6 +3069,7 @@ paths:
               $ref: '#/components/schemas/NamedCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -2999,7 +3101,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '409':
           content:
             application/json:
@@ -3034,6 +3137,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedNamedPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3059,7 +3163,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -3089,6 +3194,7 @@ paths:
       tags:
       - cost-centers
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3110,7 +3216,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/cost-centers/usage:
     get:
       operationId: fmsCostCenterUsage
@@ -3131,6 +3238,7 @@ paths:
       tags:
       - cost-centers
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3156,7 +3264,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/counterparties:
     get:
       operationId: fmsCounterparties
@@ -3176,6 +3285,7 @@ paths:
       tags:
       - counterparties
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3195,7 +3305,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsCounterpartyCreate
       description: |-
@@ -3220,6 +3331,7 @@ paths:
               $ref: '#/components/schemas/NamedCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -3251,7 +3363,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '409':
           content:
             application/json:
@@ -3286,6 +3399,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedNamedPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3311,7 +3425,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -3363,6 +3478,7 @@ paths:
       tags:
       - credit
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3388,7 +3504,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/credit/interest:
     get:
       operationId: fmsCreditInterest
@@ -3409,6 +3526,7 @@ paths:
       tags:
       - credit
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3434,7 +3552,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/currencies:
     get:
       operationId: fmsCurrencies
@@ -3446,6 +3565,7 @@ paths:
       tags:
       - currencies
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3467,7 +3587,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/currencies/consolidation:
     get:
       operationId: fmsCurrencyConsolidation
@@ -3488,6 +3609,7 @@ paths:
       tags:
       - currencies
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3513,7 +3635,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/custom-attributes:
     get:
       operationId: fmsCustomAttributes
@@ -3533,6 +3656,7 @@ paths:
       tags:
       - custom-attributes
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3558,7 +3682,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsCustomAttributeCreate
       description: |-
@@ -3583,6 +3708,7 @@ paths:
               $ref: '#/components/schemas/CustomAttributeCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -3614,7 +3740,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '409':
           content:
             application/json:
@@ -3644,6 +3771,7 @@ paths:
       tags:
       - custom-attributes
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3663,7 +3791,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -3692,6 +3821,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedCustomAttributePatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3717,7 +3847,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -3753,6 +3884,7 @@ paths:
       tags:
       - dashboard
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3778,7 +3910,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/debts:
     get:
       operationId: fmsDebts
@@ -3808,6 +3941,7 @@ paths:
       tags:
       - debts
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3833,7 +3967,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsDebtCreate
       description: |-
@@ -3858,6 +3993,7 @@ paths:
               $ref: '#/components/schemas/DebtCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -3889,7 +4025,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -3919,6 +4056,7 @@ paths:
       tags:
       - debts
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3938,7 +4076,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -3966,6 +4105,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedDebtPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -3991,7 +4131,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4021,6 +4162,7 @@ paths:
       tags:
       - debts
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4040,7 +4182,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4077,6 +4220,7 @@ paths:
               $ref: '#/components/schemas/DebtPay'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -4108,7 +4252,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4150,6 +4295,7 @@ paths:
       tags:
       - debts
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4169,7 +4315,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4186,6 +4333,7 @@ paths:
       tags:
       - debts
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4205,7 +4353,89 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/devices:
+    get:
+      operationId: fmsDevices
+      description: Base de todo endpoint del FMS que necesita sesión.
+      summary: Tus dispositivos con la sesión de la app abierta (plataforma, modelo,
+        versión y último uso por hora)
+      tags:
+      - devices
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsDevices'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsError'
+          description: ''
+  /api/fms/v1/devices/{id}:
+    delete:
+      operationId: fmsDeviceRevoke
+      description: Base de todo endpoint del FMS que necesita sesión.
+      summary: Cerrar la sesión de un dispositivo (el propio equivale a cerrar sesión;
+        otro exige reautenticación reciente)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - devices
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsError'
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsError'
+          description: No es tuyo o no existe.
+  /api/fms/v1/devices/revoke-others:
+    post:
+      operationId: fmsDevicesRevokeOthers
+      description: Base de todo endpoint del FMS que necesita sesión.
+      summary: Cerrar la sesión de todos los dispositivos menos este (desde la web,
+        de todos los de la app); exige reautenticación reciente
+      tags:
+      - devices
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsRevoked'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsError'
+          description: ''
   /api/fms/v1/entries:
     get:
       operationId: fmsEntries
@@ -4245,6 +4475,7 @@ paths:
       tags:
       - entries
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4270,7 +4501,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/entries/{id}:
     get:
       operationId: fmsEntry
@@ -4288,6 +4520,7 @@ paths:
       tags:
       - entries
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4307,7 +4540,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4345,6 +4579,7 @@ paths:
               $ref: '#/components/schemas/EntryAdjust'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -4376,7 +4611,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4419,6 +4655,7 @@ paths:
               $ref: '#/components/schemas/EntryAnnul'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4444,7 +4681,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4475,6 +4713,7 @@ paths:
       tags:
       - entries
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4494,7 +4733,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4524,6 +4764,7 @@ paths:
       tags:
       - entries
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4543,7 +4784,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4579,6 +4821,7 @@ paths:
       tags:
       - exchange-rates
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4604,7 +4847,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsExchangeRateCreate
       description: |-
@@ -4629,6 +4873,7 @@ paths:
               $ref: '#/components/schemas/ExchangeRateCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -4660,7 +4905,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '409':
           content:
             application/json:
@@ -4696,6 +4942,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedExchangeRatePatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4721,7 +4968,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4751,6 +4999,7 @@ paths:
       tags:
       - exchange-rates
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -4766,7 +5015,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4790,6 +5040,7 @@ paths:
       tags:
       - fixed-expenses
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4815,7 +5066,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/fx/quote:
     get:
       operationId: fmsFxQuote
@@ -4843,6 +5095,7 @@ paths:
       tags:
       - fx
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4868,7 +5121,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -4886,6 +5140,7 @@ paths:
       tags:
       - goals
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -4905,7 +5160,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsGoalCreate
       description: |-
@@ -4930,6 +5186,7 @@ paths:
               $ref: '#/components/schemas/GoalCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -4961,7 +5218,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -4991,6 +5249,7 @@ paths:
       tags:
       - goals
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5010,7 +5269,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5038,6 +5298,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedGoalPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5063,7 +5324,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5106,6 +5368,7 @@ paths:
               $ref: '#/components/schemas/GoalContribute'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -5137,7 +5400,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5188,6 +5452,7 @@ paths:
       tags:
       - household-invitations
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5207,7 +5472,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5236,6 +5502,7 @@ paths:
       tags:
       - household-invitations
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -5251,7 +5518,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5273,6 +5541,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5292,7 +5561,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsHouseholdCreate
       description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
@@ -5315,6 +5585,7 @@ paths:
               $ref: '#/components/schemas/HouseholdCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -5340,7 +5611,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '409':
           content:
             application/json:
@@ -5369,6 +5641,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5388,7 +5661,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5416,6 +5690,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedHouseholdRename'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5441,7 +5716,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5497,6 +5773,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5516,7 +5793,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsAccountCreate_2
       description: |-
@@ -5547,6 +5825,7 @@ paths:
               $ref: '#/components/schemas/AccountCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -5578,7 +5857,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5614,6 +5894,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5633,7 +5914,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5668,6 +5950,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedAccountPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5693,7 +5976,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5729,6 +6013,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5748,7 +6033,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5794,6 +6080,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5813,7 +6100,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsCategoryCreate_2
       description: |-
@@ -5844,6 +6132,7 @@ paths:
               $ref: '#/components/schemas/CategoryCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -5875,7 +6164,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5917,6 +6207,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5936,7 +6227,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -5970,6 +6262,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedCategoryPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -5995,7 +6288,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -6033,6 +6327,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -6052,7 +6347,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsCostCenterCreate_2
       description: |-
@@ -6083,6 +6379,7 @@ paths:
               $ref: '#/components/schemas/NamedCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -6114,7 +6411,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '409':
           content:
             application/json:
@@ -6155,6 +6453,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedNamedPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -6180,7 +6479,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -6217,6 +6517,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -6238,7 +6539,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/cost-centers/usage:
     get:
       operationId: fmsCostCenterUsage_2
@@ -6265,6 +6567,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -6290,7 +6593,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/counterparties:
     get:
       operationId: fmsCounterparties_2
@@ -6316,6 +6620,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -6335,7 +6640,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsCounterpartyCreate_2
       description: |-
@@ -6366,6 +6672,7 @@ paths:
               $ref: '#/components/schemas/NamedCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -6397,7 +6704,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '409':
           content:
             application/json:
@@ -6438,6 +6746,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedNamedPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -6463,7 +6772,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -6512,6 +6822,7 @@ paths:
               $ref: '#/components/schemas/CrossTransfer'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -6537,7 +6848,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -6584,6 +6896,7 @@ paths:
               $ref: '#/components/schemas/CrossAnnul'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -6605,7 +6918,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -6641,6 +6955,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -6666,14 +6981,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/delete:
     post:
       operationId: fmsHouseholdDelete
       description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
         decide); las de datos exigen escritura.'
       summary: 'Borrar el hogar: sus datos y su llave se destruyen (crypto-shredding).
-        Solo el propietario'
+        Solo el propietario; exige reautenticación reciente'
       parameters:
       - in: path
         name: household_id
@@ -6690,6 +7006,7 @@ paths:
               $ref: '#/components/schemas/DeleteHousehold'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -6711,7 +7028,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -6763,6 +7081,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -6788,7 +7107,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/entries/{id}:
     get:
       operationId: fmsEntry_2
@@ -6812,6 +7132,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -6831,7 +7152,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -6875,6 +7197,7 @@ paths:
               $ref: '#/components/schemas/EntryAdjust'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -6906,7 +7229,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -6955,6 +7279,7 @@ paths:
               $ref: '#/components/schemas/EntryAnnul'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -6980,7 +7305,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7017,6 +7343,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -7036,7 +7363,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7072,6 +7400,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -7091,7 +7420,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7127,6 +7457,7 @@ paths:
               $ref: '#/components/schemas/Invite'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '202':
@@ -7152,7 +7483,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7193,6 +7525,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -7208,7 +7541,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7231,6 +7565,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -7246,7 +7581,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7277,6 +7613,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -7296,7 +7633,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/liquidity:
     get:
       operationId: fmsLiquidity
@@ -7327,6 +7665,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -7352,7 +7691,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/members/{user_id}:
     patch:
       operationId: fmsHouseholdMemberRole
@@ -7380,6 +7720,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedRole'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -7405,7 +7746,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7429,7 +7771,7 @@ paths:
       description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
         decide); las de datos exigen escritura.'
       summary: 'Expulsar a un miembro: pierde el acceso al instante y la llave del
-        hogar se rota'
+        hogar se rota (exige reautenticación reciente)'
       parameters:
       - in: path
         name: household_id
@@ -7445,6 +7787,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -7460,7 +7803,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7578,6 +7922,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -7603,7 +7948,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsMovementCreate
       description: |-
@@ -7634,6 +7980,7 @@ paths:
               $ref: '#/components/schemas/MovementCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -7665,7 +8012,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7701,6 +8049,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -7720,7 +8069,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7755,6 +8105,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedMovementPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -7780,7 +8131,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7836,6 +8188,7 @@ paths:
               $ref: '#/components/schemas/MovementAdjust'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -7861,7 +8214,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7910,6 +8264,7 @@ paths:
               $ref: '#/components/schemas/MovementAnnul'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -7935,7 +8290,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -7977,6 +8333,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -7998,7 +8355,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -8041,6 +8399,7 @@ paths:
               $ref: '#/components/schemas/AttachmentUpload'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -8072,7 +8431,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -8120,6 +8480,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8140,7 +8501,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -8175,6 +8537,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -8190,7 +8553,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -8225,6 +8589,7 @@ paths:
             schema:
               $ref: '#/components/schemas/MovementConfirm'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8250,7 +8615,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -8299,6 +8665,7 @@ paths:
               $ref: '#/components/schemas/EditApply'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8324,7 +8691,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -8373,6 +8741,7 @@ paths:
             schema:
               $ref: '#/components/schemas/MovementEdit'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8398,7 +8767,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -8441,6 +8811,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8460,7 +8831,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -8500,6 +8872,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8525,7 +8898,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/movements/search:
     post:
       operationId: fmsMovementSearch
@@ -8549,6 +8923,7 @@ paths:
             schema:
               $ref: '#/components/schemas/MovementSearch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8574,7 +8949,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/movements/suggestion:
     get:
       operationId: fmsMovementSuggestion
@@ -8598,6 +8974,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8623,7 +9000,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/payment-methods:
     get:
       operationId: fmsPaymentMethods
@@ -8641,6 +9019,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8681,6 +9060,7 @@ paths:
               $ref: '#/components/schemas/PaymentMethodCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -8712,7 +9092,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -8753,6 +9134,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedPaymentMethodPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8778,7 +9160,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -8802,6 +9185,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8821,7 +9205,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/reports/{key}:
     get:
       operationId: fmsReport
@@ -8921,6 +9306,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -8946,7 +9332,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -8960,7 +9347,7 @@ paths:
         desde memoria: no se escribe en disco, no se guarda en caché (`Cache-Control:
         private, no-store`) y ningún monto ni filtro va en la URL.'
       summary: Exportar un informe a xlsx, csv o pdf (lo filtrado, con los filtros
-        y la fecha de generación en la cabecera)
+        y la fecha de generación en la cabecera); exige reautenticación reciente
       parameters:
       - in: path
         name: household_id
@@ -8982,6 +9369,7 @@ paths:
               $ref: '#/components/schemas/ReportExport'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9008,7 +9396,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -9049,6 +9438,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ReportQuery'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9074,7 +9464,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -9114,6 +9505,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9139,7 +9531,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/tags:
     get:
       operationId: fmsTags
@@ -9165,6 +9558,7 @@ paths:
       tags:
       - households
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9184,7 +9578,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsTagCreate
       description: |-
@@ -9215,6 +9610,7 @@ paths:
               $ref: '#/components/schemas/NamedCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -9246,7 +9642,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '409':
           content:
             application/json:
@@ -9287,6 +9684,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedNamedPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9312,7 +9710,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -9353,6 +9752,7 @@ paths:
               $ref: '#/components/schemas/TransferOwnership'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -9374,7 +9774,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -9418,6 +9819,7 @@ paths:
               $ref: '#/components/schemas/TransferCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -9449,7 +9851,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -9481,6 +9884,7 @@ paths:
       tags:
       - import-mappings
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9506,7 +9910,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/import-mappings/{id}:
     delete:
       operationId: fmsImportMappingDelete
@@ -9525,6 +9930,7 @@ paths:
       tags:
       - import-mappings
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -9540,7 +9946,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -9565,6 +9972,7 @@ paths:
       tags:
       - imports
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9590,7 +9998,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsImportCommit
       description: 'Lo común de la vista previa y la confirmación: leer el archivo
@@ -9614,6 +10023,7 @@ paths:
               $ref: '#/components/schemas/ImportUpload'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -9645,7 +10055,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -9681,6 +10092,7 @@ paths:
       tags:
       - imports
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9700,7 +10112,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -9725,6 +10138,7 @@ paths:
       tags:
       - imports
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9744,7 +10158,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -9773,6 +10188,7 @@ paths:
               $ref: '#/components/schemas/ImportUpload'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9798,7 +10214,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -9827,6 +10244,7 @@ paths:
               $ref: '#/components/schemas/IndependenceRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9852,7 +10270,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -9875,6 +10294,7 @@ paths:
       tags:
       - indicators
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9900,7 +10320,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/institutions:
     get:
       operationId: fmsInstitutions
@@ -9911,6 +10332,7 @@ paths:
       tags:
       - institutions
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9932,6 +10354,7 @@ paths:
       tags:
       - ledger
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -9951,7 +10374,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/liquidity:
     get:
       operationId: fmsLiquidity_2
@@ -9976,6 +10400,7 @@ paths:
       tags:
       - liquidity
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -10001,7 +10426,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/loans:
     get:
       operationId: fmsLoans
@@ -10021,6 +10447,7 @@ paths:
       tags:
       - loans
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -10040,7 +10467,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsLoanCreate
       description: |-
@@ -10065,6 +10493,7 @@ paths:
               $ref: '#/components/schemas/LoanCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -10096,7 +10525,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10126,6 +10556,7 @@ paths:
       tags:
       - loans
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -10145,7 +10576,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10188,6 +10620,7 @@ paths:
               $ref: '#/components/schemas/LoanPay'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -10219,7 +10652,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10261,6 +10695,7 @@ paths:
       tags:
       - loans
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -10286,7 +10721,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10310,6 +10746,7 @@ paths:
       tags:
       - loans
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -10329,7 +10766,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10366,6 +10804,7 @@ paths:
               $ref: '#/components/schemas/LoanRateCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -10397,7 +10836,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10447,6 +10887,7 @@ paths:
               $ref: '#/components/schemas/LoanRepriceRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -10478,7 +10919,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10528,6 +10970,7 @@ paths:
               $ref: '#/components/schemas/LoanRevalueRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -10559,7 +11002,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10595,6 +11039,7 @@ paths:
       tags:
       - loans
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -10614,7 +11059,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10644,6 +11090,7 @@ paths:
       tags:
       - loans
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -10669,7 +11116,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10704,6 +11152,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedMaintenancePatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -10729,7 +11178,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10759,6 +11209,7 @@ paths:
       tags:
       - maintenance
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -10780,7 +11231,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10817,6 +11269,7 @@ paths:
               $ref: '#/components/schemas/MaintenanceRecordCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -10848,7 +11301,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -10869,6 +11323,7 @@ paths:
       tags:
       - me
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -10982,6 +11437,7 @@ paths:
       tags:
       - movements
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11007,7 +11463,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsMovementCreate_2
       description: |-
@@ -11032,6 +11489,7 @@ paths:
               $ref: '#/components/schemas/MovementCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -11063,7 +11521,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11093,6 +11552,7 @@ paths:
       tags:
       - movements
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11112,7 +11572,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11141,6 +11602,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedMovementPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11166,7 +11628,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11216,6 +11679,7 @@ paths:
               $ref: '#/components/schemas/MovementAdjust'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11241,7 +11705,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11284,6 +11749,7 @@ paths:
               $ref: '#/components/schemas/MovementAnnul'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11309,7 +11775,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11345,6 +11812,7 @@ paths:
       tags:
       - movements
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11366,7 +11834,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11403,6 +11872,7 @@ paths:
               $ref: '#/components/schemas/AttachmentUpload'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -11434,7 +11904,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11476,6 +11947,7 @@ paths:
       tags:
       - movements
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11496,7 +11968,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11525,6 +11998,7 @@ paths:
       tags:
       - movements
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -11540,7 +12014,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11569,6 +12044,7 @@ paths:
             schema:
               $ref: '#/components/schemas/MovementConfirm'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11594,7 +12070,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11637,6 +12114,7 @@ paths:
               $ref: '#/components/schemas/EditApply'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11662,7 +12140,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11705,6 +12184,7 @@ paths:
             schema:
               $ref: '#/components/schemas/MovementEdit'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11730,7 +12210,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11767,6 +12248,7 @@ paths:
       tags:
       - movements
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11786,7 +12268,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -11820,6 +12303,7 @@ paths:
       tags:
       - movements
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11845,7 +12329,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/movements/search:
     post:
       operationId: fmsMovementSearch_2
@@ -11862,6 +12347,7 @@ paths:
             schema:
               $ref: '#/components/schemas/MovementSearch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11887,7 +12373,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/movements/suggestion:
     get:
       operationId: fmsMovementSuggestion_2
@@ -11905,6 +12392,7 @@ paths:
       tags:
       - movements
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11930,7 +12418,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/net-worth:
     get:
       operationId: fmsNetWorth
@@ -11951,6 +12440,7 @@ paths:
       tags:
       - net-worth
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -11976,7 +12466,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/notices:
     get:
       operationId: fmsNotices
@@ -11986,6 +12477,7 @@ paths:
       tags:
       - notices
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12008,6 +12500,7 @@ paths:
       tags:
       - notices
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12033,6 +12526,7 @@ paths:
       tags:
       - notification-prefs
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12052,7 +12546,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     patch:
       operationId: fmsNotificationPrefsPatch
       description: |-
@@ -12067,6 +12562,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedPrefsPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12092,7 +12588,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -12110,6 +12607,7 @@ paths:
       tags:
       - notification-rules
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12131,7 +12629,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     patch:
       operationId: fmsNotificationRulesPatch
       description: |-
@@ -12147,6 +12646,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedRulesPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12174,7 +12674,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -12207,6 +12708,7 @@ paths:
       tags:
       - notifications
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12226,7 +12728,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/notifications/{id}/snooze:
     post:
       operationId: fmsNotificationSnooze
@@ -12244,6 +12747,7 @@ paths:
       tags:
       - notifications
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12263,7 +12767,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -12281,6 +12786,7 @@ paths:
       tags:
       - notifications
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12300,7 +12806,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/notifications/read:
     post:
       operationId: fmsNotificationsRead
@@ -12316,6 +12823,7 @@ paths:
             schema:
               $ref: '#/components/schemas/NotificationsRead'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12341,7 +12849,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/occurrences:
     get:
       operationId: fmsOccurrences
@@ -12374,6 +12883,7 @@ paths:
       tags:
       - occurrences
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12399,7 +12909,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/occurrences/{id}:
     get:
       operationId: fmsOccurrence
@@ -12417,6 +12928,7 @@ paths:
       tags:
       - occurrences
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12436,7 +12948,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -12467,6 +12980,7 @@ paths:
               $ref: '#/components/schemas/OccurrencePay'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12492,7 +13006,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -12540,6 +13055,7 @@ paths:
               $ref: '#/components/schemas/AnnulPayment'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12565,7 +13081,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -12607,6 +13124,7 @@ paths:
       tags:
       - occurrences
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12632,7 +13150,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -12674,6 +13193,7 @@ paths:
               $ref: '#/components/schemas/Skip'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12699,7 +13219,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -12742,6 +13263,7 @@ paths:
               $ref: '#/components/schemas/Split'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12767,7 +13289,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -12803,6 +13326,7 @@ paths:
       tags:
       - occurrences
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12822,7 +13346,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -12851,6 +13376,7 @@ paths:
       tags:
       - parameters
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12872,6 +13398,7 @@ paths:
       tags:
       - parameters
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12893,7 +13420,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/payment-methods:
     get:
       operationId: fmsPaymentMethods_2
@@ -12904,6 +13432,7 @@ paths:
       tags:
       - payment-methods
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -12938,6 +13467,7 @@ paths:
               $ref: '#/components/schemas/PaymentMethodCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -12969,7 +13499,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13004,6 +13535,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedPaymentMethodPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13029,7 +13561,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13061,6 +13594,7 @@ paths:
               $ref: '#/components/schemas/PushSubscribe'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -13082,7 +13616,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -13098,6 +13633,7 @@ paths:
       tags:
       - push-subscription
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -13119,7 +13655,133 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/push/endpoints:
+    get:
+      operationId: fmsPushEndpoints
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Tus destinos de push (navegadores y dispositivos de la app); nunca
+        el token ni el endpoint
+      tags:
+      - push
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushEndpoints'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/push/endpoints/{id}:
+    delete:
+      operationId: fmsPushEndpointDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Borrar un destino de push
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - push
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/push/endpoints/fcm:
+    put:
+      operationId: fmsPushFcmRegister
+      description: Sustituye el token anterior del mismo dispositivo. Necesita `FMS_FCM_PROJECT_ID`
+        y `FMS_FCM_CREDENTIALS_FILE` en el servidor (`422 push_not_configured`) y
+        un dispositivo de la app (`422 device_required` con la cookie).
+      summary: Registrar el token de FCM de este dispositivo de la app (idempotente;
+        solo con el token de sesión de la app)
+      tags:
+      - push
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FcmRegister'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PushEndpoint'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/reconciliations:
     get:
       operationId: fmsReconciliations
@@ -13143,6 +13805,7 @@ paths:
       tags:
       - reconciliations
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13162,7 +13825,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsReconcile
       description: |-
@@ -13187,6 +13851,7 @@ paths:
               $ref: '#/components/schemas/ReconcileInput'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -13212,7 +13877,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13248,6 +13914,7 @@ paths:
       tags:
       - reconciliations
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13267,7 +13934,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13298,6 +13966,7 @@ paths:
               $ref: '#/components/schemas/Reopen'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13323,7 +13992,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13367,6 +14037,7 @@ paths:
               $ref: '#/components/schemas/ReconcileInput'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -13392,7 +14063,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13428,6 +14100,7 @@ paths:
               $ref: '#/components/schemas/ReconcileInput'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13453,7 +14126,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13493,6 +14167,7 @@ paths:
       tags:
       - recurrences
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13512,7 +14187,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsRecurrenceCreate
       description: |-
@@ -13537,6 +14213,7 @@ paths:
               $ref: '#/components/schemas/RecurrenceCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -13568,7 +14245,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13598,6 +14276,7 @@ paths:
       tags:
       - recurrences
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13617,7 +14296,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13646,6 +14326,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedRecurrencePatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13671,7 +14352,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13695,6 +14377,7 @@ paths:
       tags:
       - recurrences
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13714,7 +14397,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/recurrences/preview:
     post:
       operationId: fmsRecurrencePreview
@@ -13732,6 +14416,7 @@ paths:
               $ref: '#/components/schemas/PreviewRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13757,7 +14442,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/reports:
     get:
       operationId: fmsReports_2
@@ -13768,6 +14454,7 @@ paths:
       tags:
       - reports
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13787,7 +14474,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/reports/{key}:
     get:
       operationId: fmsReport_2
@@ -13881,6 +14569,7 @@ paths:
       tags:
       - reports
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13906,7 +14595,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13920,7 +14610,7 @@ paths:
         desde memoria: no se escribe en disco, no se guarda en caché (`Cache-Control:
         private, no-store`) y ningún monto ni filtro va en la URL.'
       summary: Exportar un informe a xlsx, csv o pdf (lo filtrado, con los filtros
-        y la fecha de generación en la cabecera)
+        y la fecha de generación en la cabecera); exige reautenticación reciente
       parameters:
       - in: path
         name: key
@@ -13936,6 +14626,7 @@ paths:
               $ref: '#/components/schemas/ReportExport'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -13962,7 +14653,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -13997,6 +14689,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ReportQuery'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14022,7 +14715,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -14048,6 +14742,7 @@ paths:
       tags:
       - scenarios
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14073,7 +14768,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsScenarioCreate
       description: |-
@@ -14098,6 +14794,7 @@ paths:
               $ref: '#/components/schemas/ScenarioCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -14129,7 +14826,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -14159,6 +14857,7 @@ paths:
       tags:
       - scenarios
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14178,7 +14877,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -14206,6 +14906,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedScenarioPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14231,7 +14932,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -14261,6 +14963,7 @@ paths:
       tags:
       - scenarios
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -14276,7 +14979,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -14300,6 +15004,7 @@ paths:
               $ref: '#/components/schemas/ScenarioCompareRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14325,7 +15030,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -14349,6 +15055,7 @@ paths:
       tags:
       - shared
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14368,7 +15075,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/shared/people/{id}:
     get:
       operationId: fmsSharedPerson
@@ -14386,6 +15094,7 @@ paths:
       tags:
       - shared
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14405,7 +15114,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -14443,6 +15153,7 @@ paths:
               $ref: '#/components/schemas/SettleRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -14474,7 +15185,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -14506,6 +15218,7 @@ paths:
       tags:
       - shared
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14531,7 +15244,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsSharedPurchaseCreate
       description: |-
@@ -14556,6 +15270,7 @@ paths:
               $ref: '#/components/schemas/SharedPurchaseCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -14587,7 +15302,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -14617,6 +15333,7 @@ paths:
       tags:
       - shared
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14636,7 +15353,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -14666,6 +15384,7 @@ paths:
               $ref: '#/components/schemas/SharedCancelRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14691,7 +15410,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -14727,6 +15447,7 @@ paths:
               $ref: '#/components/schemas/CompareRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14752,7 +15473,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -14776,6 +15498,7 @@ paths:
               $ref: '#/components/schemas/ExtraPaymentRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14801,7 +15524,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -14825,6 +15549,7 @@ paths:
               $ref: '#/components/schemas/InstallmentSimRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14850,7 +15575,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -14873,6 +15599,7 @@ paths:
               $ref: '#/components/schemas/InstallmentExportRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14899,7 +15626,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -14929,6 +15657,7 @@ paths:
               $ref: '#/components/schemas/RateConvertRequest'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14954,7 +15683,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -14972,6 +15702,7 @@ paths:
       tags:
       - subscriptions
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -14991,7 +15722,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/summary:
     get:
       operationId: fmsSummary_2
@@ -15019,6 +15751,7 @@ paths:
       tags:
       - summary
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -15044,7 +15777,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/tags:
     get:
       operationId: fmsTags_2
@@ -15064,6 +15798,7 @@ paths:
       tags:
       - tags
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -15083,7 +15818,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsTagCreate_2
       description: |-
@@ -15108,6 +15844,7 @@ paths:
               $ref: '#/components/schemas/NamedCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -15139,7 +15876,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '409':
           content:
             application/json:
@@ -15174,6 +15912,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedNamedPatch'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -15199,7 +15938,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -15243,6 +15983,7 @@ paths:
               $ref: '#/components/schemas/TransferCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -15274,7 +16015,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -15302,6 +16044,7 @@ paths:
       tags:
       - user-parameters
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -15323,7 +16066,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
     post:
       operationId: fmsUserParameterCreate
       description: |-
@@ -15348,6 +16092,7 @@ paths:
               $ref: '#/components/schemas/UserParameterCreate'
         required: true
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '201':
@@ -15373,7 +16118,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '422':
           content:
             application/json:
@@ -15403,6 +16149,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedUserParameterClose'
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -15428,7 +16175,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -15458,6 +16206,7 @@ paths:
       tags:
       - user-parameters
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '204':
@@ -15473,7 +16222,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
         '404':
           content:
             application/json:
@@ -15515,6 +16265,7 @@ paths:
       tags:
       - usury
       security:
+      - appSessionToken: []
       - cvSession: []
       responses:
         '200':
@@ -15540,7 +16291,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
 components:
   schemas:
     Account:
@@ -16236,6 +16988,14 @@ components:
         * `reopen` - reopen
         * `adjust` - adjust
         * `alert` - alert
+    AuthModeEnum:
+      enum:
+      - cookie
+      - token
+      type: string
+      description: |-
+        * `cookie` - cookie
+        * `token` - token
     BalanceDebt:
       type: object
       properties:
@@ -19114,6 +19874,20 @@ components:
       - interest_saved
       - last_payment
       - payment
+    FcmRegister:
+      type: object
+      properties:
+        token:
+          type: string
+          description: El token de registro de FCM del dispositivo.
+          maxLength: 4096
+          pattern: ^[A-Za-z0-9:_\-]{20,4096}$
+        locale:
+          allOf:
+          - $ref: '#/components/schemas/LocaleEnum'
+          default: es
+      required:
+      - token
     FilterLabel:
       type: object
       properties:
@@ -19384,6 +20158,49 @@ components:
       required:
       - accepted_version
       - required_version
+    FmsDevice:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        platform:
+          type: string
+        model:
+          type: string
+        app_version:
+          type: string
+        remember:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          description: Redondeado a la hora.
+        last_seen_at:
+          type: string
+          format: date-time
+          description: Redondeado a la hora.
+        current:
+          type: boolean
+          description: Es el dispositivo que hace la petición.
+      required:
+      - app_version
+      - created_at
+      - current
+      - id
+      - last_seen_at
+      - model
+      - platform
+      - remember
+    FmsDevices:
+      type: object
+      properties:
+        devices:
+          type: array
+          items:
+            $ref: '#/components/schemas/FmsDevice'
+      required:
+      - devices
     FmsError:
       type: object
       properties:
@@ -19428,8 +20245,25 @@ components:
           type: string
         login_url:
           type: string
+        auth_mode:
+          allOf:
+          - $ref: '#/components/schemas/AuthModeEnum'
+          description: |-
+            Cómo entró esta petición: la cookie del sitio o el token de la app.
+
+            * `cookie` - cookie
+            * `token` - token
+        device_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: El dispositivo de la app que hace la petición; `null` con la
+            cookie.
       required:
+      - auth_mode
       - consent
+      - device_id
       - finance_active
       - login_url
       - mfa_setup_url
@@ -19475,6 +20309,13 @@ components:
       required:
       - notices
       - unread
+    FmsRevoked:
+      type: object
+      properties:
+        revoked:
+          type: integer
+      required:
+      - revoked
     FmsUser:
       type: object
       properties:
@@ -21544,6 +22385,14 @@ components:
       - units_balance
       - uvr_source
       - uvr_value
+    LocaleEnum:
+      enum:
+      - es
+      - en
+      type: string
+      description: |-
+        * `es` - es
+        * `en` - en
     Maintenance:
       type: object
       properties:
@@ -23913,11 +24762,16 @@ components:
           type: boolean
           readOnly: true
           description: El servidor tiene VAPID configurado.
+        fcm_available:
+          type: boolean
+          readOnly: true
+          description: El servidor tiene FCM configurado (push de la app).
         vapid_public_key:
           type: string
           readOnly: true
       required:
       - email_enabled
+      - fcm_available
       - push_available
       - push_enabled
       - quiet_end
@@ -24157,6 +25011,50 @@ components:
       required:
       - amount
       - date
+    PushEndpoint:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          $ref: '#/components/schemas/PushEndpointKindEnum'
+        device_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        last_ok_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - created_at
+      - device_id
+      - id
+      - kind
+      - last_ok_at
+    PushEndpointKindEnum:
+      enum:
+      - webpush
+      - fcm
+      type: string
+      description: |-
+        * `webpush` - webpush
+        * `fcm` - fcm
+    PushEndpoints:
+      type: object
+      properties:
+        endpoints:
+          type: array
+          items:
+            $ref: '#/components/schemas/PushEndpoint'
+      required:
+      - endpoints
     PushSubscribe:
       type: object
       properties:
@@ -26765,6 +27663,13 @@ components:
         * `pending` - pending
         * `confirmed` - confirmed
   securitySchemes:
+    appSessionToken:
+      type: apiKey
+      in: header
+      name: X-Session-Token
+      description: Token de sesión del cliente `app` de allauth headless (`/_allauth/app/v1/`).
+        Solo vale con un dispositivo vigente; no se usan cookies ni CSRF. Un token
+        inválido es 401 sin probar la cookie.
     cvSession:
       type: apiKey
       in: cookie

@@ -5,6 +5,7 @@ node_modules/
 .github/
 .claude/
 e2e/
+mobile/
 docs/
 coverage/
 .env

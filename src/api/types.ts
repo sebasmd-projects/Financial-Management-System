@@ -7,8 +7,9 @@
  * Los montos (FMS-1 en adelante) viajan como CADENAS decimales: `type Amount = string`, nunca `number`.
  */
 
-/** Cadena decimal tal como llega de la API (`"-180000.00"`). Se opera con `@/lib/money`, nunca con `Number`. */
-export type Amount = string;
+import type { Amount, ApiErrorBody } from "../../core/api/types";
+
+export type { Amount, ApiErrorBody };
 
 /** `GET /api/fms/v1/me` → 200. */
 export interface MeResponse {
@@ -46,9 +47,4 @@ export const ACTIVATION_ERROR_CODES: readonly ActivationErrorCode[] = ["email_un
 
 export function isActivationErrorCode(value: unknown): value is ActivationErrorCode {
   return typeof value === "string" && (ACTIVATION_ERROR_CODES as readonly string[]).includes(value);
-}
-
-/** Cuerpo de error de la API: `{ "code": "..." }` (y a veces `detail`, que no se muestra). */
-export interface ApiErrorBody {
-  code?: string;
 }

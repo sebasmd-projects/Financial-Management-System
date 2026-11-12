@@ -1,0 +1,13 @@
+node_modules/
+.expo/
+dist/
+expo-env.d.ts
+# Prebuild genera android/ cada vez (`npm run prebuild`): no se versiona.
+/android/
+/ios/
+# Firma y Firebase: NUNCA al repositorio (README.md, «Compilar el APK»).
+*.jks
+*.keystore
+keystore.properties
+google-services.json
+*.tsbuildinfo

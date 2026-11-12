@@ -41,7 +41,7 @@ cd e2e && npm ci && npm test     # humo de la compuerta con la API simulada (e2e
 
 * **Nada financiero en el navegador**: ni `localStorage`/`sessionStorage`/IndexedDB ni consola ni URLs. La única excepción
   es la preferencia de tema (`src/ui/theme/storage.ts`). ESLint y `src/guards.test.ts` lo exigen.
-* **Dinero = cadenas decimales** tal como llegan; se opera con `BigInt` en `src/lib/money.ts`. Nunca `Number`/`parseFloat`.
+* **Dinero = cadenas decimales** tal como llegan; se opera con `BigInt` en `core/money.ts` (`src/lib/money.ts` lo reexporta). Nunca `Number`/`parseFloat`.
 * **CSP con nonce** por petición y cabeceras de seguridad (`src/proxy.ts`, `src/security/headers.ts`); `no-store` en todas las
   páginas; sin scripts ni fuentes de terceros (Sora e Inter autoalojadas).
 * **La compuerta** (`src/features/session/store.ts`) pregunta a `/api/fms/v1/me` desde el navegador; el control de acceso real

@@ -1226,6 +1226,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tus dispositivos con la sesión de la app abierta (plataforma, modelo, versión y último uso por hora)
+         * @description Base de todo endpoint del FMS que necesita sesión.
+         */
+        get: operations["fmsDevices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Cerrar la sesión de un dispositivo (el propio equivale a cerrar sesión; otro exige reautenticación reciente)
+         * @description Base de todo endpoint del FMS que necesita sesión.
+         */
+        delete: operations["fmsDeviceRevoke"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/devices/revoke-others": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cerrar la sesión de todos los dispositivos menos este (desde la web, de todos los de la app); exige reautenticación reciente
+         * @description Base de todo endpoint del FMS que necesita sesión.
+         */
+        post: operations["fmsDevicesRevokeOthers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/entries": {
         parameters: {
             query?: never;
@@ -1958,7 +2018,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Borrar el hogar: sus datos y su llave se destruyen (crypto-shredding). Solo el propietario
+         * Borrar el hogar: sus datos y su llave se destruyen (crypto-shredding). Solo el propietario; exige reautenticación reciente
          * @description Base: las rutas de gestión las puede usar cualquier rol (el servicio decide); las de datos exigen escritura.
          */
         post: operations["fmsHouseholdDelete"];
@@ -2207,7 +2267,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Expulsar a un miembro: pierde el acceso al instante y la llave del hogar se rota
+         * Expulsar a un miembro: pierde el acceso al instante y la llave del hogar se rota (exige reautenticación reciente)
          * @description Base: las rutas de gestión las puede usar cualquier rol (el servicio decide); las de datos exigen escritura.
          */
         delete: operations["fmsHouseholdMemberRemove"];
@@ -2611,7 +2671,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Exportar un informe a xlsx, csv o pdf (lo filtrado, con los filtros y la fecha de generación en la cabecera)
+         * Exportar un informe a xlsx, csv o pdf (lo filtrado, con los filtros y la fecha de generación en la cabecera); exige reautenticación reciente
          * @description Un `POST` que **devuelve el archivo** en la respuesta, transmitido desde memoria: no se escribe en disco, no se guarda en caché (`Cache-Control: private, no-store`) y ningún monto ni filtro va en la URL.
          */
         post: operations["fmsReportExport"];
@@ -4021,6 +4081,68 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/push/endpoints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tus destinos de push (navegadores y dispositivos de la app); nunca el token ni el endpoint
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsPushEndpoints"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/push/endpoints/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Borrar un destino de push
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsPushEndpointDelete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/push/endpoints/fcm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Registrar el token de FCM de este dispositivo de la app (idempotente; solo con el token de sesión de la app)
+         * @description Sustituye el token anterior del mismo dispositivo. Necesita `FMS_FCM_PROJECT_ID` y `FMS_FCM_CREDENTIALS_FILE` en el servidor (`422 push_not_configured`) y un dispositivo de la app (`422 device_required` con la cookie).
+         */
+        put: operations["fmsPushFcmRegister"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/reconciliations": {
         parameters: {
             query?: never;
@@ -4277,7 +4399,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Exportar un informe a xlsx, csv o pdf (lo filtrado, con los filtros y la fecha de generación en la cabecera)
+         * Exportar un informe a xlsx, csv o pdf (lo filtrado, con los filtros y la fecha de generación en la cabecera); exige reautenticación reciente
          * @description Un `POST` que **devuelve el archivo** en la respuesta, transmitido desde memoria: no se escribe en disco, no se guarda en caché (`Cache-Control: private, no-store`) y ningún monto ni filtro va en la URL.
          */
         post: operations["fmsReportExport_2"];
@@ -5156,6 +5278,12 @@ export interface components {
          * @enum {string}
          */
         AuditActionEnum: "add" | "change" | "delete" | "confirm" | "discard" | "annul" | "reconcile" | "reopen" | "adjust" | "alert";
+        /**
+         * @description * `cookie` - cookie
+         *     * `token` - token
+         * @enum {string}
+         */
+        AuthModeEnum: "cookie" | "token";
         BalanceDebt: {
             /** Format: uuid */
             debt_id: string;
@@ -6535,6 +6663,12 @@ export interface components {
              */
             interest_saved: string;
         };
+        FcmRegister: {
+            /** @description El token de registro de FCM del dispositivo. */
+            token: string;
+            /** @default es */
+            locale: components["schemas"]["LocaleEnum"];
+        };
         FilterLabel: {
             label: string;
             value: string;
@@ -6642,6 +6776,29 @@ export interface components {
             /** @description La que aceptó este usuario para el FMS; `null` si no activó. */
             accepted_version: string | null;
         };
+        FmsDevice: {
+            /** Format: uuid */
+            id: string;
+            platform: string;
+            model: string;
+            app_version: string;
+            remember: boolean;
+            /**
+             * Format: date-time
+             * @description Redondeado a la hora.
+             */
+            created_at: string;
+            /**
+             * Format: date-time
+             * @description Redondeado a la hora.
+             */
+            last_seen_at: string;
+            /** @description Es el dispositivo que hace la petición. */
+            current: boolean;
+        };
+        FmsDevices: {
+            devices: components["schemas"]["FmsDevice"][];
+        };
         FmsError: {
             detail: string;
             code: string;
@@ -6661,6 +6818,18 @@ export interface components {
             consent: components["schemas"]["FmsConsent"];
             mfa_setup_url: string;
             login_url: string;
+            /**
+             * @description Cómo entró esta petición: la cookie del sitio o el token de la app.
+             *
+             *     * `cookie` - cookie
+             *     * `token` - token
+             */
+            auth_mode: components["schemas"]["AuthModeEnum"];
+            /**
+             * Format: uuid
+             * @description El dispositivo de la app que hace la petición; `null` con la cookie.
+             */
+            device_id: string | null;
         };
         FmsNotice: {
             /** Format: uuid */
@@ -6677,6 +6846,9 @@ export interface components {
         FmsNotices: {
             notices: components["schemas"]["FmsNotice"][];
             unread: number;
+        };
+        FmsRevoked: {
+            revoked: number;
         };
         FmsUser: {
             id: number;
@@ -7763,6 +7935,12 @@ export interface components {
              */
             difference: string;
         };
+        /**
+         * @description * `es` - es
+         *     * `en` - en
+         * @enum {string}
+         */
+        LocaleEnum: "es" | "en";
         Maintenance: {
             /** Format: uuid */
             id: string;
@@ -8856,6 +9034,8 @@ export interface components {
             show_amounts_outside_app: boolean;
             /** @description El servidor tiene VAPID configurado. */
             readonly push_available: boolean;
+            /** @description El servidor tiene FCM configurado (push de la app). */
+            readonly fcm_available: boolean;
             readonly vapid_public_key: string;
         };
         Preview: {
@@ -8949,6 +9129,26 @@ export interface components {
             cost_center_id?: string | null;
             /** Format: uuid */
             payment_method_id?: string | null;
+        };
+        PushEndpoint: {
+            /** Format: uuid */
+            id: string;
+            kind: components["schemas"]["PushEndpointKindEnum"];
+            /** Format: uuid */
+            device_id: string | null;
+            /** Format: date-time */
+            last_ok_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * @description * `webpush` - webpush
+         *     * `fcm` - fcm
+         * @enum {string}
+         */
+        PushEndpointKindEnum: "webpush" | "fcm";
+        PushEndpoints: {
+            endpoints: components["schemas"]["PushEndpoint"][];
         };
         PushSubscribe: {
             /** Format: uri */
@@ -10260,7 +10460,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10321,7 +10521,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10378,7 +10578,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10439,7 +10639,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10509,7 +10709,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10628,7 +10828,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10689,7 +10889,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10755,7 +10955,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10816,7 +11016,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10864,7 +11064,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -10921,7 +11121,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11002,7 +11202,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11068,7 +11268,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11149,7 +11349,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11228,7 +11428,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11306,7 +11506,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11378,7 +11578,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11532,7 +11732,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11581,7 +11781,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11642,7 +11842,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11690,7 +11890,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11737,7 +11937,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11798,7 +11998,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11879,7 +12079,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -11947,7 +12147,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12007,7 +12207,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12068,7 +12268,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12137,7 +12337,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12198,7 +12398,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12266,7 +12466,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12312,7 +12512,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12365,7 +12565,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12405,7 +12605,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12466,7 +12666,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12523,7 +12723,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12584,7 +12784,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12665,7 +12865,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12746,7 +12946,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12816,7 +13016,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12888,7 +13088,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -12954,7 +13154,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13026,7 +13226,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13096,7 +13296,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13165,7 +13365,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13216,7 +13416,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13277,7 +13477,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13343,7 +13543,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13404,7 +13604,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13462,7 +13662,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13523,7 +13723,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13593,7 +13793,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13657,7 +13857,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13706,7 +13906,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13746,7 +13946,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13807,7 +14007,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13877,7 +14077,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -13957,7 +14157,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14006,7 +14206,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14043,7 +14243,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14092,7 +14292,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14141,7 +14341,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14202,7 +14402,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14259,7 +14459,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14320,7 +14520,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14396,7 +14596,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14449,7 +14649,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14510,7 +14710,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14567,7 +14767,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14628,7 +14828,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14685,7 +14885,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14757,7 +14957,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14826,7 +15026,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14872,13 +15072,104 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsDevices: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsDevices"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsError"];
+                };
+            };
+        };
+    };
+    fmsDeviceRevoke: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsError"];
+                };
+            };
+            /** @description No es tuyo o no existe. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsError"];
+                };
+            };
+        };
+    };
+    fmsDevicesRevokeOthers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsRevoked"];
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsError"];
                 };
             };
         };
@@ -14926,7 +15217,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -14965,7 +15256,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15037,7 +15328,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15116,7 +15407,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15173,7 +15464,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15230,7 +15521,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15298,7 +15589,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15359,7 +15650,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15415,7 +15706,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15476,7 +15767,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15543,7 +15834,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15594,7 +15885,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15640,7 +15931,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15701,7 +15992,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15758,7 +16049,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15819,7 +16110,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15900,7 +16191,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -15985,7 +16276,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16041,7 +16332,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16096,7 +16387,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16149,7 +16440,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16206,7 +16497,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16267,7 +16558,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16333,7 +16624,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16396,7 +16687,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16454,7 +16745,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16516,7 +16807,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16574,7 +16865,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16636,7 +16927,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16699,7 +16990,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16766,7 +17057,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16828,7 +17119,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16888,7 +17179,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -16951,7 +17242,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17022,7 +17313,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17088,7 +17379,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17139,7 +17430,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17181,7 +17472,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17244,7 +17535,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17315,7 +17606,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17397,7 +17688,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17476,7 +17767,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17545,7 +17836,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17596,7 +17887,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17661,7 +17952,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17701,7 +17992,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17774,7 +18065,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17854,7 +18145,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17912,7 +18203,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -17970,7 +18261,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18040,7 +18331,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18106,7 +18397,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18153,7 +18444,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18210,7 +18501,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18262,7 +18553,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18301,7 +18592,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18372,7 +18663,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18481,7 +18772,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18544,7 +18835,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18602,7 +18893,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18664,7 +18955,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18747,7 +19038,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18827,7 +19118,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18894,7 +19185,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -18967,7 +19258,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19035,7 +19326,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19084,7 +19375,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19146,7 +19437,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19226,7 +19517,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19306,7 +19597,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19373,7 +19664,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19434,7 +19725,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19486,7 +19777,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19536,7 +19827,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19620,7 +19911,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19691,7 +19982,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19739,7 +20030,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19820,7 +20111,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19882,7 +20173,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -19953,7 +20244,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20017,7 +20308,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20059,7 +20350,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20122,7 +20413,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20193,7 +20484,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20271,7 +20562,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20352,7 +20643,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20419,7 +20710,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20457,7 +20748,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20515,7 +20806,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20576,7 +20867,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20642,7 +20933,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20690,7 +20981,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20758,7 +21049,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20826,7 +21117,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20884,7 +21175,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20940,7 +21231,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -20990,7 +21281,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21030,7 +21321,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21091,7 +21382,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21148,7 +21439,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21221,7 +21512,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21299,7 +21590,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21347,7 +21638,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21419,7 +21710,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21509,7 +21800,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21599,7 +21890,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21665,7 +21956,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21725,7 +22016,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21795,7 +22086,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21852,7 +22143,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -21924,7 +22215,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22050,7 +22341,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22111,7 +22402,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22168,7 +22459,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22229,7 +22520,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22311,7 +22602,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22390,7 +22681,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22456,7 +22747,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22528,7 +22819,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22595,7 +22886,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22643,7 +22934,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22704,7 +22995,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22783,7 +23074,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22862,7 +23153,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22928,7 +23219,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -22987,7 +23278,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23037,7 +23328,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23085,7 +23376,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23134,7 +23425,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23227,7 +23518,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23277,7 +23568,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23323,7 +23614,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23373,7 +23664,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23431,7 +23722,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23470,7 +23761,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23516,7 +23807,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23566,7 +23857,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23619,7 +23910,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23658,7 +23949,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23719,7 +24010,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23799,7 +24090,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23877,7 +24168,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -23956,7 +24247,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24035,7 +24326,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24101,7 +24392,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24178,7 +24469,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24258,7 +24549,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24328,7 +24619,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24389,7 +24680,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24443,8 +24734,151 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsPushEndpoints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushEndpoints"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsPushEndpointDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsPushFcmRegister: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FcmRegister"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushEndpoint"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -24484,7 +24918,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24537,7 +24971,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24603,7 +25037,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24664,7 +25098,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24744,7 +25178,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24821,7 +25255,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24881,7 +25315,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24942,7 +25376,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -24999,7 +25433,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25060,7 +25494,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25115,7 +25549,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25165,7 +25599,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25202,7 +25636,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25282,7 +25716,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25343,7 +25777,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25413,7 +25847,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25471,7 +25905,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25532,7 +25966,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25589,7 +26023,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25636,7 +26070,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25697,7 +26131,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25765,7 +26199,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25820,7 +26254,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25859,7 +26293,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25931,7 +26365,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -25998,7 +26432,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26059,7 +26493,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26116,7 +26550,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26177,7 +26611,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26254,7 +26688,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26313,7 +26747,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26372,7 +26806,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26431,7 +26865,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26499,7 +26933,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26545,7 +26979,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26598,7 +27032,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26638,7 +27072,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26699,7 +27133,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26769,7 +27203,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26857,7 +27291,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26914,7 +27348,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -26967,7 +27401,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27014,7 +27448,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27084,7 +27518,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -27155,7 +27589,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
                 headers: {
                     [name: string]: unknown;

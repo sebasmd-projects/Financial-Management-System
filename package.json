@@ -9,8 +9,8 @@
     "lint": "eslint",
     "test": "vitest run",
     "e2e": "playwright test",
-    "api:types": "openapi-typescript src/api/openapi-fms.yaml -o src/api/schema.gen.ts",
-    "api:check": "npm run api:types && git diff --exit-code -- src/api/schema.gen.ts",
+    "api:types": "openapi-typescript core/api/openapi-fms.yaml -o core/api/schema.gen.ts",
+    "api:check": "npm run api:types && git diff --exit-code -- core/api/schema.gen.ts",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {

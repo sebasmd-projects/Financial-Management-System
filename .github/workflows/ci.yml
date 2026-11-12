@@ -25,7 +25,7 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm ci --ignore-scripts
       - run: npm run lint
-      # Los tipos de la API salen de `src/api/openapi-fms.yaml` (copia del contrato del backend): si no coinciden, falla.
+      # Los tipos de la API salen de `core/api/openapi-fms.yaml` (copia del contrato del backend): si no coinciden, falla.
       - name: "Tipos de la API al día con el contrato"
         run: npm run api:check
       # typegen genera los tipos de rutas (PageProps, LayoutProps) que tsc necesita sin compilar.
@@ -35,6 +35,36 @@ jobs:
       - run: npm run build
       - name: La salida standalone existe (la imagen sirve .next/standalone/server.js)
         run: test -f .next/standalone/server.js
+      - name: Avisos de dependencias de producción
+        run: npm audit --omit=dev --audit-level=high
+
+  # La app Android (mobile/): su propio package.json y bloqueo, sin workspaces. Sin dispositivo ni emulador: lo que se comprueba aquí es
+  # que compila (export del paquete de JavaScript), que pasa lint, tipos y pruebas, y que `expo-doctor` no ve nada raro.
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npx expo-doctor
+      - run: npx expo export --platform android
+        env:
+          CI: "1"
+      # La plantilla nativa que genera prebuild: el release firmado con tu llave (no la de depuración), sin copia de seguridad ni permisos de más.
+      - name: Prebuild nativo y comprobación de la firma de release
+        run: npx expo prebuild --platform android --no-install && node scripts/check-prebuild.mjs
+        env:
+          CI: "1"
       - name: Avisos de dependencias de producción
         run: npm audit --omit=dev --audit-level=high
 

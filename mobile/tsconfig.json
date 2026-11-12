@@ -4,10 +4,30 @@
     "strict": true,
     "noUncheckedIndexedAccess": false,
     "paths": {
-      "@/*": ["./src/*"],
-      "@core/*": ["../core/*"]
-    }
+      "@/*": [
+        "./src/*"
+      ],
+      "@core/*": [
+        "../core/*"
+      ]
+    },
+    "types": [
+      "jest",
+      "node"
+    ]
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts", "../core/**/*.ts"],
-  "exclude": ["node_modules", "android", "ios", "dist", "../core/**/*.test.ts"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts",
+    "../core/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "android",
+    "ios",
+    "dist",
+    "../core/**/*.test.ts"
+  ]
 }

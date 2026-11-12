@@ -26,6 +26,7 @@
     "expo-secure-store": "58.0.2",
     "expo-splash-screen": "58.0.12",
     "expo-status-bar": "58.0.4",
+    "expo-system-ui": "58.0.7",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-native": "0.88.1",
@@ -36,13 +37,14 @@
     "@react-native/jest-preset": "0.88.1",
     "@testing-library/react-native": "14.1.0",
     "@types/jest": "30.0.0",
+    "@types/node": "22.20.5",
     "@types/react": "19.3.0",
     "eslint": "9.39.5",
     "eslint-config-expo": "58.0.4",
     "jest": "30.5.2",
     "jest-expo": "58.0.13",
     "react-test-renderer": "19.3.0",
-    "typescript": "5.9.3"
+    "typescript": "6.0.3"
   },
   "jest": {
     "preset": "jest-expo",
@@ -59,5 +61,26 @@
     "modulePaths": [
       "<rootDir>/node_modules"
     ]
+  },
+  "expo": {
+    "install": {
+      "exclude": [
+        "expo",
+        "expo-build-properties",
+        "expo-constants",
+        "expo-crypto",
+        "expo-linking",
+        "expo-local-authentication",
+        "expo-router",
+        "expo-secure-store",
+        "expo-splash-screen",
+        "expo-status-bar",
+        "jest-expo",
+        "react-native-safe-area-context"
+      ]
+    }
+  },
+  "overrides": {
+    "zod": "4.6.6"
   }
 }

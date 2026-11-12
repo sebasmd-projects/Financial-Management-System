@@ -1,0 +1,63 @@
+{
+  "name": "fms-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "doctor": "expo-doctor",
+    "export": "expo export --platform android",
+    "prebuild": "expo prebuild --platform android --clean"
+  },
+  "dependencies": {
+    "expo": "58.0.21",
+    "expo-application": "58.1.2",
+    "expo-build-properties": "58.0.11",
+    "expo-constants": "58.0.14",
+    "expo-crypto": "58.0.7",
+    "expo-device": "58.0.5",
+    "expo-linking": "58.0.15",
+    "expo-local-authentication": "58.0.2",
+    "expo-router": "58.0.28",
+    "expo-screen-capture": "58.0.6",
+    "expo-secure-store": "58.0.2",
+    "expo-splash-screen": "58.0.12",
+    "expo-status-bar": "58.0.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-safe-area-context": "5.10.1",
+    "react-native-screens": "4.30.1"
+  },
+  "devDependencies": {
+    "@react-native/jest-preset": "0.88.1",
+    "@testing-library/react-native": "14.1.0",
+    "@types/jest": "30.0.0",
+    "@types/react": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-expo": "58.0.4",
+    "jest": "30.5.2",
+    "jest-expo": "58.0.13",
+    "react-test-renderer": "19.3.0",
+    "typescript": "5.9.3"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^@core/(.*)$": "<rootDir>/../core/$1"
+    },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/android/",
+      "/ios/"
+    ],
+    "restoreMocks": true,
+    "modulePaths": [
+      "<rootDir>/node_modules"
+    ]
+  }
+}

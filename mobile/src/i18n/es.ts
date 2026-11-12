@@ -93,6 +93,9 @@ export const es = {
   summary: {
     title: "Resumen",
     hideAmounts: "Ocultar montos",
+    hideShort: "Ocultar",
+    showShort: "Mostrar",
+    bellShort: "Avisos",
     showAmounts: "Mostrar montos",
     hiddenAmount: "monto oculto",
     previousPeriod: "Periodo anterior",

@@ -12,6 +12,7 @@ const mockFms = { get: (...args: unknown[]) => mockGet(...args) };
 jest.mock("expo-router", () => ({ useRouter: () => ({ push: mockPush, navigate: mockNavigate }) }));
 jest.mock("@/auth/use-session", () => ({
   usePhase: () => ({ name: "ready", me: { user: { display_name: "Ana" } } }),
+  useSession: () => ({ refresh: jest.fn() }),
   useFms: () => mockFms,
 }));
 

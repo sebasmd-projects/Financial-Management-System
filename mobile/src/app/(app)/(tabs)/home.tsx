@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, T
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { formatPeriod, periodOf, shiftPeriod, todayBogota } from "@core/dates";
-import { usePhase } from "@/auth/use-session";
+import { usePhase, useSession } from "@/auth/use-session";
 import { hiddenStore, useHidden } from "@/features/common/hidden";
 import { paths } from "@/features/common/paths";
 import { useResource } from "@/features/common/use-resource";
@@ -33,6 +33,7 @@ export default function Home() {
   const c = useTheme();
   const router = useRouter();
   const phase = usePhase();
+  const session = useSession();
   const scope = useScope();
   const hidden = useHidden();
   const today = todayBogota();
@@ -51,7 +52,7 @@ export default function Home() {
       <ScrollView contentContainerStyle={styles.body} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={active.reload} />}>
         <View style={styles.header}>
           <AppText kind="titleL" accessibilityRole="header">
-            {phase.name === "ready" ? `${t.title}` : t.title}
+            {t.title}
           </AppText>
           <View style={styles.actions}>
             <Pressable
@@ -61,13 +62,19 @@ export default function Home() {
               onPress={() => hiddenStore.set(!hidden)}
               style={[styles.icon, { backgroundColor: hidden ? c.primaryContainer : c.surface2 }]}
             >
-              <Text style={[type.label, { color: c.textPrimary }]}>{hidden ? "•••" : "123"}</Text>
+              <Text style={[type.label, { color: c.textPrimary }]}>{hidden ? t.showShort : t.hideShort}</Text>
             </Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel={t.bell(unread)} onPress={() => router.navigate("/notifications")} style={[styles.icon, { backgroundColor: c.surface2 }]}>
-              <Text style={[type.label, { color: c.textPrimary }]}>{unread > 0 ? bellCount(unread) : "0"}</Text>
+              <Text style={[type.label, { color: c.textPrimary }]}>{unread > 0 ? `${t.bellShort} ${bellCount(unread)}` : t.bellShort}</Text>
             </Pressable>
           </View>
         </View>
+        {phase.name === "load_failed" ? (
+          <View style={styles.stack}>
+            <Notice>{phase.network ? es.common.network : es.home.loadFailed}</Notice>
+            <Button label={es.common.retry} kind="secondary" onPress={() => void session.refresh()} />
+          </View>
+        ) : null}
         <ScopeSwitcher />
         <View style={styles.period} accessibilityRole="toolbar" accessibilityLabel={t.periodLabel}>
           <Chip label="‹" a11yLabel={t.previousPeriod} onPress={() => period > shiftPeriod(current, -PERIODS_BACK) && setPeriod(shiftPeriod(period, -1))} />

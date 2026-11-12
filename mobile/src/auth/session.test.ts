@@ -5,7 +5,7 @@ import type { TokenStore } from "./token-store";
 
 const meReady = { user: { id: 1, display_name: "Ana", email: "a@b.co", email_verified: true }, mfa_verified: true, finance_active: true, consent: { required_version: "v2", accepted_version: "v2" }, mfa_setup_url: "", login_url: "", auth_mode: "token", device_id: "d1" } as unknown as Me;
 
-function setup(options: { stored?: string | null; bio?: "success" | "cancelled" | "failed" | "unavailable"; capability?: "ok" | "none"; me?: Me | { status: number; code?: string }; steps?: LoginStep[] } = {}) {
+function setup(options: { stored?: string | null; bio?: "success" | "cancelled" | "failed" | "unavailable"; capability?: "ok" | "none"; me?: Me | { status: number; code?: string }; steps?: LoginStep[]; beforeLogout?: () => Promise<void> } = {}) {
   let disk = options.stored ?? null;
   let memory: string | null = null;
   const store: TokenStore = {
@@ -19,7 +19,7 @@ function setup(options: { stored?: string | null; bio?: "success" | "cancelled" 
   const allauth = { login: jest.fn(async () => steps.shift()!), submitCode: jest.fn(async () => steps.shift()!), logout: jest.fn(async () => undefined) };
   const meReply = options.me ?? meReady;
   const fms = { get: jest.fn(async () => ("status" in meReply ? { ok: false as const, status: meReply.status, code: meReply.code ?? "" } : { ok: true as const, data: meReply })) } as unknown as SessionDeps["api"] extends () => infer R ? R extends { fms: infer F } ? F : never : never;
-  const session = createSession({ store, token: token as never, biometric, api: () => ({ fms, allauth }) });
+  const session = createSession({ store, token: token as never, biometric, api: () => ({ fms, allauth }), beforeLogout: options.beforeLogout });
   const wiped = jest.fn();
   session.onWipe(wiped);
   return { session, store, token, biometric, allauth, fms, wiped, disk: () => disk, memory: () => memory };
@@ -187,5 +187,26 @@ describe("fin de sesión", () => {
     expect(ctx.session.getPhase()).toEqual({ name: "signed_out", notice: "logged_out" });
     expect(ctx.disk()).toBeNull();
     expect(ctx.memory()).toBeNull();
+  });
+});
+
+describe("cerrar sesión y los avisos push", () => {
+  it("antes de invalidar la sesión espera a `beforeLogout` (revocar el destino de push)", async () => {
+    const order: string[] = [];
+    const ctx = setup({ stored: "tok", steps: [], beforeLogout: async () => void order.push("revoke") });
+    await ctx.session.boot();
+    await ctx.session.unlock("x");
+    ctx.allauth.logout.mockImplementation(async () => void order.push("logout"));
+    await ctx.session.logout();
+    expect(order).toEqual(["revoke", "logout"]);
+    expect(ctx.session.getPhase()).toEqual({ name: "signed_out", notice: "logged_out" });
+  });
+  it("si revocar falla, la sesión se cierra igual", async () => {
+    const ctx = setup({ stored: "tok", beforeLogout: async () => Promise.reject(new Error("sin red")) });
+    await ctx.session.boot();
+    await ctx.session.unlock("x");
+    await ctx.session.logout();
+    expect(ctx.allauth.logout).toHaveBeenCalled();
+    expect(ctx.session.getPhase().name).toBe("signed_out");
   });
 });

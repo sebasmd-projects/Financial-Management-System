@@ -35,7 +35,7 @@ export function ScopeSwitcher() {
     ]),
   ];
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="tablist" accessibilityLabel={t.label} contentContainerStyle={styles.row}>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="toolbar" accessibilityLabel={t.label} contentContainerStyle={styles.row}>
       {options.map((option) => (
         <Chip key={scopeKey(option.scope)} label={option.label} selected={sameScope(scope, option.scope)} onPress={() => scopeStore.set(option.scope)} />
       ))}

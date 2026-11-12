@@ -43,6 +43,27 @@ describe("nada financiero en disco", () => {
   });
 });
 
+describe("avisos push y enlaces", () => {
+  it("expo-notifications solo lo toca features/notifications/native.ts, y con el token NATIVO de FCM (nunca el servicio de push de Expo)", () => {
+    expect(offenders((source, path) => path !== "src/features/notifications/native.ts" && importsOf(source).includes("expo-notifications"))).toEqual([]);
+    const native = read(join(SRC, "features/notifications/native.ts"));
+    expect(native).toMatch(/getDevicePushTokenAsync/);
+    expect(offenders((source) => /getExpoPushTokenAsync|ExpoPushToken|exp\.host|setAutoServerRegistrationEnabledAsync/.test(source))).toEqual([]);
+  });
+  it("nada lee el texto de un aviso fuera del adaptador: solo `data` (ids)", () => {
+    expect(offenders((source, path) => path !== "src/features/notifications/native.ts" && /request\.content|\.content\.(title|body)/.test(source))).toEqual([]);
+    expect(read(join(SRC, "features/notifications/native.ts"))).not.toMatch(/content\.(title|body)/);
+  });
+  it("los enlaces entran solo por la lista blanca: nadie más lee la URL de arranque", () => {
+    expect(offenders((source, path) => !path.startsWith("src/nav/") && /\b(getInitialURL|useURL|Linking\.addEventListener)\b/.test(source))).toEqual([]);
+    expect(read(join(SRC, "app/+native-intent.ts"))).toMatch(/sanitizeDeepLink/);
+  });
+  it("ninguna petición lleva un monto en la URL (los filtros con montos van en el cuerpo de POST movements/search)", () => {
+    expect(offenders((source) => /(?:fms|allauth)\.(?:get|delete)\(\s*[`"'][^`"']*(?:amount|monto|balance)/i.test(source))).toEqual([]);
+    expect(read(join(SRC, "features/movements/list.tsx"))).toMatch(/fms\.post<Page>\(scopedPath\(paths\.movementsSearch/);
+  });
+});
+
 describe("nada de consola, analítica ni reportes de fallos", () => {
   it("nada en consola", () => {
     expect(offenders((source) => /\bconsole\s*\./.test(source))).toEqual([]);
@@ -95,5 +116,8 @@ describe("dependencias y configuración", () => {
     expect(expo.android?.permissions).toEqual(["android.permission.USE_BIOMETRIC"]);
     expect(expo.android?.blockedPermissions).toEqual(expect.arrayContaining(["android.permission.READ_EXTERNAL_STORAGE", "android.permission.WRITE_EXTERNAL_STORAGE", "android.permission.SYSTEM_ALERT_WINDOW"]));
     expect(JSON.stringify(expo.plugins)).toContain('"usesCleartextTraffic":false');
+    // Avisos: el plugin de expo-notifications pone POST_NOTIFICATIONS por su cuenta; el arranque del teléfono no hace falta para FCM.
+    expect(expo.android?.blockedPermissions).toContain("android.permission.RECEIVE_BOOT_COMPLETED");
+    expect(JSON.stringify(expo.plugins)).toContain('"defaultChannel":"due"');
   });
 });

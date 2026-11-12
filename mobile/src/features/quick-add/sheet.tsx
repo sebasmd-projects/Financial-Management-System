@@ -108,7 +108,7 @@ export function QuickAddSheet({ onClose }: { onClose: () => void }) {
   return (
     <View style={styles.fill}>
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        <View accessibilityRole="tablist" accessibilityLabel={t.typeLabel} style={styles.chips}>
+        <View accessibilityRole="toolbar" accessibilityLabel={t.typeLabel} style={styles.chips}>
           {(["expense", "income"] as QuickType[]).map((type) => (
             <Chip key={type} label={t[type]} selected={draft.type === type} onPress={() => set({ type, categoryId: null })} />
           ))}

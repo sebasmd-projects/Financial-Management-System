@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useI18n } from "@/i18n/provider";
+import { PersonalTag } from "@/features/household/notices";
 import { fmsHref, isItemActive, isSectionActive, SECTIONS, type SectionId } from "@/nav/routes";
 import { Icon } from "@/ui/icons";
 import { useMediaQuery } from "./use-media-query";
@@ -48,6 +49,7 @@ export function Sidebar() {
                   <Link href={fmsHref(locale, section.route)} className="sidebar__link" aria-current={active && !hasItems ? "page" : undefined} title={expanded ? undefined : label} aria-label={expanded ? undefined : label}>
                     <Icon name={section.icon} />
                     {expanded && <span>{label}</span>}
+                    {expanded && !hasItems && <PersonalTag route={section.route} />}
                   </Link>
                   {expanded && hasItems && (
                     <button
@@ -68,6 +70,7 @@ export function Sidebar() {
                       <li key={item.id}>
                         <Link href={fmsHref(locale, item.route)} className="sidebar__sublink" aria-current={isItemActive(item, pathname) ? "page" : undefined}>
                           {dict.nav.items[item.id]}
+                          <PersonalTag route={item.route} />
                         </Link>
                       </li>
                     ))}

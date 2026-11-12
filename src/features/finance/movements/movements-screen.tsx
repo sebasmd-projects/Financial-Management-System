@@ -12,6 +12,8 @@ import { Icon } from "@/ui/icons";
 import { dayNet, groupByDate, signedAmount } from "../helpers";
 import { clearDrill as clearStagedDrill, peekDrill, type Drill } from "../drill";
 import { useAll, useHref, useQuery } from "../hooks";
+import { AuthorLine, BothNotice, ReadOnlyBanner } from "../../household/notices";
+import { useCanWrite, useScope } from "../../household/scope-store";
 import { Badge, Checkbox, Empty, ErrorState, LinkTabs, Loading, Money, Pager, ScreenHeader, SelectField } from "../kit";
 
 export type MovementsPreset = "all" | "income" | "expense" | "transfer";
@@ -23,6 +25,7 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
   const { dict, locale } = useI18n();
   const t = dict.fin.movements;
   const href = useHref();
+  const canWrite = useCanWrite();
   const search = useSearchParams();
   const [period, setPeriod] = useState(() => periodOf(todayBogota()));
   // «Ver movimientos» desde un presupuesto, una meta o un informe: el filtro exacto llega por memoria (nunca por la URL) y se envía en el cuerpo de POST movements/search.
@@ -83,12 +86,16 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
         title={dict.screens[routeId]}
         eyebrow={dict.nav.sections.movimientos}
         actions={
-          <Link className="button button--primary" href={href("movimiento-nuevo")}>
-            <Icon name="plus" size={20} />
-            {dict.nav.newMovement}
-          </Link>
+          canWrite ? (
+            <Link className="button button--primary" href={href("movimiento-nuevo")}>
+              <Icon name="plus" size={20} />
+              {dict.nav.newMovement}
+            </Link>
+          ) : undefined
         }
       />
+      <ReadOnlyBanner />
+      <BothNotice />
       <LinkTabs
         label={t.segments}
         items={(Object.keys(PRESET_ROUTE) as MovementsPreset[]).map((key) => ({ href: href(PRESET_ROUTE[key]), label: t.presets[key], current: key === preset }))}
@@ -167,11 +174,11 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
               >
                 {t.clearFilters}
               </button>
-            ) : (
+            ) : canWrite ? (
               <Link className="button button--primary" href={href("movimiento-nuevo")}>
                 {t.addFirst}
               </Link>
-            )
+            ) : undefined
           }
         />
       )}
@@ -209,6 +216,7 @@ export function MovementRow({ movement }: { movement: Movement }) {
   const { dict } = useI18n();
   const t = dict.fin.movements;
   const href = useHref();
+  const scope = useScope();
   const { value, sign } = signedAmount(movement);
   const title = movement.counterparty?.name ?? movement.description ?? movement.category?.name ?? dict.fin.form.types[movement.type];
   const subtitle = [movement.type === "transfer" ? `${movement.account.name} → ${movement.to_account?.name ?? ""}` : movement.category?.path.join(" › "), movement.type === "transfer" ? null : movement.account.name].filter(Boolean).join(" · ");
@@ -218,6 +226,7 @@ export function MovementRow({ movement }: { movement: Movement }) {
       <span className="fin-row__main">
         <span className="fin-row__title">{title}</span>
         <span className="fin-row__sub muted">{subtitle}</span>
+        {scope.kind === "household" && <AuthorLine createdBy={movement.created_by} updatedBy={movement.updated_by} />}
         <span className="fin-row__badges">
           {movement.status === "pendiente" && (
             <Badge dashed>

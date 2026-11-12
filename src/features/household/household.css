@@ -1,0 +1,23 @@
+/* FMS-3b (corte 3.5): el Hogar y el selector de ámbito. Mobile first; solo tokens de `ui/tokens.css`. */
+
+/* ---------- Selector de ámbito (cabecera) ---------- */
+.scope-switcher { display: flex; align-items: center; gap: var(--space-8); flex: 1 1 auto; min-width: 0; }
+.scope-switcher__select { min-height: var(--target-min); max-width: 100%; min-width: 0; padding: 0 var(--space-8); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text-primary); font: var(--text-body-s); text-overflow: ellipsis; }
+.scope-switcher__link { display: none; font: var(--text-caption); white-space: nowrap; }
+@media (min-width: 600px) {
+  .scope-switcher { flex: 0 1 auto; }
+  .scope-switcher__link { display: inline; }
+}
+
+/* ---------- Marca «Solo personal» en el menú ---------- */
+.personal-tag { margin-left: var(--space-8); padding: 0 var(--space-8); border-radius: var(--radius-sm); border: 1px dashed var(--color-border-strong); color: var(--color-text-secondary); font: var(--text-caption); white-space: nowrap; }
+
+/* ---------- Hogares ---------- */
+.hh-row { align-items: flex-start; flex-wrap: wrap; gap: var(--space-8); }
+.hh-row__actions { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--space-8); min-width: 0; }
+.hh-member { flex-wrap: wrap; }
+.hh-invitation { display: grid; gap: var(--space-8); }
+.hh-blocker { margin-block: var(--space-8); }
+.hh-blocker ul { margin: var(--space-4) 0; padding-left: var(--space-24); }
+
+.button--danger { background: var(--color-negative-container); color: var(--color-on-negative-container); border: 1px solid var(--color-negative); }

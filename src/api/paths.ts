@@ -172,5 +172,20 @@ export const paths = {
   sharedPurchases: (params: Record<string, QueryValue> = {}) => `/shared/purchases${query({ page_size: 50, ...params })}`,
   sharedPurchase: (purchaseId: string) => `/shared/purchases/${id(purchaseId)}`,
   sharedCancel: (purchaseId: string) => `/shared/purchases/${id(purchaseId)}/cancel`,
+  // FMS-3b (corte 3.5): el Hogar. Los ids de hogar y de invitación van en la ruta; nunca montos.
+  households: () => "/households",
+  household: (householdId: string) => `/households/${id(householdId)}`,
+  householdInvitations: (householdId: string) => `/households/${id(householdId)}/invitations`,
+  householdInvitation: (householdId: string, invitationId: string) => `/households/${id(householdId)}/invitations/${id(invitationId)}`,
+  invitationAnswer: (invitationId: string, answer: "accept" | "decline") => `/household-invitations/${id(invitationId)}/${answer}`,
+  householdMember: (householdId: string, userId: number) => `/households/${id(householdId)}/members/${userId}`,
+  householdAction: (householdId: string, action: "leave" | "delete" | "transfer-ownership") => `/households/${id(householdId)}/${action}`,
+  householdAccounts: (householdId: string) => `/households/${id(householdId)}/accounts${query({ page_size: 100 })}`,
+  accountShare: (accountId: string) => `/accounts/${id(accountId)}/share`,
+  accountUnshare: (householdId: string, accountId: string) => `/households/${id(householdId)}/accounts/${id(accountId)}/unshare`,
+  crossTransfers: (householdId: string) => `/households/${id(householdId)}/cross-transfers`,
+  crossTransferAnnul: (householdId: string, group: string) => `/households/${id(householdId)}/cross-transfers/${id(group)}/annul`,
+  /** El consolidado de `scope=both`: ningún monto en la URL, solo el hogar. */
+  summaryBoth: (householdId: string, period?: string) => `/summary${query({ scope: "both", household_id: householdId, period })}`,
   audit: (params: Record<string, QueryValue> = {}) => `/audit${query({ page_size: 25, ...params })}`,
 };

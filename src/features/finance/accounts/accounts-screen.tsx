@@ -16,6 +16,8 @@ import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { accountGroup, SPENDABLE_KINDS } from "../helpers";
 import { AmountField, Badge, Banner, Checkbox, Empty, ErrorState, FormActions, LinkTabs, Loading, Modal, Money, ScreenHeader, SelectField, TextField } from "../kit";
 import { paths, roots } from "@/api/paths";
+import { ReadOnlyBanner } from "../../household/notices";
+import { setScope, useActiveHousehold, useCanWrite, useHouseholds, useScope } from "../../household/scope-store";
 
 export type AccountsTab = "todas" | "bancos" | "efectivo" | "debito" | "credito";
 
@@ -27,7 +29,15 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
   const t = dict.fin.accounts;
   const href = useHref();
   const accounts = useAll<Account>(paths.accounts());
-  const summary = useResource<Summary>(paths.summary());
+  const scope = useScope();
+  const canWrite = useCanWrite();
+  const { household } = useActiveHousehold();
+  const both = scope.kind === "both" ? scope : null;
+  const inHousehold = scope.kind === "household";
+  const summary = useResource<Summary>(both ? paths.summaryBoth(both.id) : paths.summary());
+  // «Ambos»: además de las personales (la lista de arriba), las del hogar, pedidas por su ruta propia.
+  const householdAccounts = useAll<Account>(both ? paths.householdAccounts(both.id) : null);
+  const bothName = useHouseholdName(both?.id);
   const [creating, setCreating] = useState(false);
 
   const visible = accounts.items.filter((a) => {
@@ -44,7 +54,7 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
         title={dict.screens[TAB_ROUTE[tab]]}
         eyebrow={dict.nav.sections.cuentas}
         actions={
-          tab !== "credito" && tab !== "debito" ? (
+          tab !== "credito" && tab !== "debito" && canWrite ? (
             <button type="button" className="button button--primary" onClick={() => setCreating(true)}>
               <Icon name="plus" size={20} />
               {t.add}
@@ -53,6 +63,7 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
         }
       />
 
+      <ReadOnlyBanner />
       {summary.data && (
         <dl className="fin-kpis">
           <div className="fin-kpi">
@@ -72,7 +83,7 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
 
       <LinkTabs
         label={t.tabsLabel}
-        items={(Object.keys(TAB_ROUTE) as AccountsTab[]).map((key) => ({ href: href(TAB_ROUTE[key]), label: t.tabs[key], current: key === tab }))}
+        items={(Object.keys(TAB_ROUTE) as AccountsTab[]).filter((key) => !(inHousehold && key === "credito")).map((key) => ({ href: href(TAB_ROUTE[key]), label: t.tabs[key], current: key === tab }))}
       />
 
       {(tab === "todas" || tab === "bancos" || tab === "efectivo") && (
@@ -84,9 +95,11 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
               title={t.emptyTitle}
               body={t.emptyBody}
               action={
-                <button type="button" className="button button--primary" onClick={() => setCreating(true)}>
-                  {t.addFirst}
-                </button>
+                canWrite ? (
+                  <button type="button" className="button button--primary" onClick={() => setCreating(true)}>
+                    {t.addFirst}
+                  </button>
+                ) : undefined
               }
             />
           )}
@@ -101,7 +114,21 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
           )}
         </>
       )}
-      {tab === "todas" && <CardList embedded />}
+      {both && (tab === "todas" || tab === "bancos" || tab === "efectivo") && (
+        <section aria-label={fillName(dict.fin.hh.accounts.householdSection, bothName)}>
+          <h2 className="title-s">{fillName(dict.fin.hh.accounts.householdSection, bothName)}</h2>
+          {householdAccounts.items.filter((a) => visibleIn(tab, a)).length === 0 && householdAccounts.data && <p className="muted">{t.emptyBody}</p>}
+          <ul className="fin-list">
+            {householdAccounts.items.filter((a) => visibleIn(tab, a)).map((account) => (
+              <li key={account.id}>
+                <AccountRow account={account} householdId={both.id} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {tab === "todas" && !inHousehold && <CardList embedded />}
+      {tab === "todas" && inHousehold && household && <p className="muted">{dict.fin.hh.accounts.cardsPersonal}</p>}
       {tab === "credito" && <CardList />}
       {tab === "debito" && <DebitMethods />}
 
@@ -119,13 +146,29 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
   );
 }
 
-export function AccountRow({ account }: { account: Account }) {
+/** El nombre del hogar de «Ambos» (de la lista de hogares ya cargada). */
+function useHouseholdName(id: string | undefined): string {
+  const { data } = useHouseholds();
+  return (id && data?.households.find((h) => h.id === id)?.name) || "";
+}
+
+const fillName = (template: string, name: string) => template.replace("{name}", name);
+
+function visibleIn(tab: AccountsTab, account: Account): boolean {
+  const group = accountGroup(account);
+  if (tab === "bancos") return group === "bancos";
+  if (tab === "efectivo") return group === "efectivo";
+  return group === "bancos" || group === "efectivo";
+}
+
+/** `householdId`: la cuenta es del hogar y se ve desde «Ambos»; al abrirla el ámbito pasa a ese hogar (su detalle vive allí). */
+export function AccountRow({ account, householdId }: { account: Account; householdId?: string }) {
   const { dict } = useI18n();
   const t = dict.fin.accounts;
   const href = useHref();
   const differs = compareAmounts(account.projected_balance, account.posted_balance) !== 0;
   return (
-    <Link href={href("cuenta", [account.id])} className="fin-row">
+    <Link href={href("cuenta", [account.id])} className="fin-row" onClick={householdId ? () => setScope({ kind: "household", id: householdId }) : undefined}>
       <span className="fin-row__main">
         <span className="fin-row__title">{account.name}</span>
         <span className="fin-row__sub muted">

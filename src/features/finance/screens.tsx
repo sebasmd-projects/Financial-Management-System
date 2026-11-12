@@ -51,6 +51,12 @@ import { ParametersScreen } from "./parameters/parameters-screen";
 import { ReconcileScreen } from "./reconcile/reconcile-screen";
 import { SubscriptionsScreen } from "./payments/subscriptions";
 import { SummaryScreen } from "./summary/summary-screen";
+import { HouseholdScreen } from "../household/household-detail";
+import { HouseholdsScreen } from "../household/households-screen";
+import { InvitationsScreen } from "../household/invitations-screen";
+import { PersonalOnly } from "../household/notices";
+import { blockedInScope, scopeKey } from "../household/scope";
+import { useScope } from "../household/scope-store";
 
 function render(routeId: RouteId, params: readonly string[]): ReactNode {
   const [first = "", second = ""] = params;
@@ -181,6 +187,12 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <RulesScreen />;
     case "notificaciones":
       return <NotificationsScreen />;
+    case "hogares":
+      return <HouseholdsScreen />;
+    case "hogar-invitaciones":
+      return <InvitationsScreen />;
+    case "hogar":
+      return <HouseholdScreen id={first} />;
     default:
       return null;
   }
@@ -191,9 +203,11 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
  * de los formularios se descarta, y con él la clave de idempotencia de lo que se estaba haciendo.
  */
 export function FinanceScreen({ routeId, params }: { routeId: RouteId; params: readonly string[] }) {
+  const scope = useScope();
+  // El ámbito entra en la `key`: al cambiarlo, la pantalla se vuelve a montar y pide sus datos al ámbito nuevo.
   return (
     <Suspense fallback={<Loading />}>
-      <div key={`${routeId}:${params.join("/")}`}>{render(routeId, params)}</div>
+      <div key={`${scopeKey(scope)}:${routeId}:${params.join("/")}`}>{blockedInScope(routeId, scope) ? <PersonalOnly routeId={routeId} /> : render(routeId, params)}</div>
     </Suspense>
   );
 }

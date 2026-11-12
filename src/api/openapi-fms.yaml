@@ -236,6 +236,67 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: El estado actual no lo permite.
+  /api/fms/v1/accounts/{id}/share:
+    post:
+      operationId: fmsAccountShare
+      description: 'Personal: ``accounts/<id>/share``. El hogar destino va en el cuerpo
+        (y se comprueba que eres miembro).'
+      summary: Pasar una cuenta personal al hogar (se vuelve a cifrar con la llave
+        del hogar, con su historia)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareAccount'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovedAccount'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
   /api/fms/v1/activation:
     post:
       operationId: fmsActivate
@@ -5110,6 +5171,4090 @@ paths:
               schema:
                 $ref: '#/components/schemas/FmsHealth'
           description: ''
+  /api/fms/v1/household-invitations/{id}/accept:
+    post:
+      operationId: fmsHouseholdInvitationAccept
+      description: '``household-invitations/<id>/accept|decline``: la invitación es
+        de quien la recibe; la de otro no existe (404).'
+      summary: 'Aceptar una invitación: entras con el rol indicado y recibes tu copia
+        de la llave del hogar'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - household-invitations
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HouseholdSummary'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/household-invitations/{id}/decline:
+    post:
+      operationId: fmsHouseholdInvitationDecline
+      description: '``household-invitations/<id>/accept|decline``: la invitación es
+        de quien la recibe; la de otro no existe (404).'
+      summary: Rechazar una invitación
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - household-invitations
+      security:
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households:
+    get:
+      operationId: fmsHouseholds
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: Mis hogares y las invitaciones que tengo pendientes
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HouseholdList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsHouseholdCreate
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: Crear un hogar (con llave propia); quien lo crea es el propietario
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/HouseholdCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HouseholdSummary'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}:
+    get:
+      operationId: fmsHousehold
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: 'Un hogar: miembros con su rol (y las invitaciones pendientes si gestionas)'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HouseholdDetail'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/accounts:
+    get:
+      operationId: fmsAccounts_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Tus cuentas con el saldo derivado del libro (caché cifrado)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: include_system
+        schema:
+          type: boolean
+        description: Incluye las cuentas del sistema y las de categoría (no por defecto).
+      - in: query
+        name: kind
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: type
+        schema:
+          type: string
+        description: '`asset`, `liability`, `income`, `expense` o `equity`.'
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountPage'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsAccountCreate_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Crear una cuenta de activo; el saldo inicial es un asiento contra «Patrimonio
+        inicial»
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/accounts/{id}:
+    get:
+      operationId: fmsAccount_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Una cuenta
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    patch:
+      operationId: fmsAccountPatch_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cambiar nombre, banderas o estado (cerrar exige saldo cero; un saldo
+        no se edita)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAccountPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/accounts/{id}/unshare:
+    post:
+      operationId: fmsAccountUnshare
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: Sacar del hogar una cuenta que trajiste tú, de vuelta a tu espacio
+        personal
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovedAccount'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/categories:
+    get:
+      operationId: fmsCategories_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Tus categorías y subcategorías (jerárquicas, definidas por ti)
+      parameters:
+      - in: query
+        name: archived
+        schema:
+          type: boolean
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: kind
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryPage'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsCategoryCreate_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Crear una categoría o subcategoría (nace con su cuenta de ingreso o
+        gasto en el plan)
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/categories/{id}:
+    get:
+      operationId: fmsCategory_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Una categoría
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    patch:
+      operationId: fmsCategoryPatch_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Renombrar, archivar o cambiar sus valores por defecto
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/cost-centers:
+    get:
+      operationId: fmsCostCenters_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Tus costcenters
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedPage'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsCostCenterCreate_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Crear: el nombre va cifrado y no se repite (sin mayúsculas ni espacios
+        de más)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NamedCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Named'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Named'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/cost-centers/{id}:
+    patch:
+      operationId: fmsCostCenterPatch_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Renombrar o archivar
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNamedPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Named'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/cost-centers/defaults:
+    post:
+      operationId: fmsCostCenterDefaults_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Crear los centros de costo sugeridos que aún no tengas (Personal, Hogar,
+        Vehículo, Trabajo). Idempotente por sí mismo
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Named'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/households/{household_id}/cost-centers/usage:
+    get:
+      operationId: fmsCostCenterUsage_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cuánto se gastó en cada centro de costo en un rango (por defecto el
+        mes en curso), con el total sin centro
+      parameters:
+      - in: query
+        name: from
+        schema:
+          type: string
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: to
+        schema:
+          type: string
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CostCenterUsageResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/households/{household_id}/counterparties:
+    get:
+      operationId: fmsCounterparties_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Tus counterparties
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedPage'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsCounterpartyCreate_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Crear: el nombre va cifrado y no se repite (sin mayúsculas ni espacios
+        de más)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NamedCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Named'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Named'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/counterparties/{id}:
+    patch:
+      operationId: fmsCounterpartyPatch_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Renombrar o archivar
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNamedPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Named'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/cross-transfers:
+    post:
+      operationId: fmsCrossTransfer
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: Trasladar plata entre una cuenta tuya y una del hogar (un asiento en
+        cada libro, con cuentas puente)
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrossTransfer'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrossTransferResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/cross-transfers/{group}/annul:
+    post:
+      operationId: fmsCrossTransferAnnul
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: 'Anular un traslado entre ámbitos: se anulan los dos asientos juntos'
+      parameters:
+      - in: path
+        name: group
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrossAnnul'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/dashboard:
+    get:
+      operationId: fmsDashboard_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'El Resumen: «Te queda», «Gastado», disponible, liquidez a 15/30/60/90
+        días, próximos pagos, gastos fijos, atajos y alertas'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: period
+        schema:
+          type: string
+        description: '`YYYY-MM`; por defecto el mes en curso.'
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/households/{household_id}/delete:
+    post:
+      operationId: fmsHouseholdDelete
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: 'Borrar el hogar: sus datos y su llave se destruyen (crypto-shredding).
+        Solo el propietario'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteHousehold'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/entries:
+    get:
+      operationId: fmsEntries_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'El libro: tus asientos (solo lectura; se escriben desde los movimientos)'
+      parameters:
+      - in: query
+        name: account
+        schema:
+          type: string
+      - in: query
+        name: from
+        schema:
+          type: string
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: kind
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+      - in: query
+        name: to
+        schema:
+          type: string
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EntryPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/households/{household_id}/entries/{id}:
+    get:
+      operationId: fmsEntry_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: '«Ver asientos»: un asiento y sus líneas'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/entries/{id}/adjust:
+    post:
+      operationId: fmsEntryAdjust_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Un asiento de ajuste de uno ya ocurrido (típicamente un conciliado);
+        las líneas cuadran por sí solas
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntryAdjust'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/entries/{id}/annul:
+    post:
+      operationId: fmsEntryAnnul_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Anular un asiento confirmado: escribe el reverso. Un conciliado se
+        rechaza (409 `immutable_entry`)'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EntryAnnul'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/entries/{id}/reconcile:
+    post:
+      operationId: fmsEntryReconcile_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Conciliar un asiento confirmado (queda inmutable: se corrige con un
+        ajuste)'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/entries/{id}/reopen:
+    post:
+      operationId: fmsEntryReopen_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Reabrir la conciliación de un asiento (queda en la auditoría)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entry'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/invitations:
+    post:
+      operationId: fmsHouseholdInvite
+      description: 'Responde siempre `202 {status: sent}`: no se confirma qué correos
+        tienen cuenta ni si cumplen los requisitos.'
+      summary: Invitar por correo a un usuario del FMS con correo verificado y segundo
+        factor
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Invite'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InviteResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/invitations/{id}:
+    delete:
+      operationId: fmsHouseholdInvitationRevoke
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: Retirar una invitación pendiente
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/leave:
+    post:
+      operationId: fmsHouseholdLeave
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: Salir del hogar (el propietario cede el lugar antes); se rota la llave
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/ledger/verify:
+    post:
+      operationId: fmsVerify
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Recalcula tus saldos desde las líneas y los compara con el caché (repara
+        y avisa si difieren)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Verify'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/households/{household_id}/liquidity:
+    get:
+      operationId: fmsLiquidity
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Liquidez a 15, 30, 60 y 90 días **descontando el gasto variable** y
+        el primer día en negativo (estimación)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: income_pct
+        schema:
+          type: string
+      - in: query
+        name: scenario
+        schema:
+          type: string
+      - in: query
+        name: variable_pct
+        schema:
+          type: string
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportLiquidity'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/households/{household_id}/members/{user_id}:
+    patch:
+      operationId: fmsHouseholdMemberRole
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: 'Cambiar el rol de un miembro (propietario: cualquiera; administrador:
+        editores y visores)'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRole'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsHouseholdMemberRemove
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: 'Expulsar a un miembro: pierde el acceso al instante y la llave del
+        hogar se rota'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: user_id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/movements:
+    get:
+      operationId: fmsMovements
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Historial con filtros, del más reciente al más antiguo (los anulados
+        se ocultan salvo `show_annulled`)
+      parameters:
+      - in: query
+        name: account
+        schema:
+          type: string
+        description: Origen o destino.
+      - in: query
+        name: category
+        schema:
+          type: string
+        description: Incluye sus subcategorías.
+      - in: query
+        name: classification
+        schema:
+          type: string
+        description: '`none` = sin clasificar.'
+      - in: query
+        name: cost_center
+        schema:
+          type: string
+      - in: query
+        name: counterparty
+        schema:
+          type: string
+      - in: query
+        name: from
+        schema:
+          type: string
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: ledger_account
+        schema:
+          type: string
+        description: 'Movimientos con una línea en esa cuenta del libro (FMS-2a: lo
+          que suma una fila de un informe).'
+      - in: query
+        name: max_amount
+        schema:
+          type: string
+        description: 'Obsoleto: usa `POST movements/search`.'
+        deprecated: true
+      - in: query
+        name: min_amount
+        schema:
+          type: string
+        description: 'Obsoleto: un monto no debe ir en la URL. Usa `POST movements/search`.'
+        deprecated: true
+      - in: query
+        name: nature
+        schema:
+          type: string
+        description: '`none` = sin naturaleza.'
+      - in: query
+        name: origin
+        schema:
+          type: string
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: payment_method
+        schema:
+          type: string
+      - in: query
+        name: show_annulled
+        schema:
+          type: boolean
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: '`pendiente`, `confirmado`, `conciliado` o `anulado`.'
+      - in: query
+        name: tag
+        schema:
+          type: string
+      - in: query
+        name: to
+        schema:
+          type: string
+      - in: query
+        name: type
+        schema:
+          type: string
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovementPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsMovementCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Alta rápida o completa. Pendiente no cambia saldos; avisa (sin bloquear)
+        de duplicados y saldo negativo
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovementCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/movements/{id}:
+    get:
+      operationId: fmsMovement
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Un movimiento
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    patch:
+      operationId: fmsMovementPatch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Editar: la clasificación en el sitio; dinero, fecha, cuenta o categoría
+        solo en un pendiente'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMovementPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/movements/{id}/adjust:
+    post:
+      operationId: fmsMovementAdjust
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cambiar el monto de un movimiento ya ocurrido con un asiento de ajuste
+        (también si está conciliado)
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovementAdjust'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/movements/{id}/annul:
+    post:
+      operationId: fmsMovementAnnul
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Anular: un confirmado escribe el reverso; un pendiente se descarta;
+        un conciliado se rechaza (409 `immutable_entry`)'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovementAnnul'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/movements/{id}/attachments:
+    get:
+      operationId: fmsAttachments
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Los comprobantes de un movimiento
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Attachment'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    post:
+      operationId: fmsAttachmentCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Subir un comprobante (JPG, PNG o PDF; se reconoce por sus primeros
+        bytes y se guarda cifrado)
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AttachmentUpload'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attachment'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/movements/{id}/attachments/{attachment_id}:
+    get:
+      operationId: fmsAttachmentDownload
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Descargar un comprobante (solo su dueño; se descifra al servirlo)
+      parameters:
+      - in: path
+        name: attachment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    delete:
+      operationId: fmsAttachmentDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Quitar un comprobante
+      parameters:
+      - in: path
+        name: attachment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/movements/{id}/confirm:
+    post:
+      operationId: fmsMovementConfirm
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Pendiente → confirmado, con monto, fecha y cuenta editables
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovementConfirm'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/movements/{id}/entries:
+    get:
+      operationId: fmsMovementEntries
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: '«Ver asientos»: las líneas del asiento (y su reverso o ajustes), solo
+        lectura'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovementEntries'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/movements/duplicates:
+    get:
+      operationId: fmsMovementDuplicates
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: ¿Ya registraste esto? Mismo monto y contraparte en el mismo día o a
+        un día
+      parameters:
+      - in: query
+        name: amount
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: counterparty
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: date
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Duplicates'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/households/{household_id}/movements/search:
+    post:
+      operationId: fmsMovementSearch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Historial con todos los filtros en el **cuerpo** (también los montos
+        mínimo y máximo): ningún monto va en la URL'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovementSearch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovementPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/households/{household_id}/movements/suggestion:
+    get:
+      operationId: fmsMovementSuggestion
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Clasificación sugerida por contraparte (desde el 3.er uso; lo más frecuente
+        en sus últimos 5 movimientos)
+      parameters:
+      - in: query
+        name: counterparty
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuggestionResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/households/{household_id}/payment-methods:
+    get:
+      operationId: fmsPaymentMethods
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Efectivo, débito, billeteras y tarjetas con la cuenta que afectan
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentMethod'
+          description: ''
+    post:
+      operationId: fmsPaymentMethodCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Crear un medio de pago ligado a una cuenta (una tarjeta débito no es
+        una cuenta)
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentMethodCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethod'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethod'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/payment-methods/{id}:
+    patch:
+      operationId: fmsPaymentMethodPatch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Renombrar o desactivar un medio de pago
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPaymentMethodPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethod'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/reports:
+    get:
+      operationId: fmsReports
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Los informes disponibles y los escenarios predefinidos
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportCatalog'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/households/{household_id}/reports/{key}:
+    get:
+      operationId: fmsReport
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Un informe con los filtros comunes: cifra principal, tablas y, por
+        fila, el filtro de «Ver movimientos»'
+      parameters:
+      - in: query
+        name: account
+        schema:
+          type: string
+      - in: query
+        name: card
+        schema:
+          type: string
+        description: No se combina con `account`.
+      - in: query
+        name: category
+        schema:
+          type: string
+        description: Incluye sus subcategorías.
+      - in: query
+        name: from
+        schema:
+          type: string
+        description: '`YYYY-MM-DD`.'
+      - in: query
+        name: horizon
+        schema:
+          type: string
+        description: 'Solo `projection`: `15`, `30`, `60`, `90` o `12m`.'
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: household_id
+        schema:
+          type: string
+        description: El hogar de `scope=household|both`; si no eres miembro, 404.
+      - in: query
+        name: income_pct
+        schema:
+          type: string
+        description: 'Solo `projection`: fracción editable (`0.05`).'
+      - in: path
+        name: key
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: month
+        schema:
+          type: string
+        description: '`YYYY-MM`; sustituye a `from` y `to`.'
+      - in: query
+        name: scenario
+        schema:
+          type: string
+        description: 'Solo `projection`: `base`, `optimistic` o `pessimistic`.'
+      - in: query
+        name: scope
+        schema:
+          type: string
+        description: '`personal` (defecto), `household` o `both` (consolidado; con
+          `household_id`).'
+      - in: query
+        name: tag
+        schema:
+          type: string
+      - in: query
+        name: threshold
+        schema:
+          type: string
+        description: 'Obsoleto: un monto no debe ir en la URL. Usa `POST reports/{key}/query`.
+          Solo `ant_expenses`: monto máximo (20000 por defecto).'
+        deprecated: true
+      - in: query
+        name: to
+        schema:
+          type: string
+        description: '`YYYY-MM-DD`.'
+      - in: query
+        name: type
+        schema:
+          type: string
+        description: '`income`, `expense` o `transfer`.'
+      - in: query
+        name: variable_pct
+        schema:
+          type: string
+        description: 'Solo `projection`: fracción editable (`-0.10`).'
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/reports/{key}/export:
+    post:
+      operationId: fmsReportExport
+      description: 'Un `POST` que **devuelve el archivo** en la respuesta, transmitido
+        desde memoria: no se escribe en disco, no se guarda en caché (`Cache-Control:
+        private, no-store`) y ningún monto ni filtro va en la URL.'
+      summary: Exportar un informe a xlsx, csv o pdf (lo filtrado, con los filtros
+        y la fecha de generación en la cabecera)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: key
+        schema:
+          type: string
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportExport'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Demasiadas peticiones (cupo de la ruta).
+  /api/fms/v1/households/{household_id}/reports/{key}/query:
+    post:
+      operationId: fmsReportQuery
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Lo mismo que `GET reports/{key}` con los filtros en el **cuerpo**
+        (incluido `threshold`): ningún monto va en la URL'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: key
+        schema:
+          type: string
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportQuery'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/summary:
+    get:
+      operationId: fmsSummary
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Gastado, Disponible hoy y Debes del mes, derivados del libro
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: household_id
+        schema:
+          type: string
+        description: El hogar de `scope=household|both`; si no eres miembro, 404.
+      - in: query
+        name: period
+        schema:
+          type: string
+        description: '`YYYY-MM`; por defecto, el mes en curso en Bogotá.'
+      - in: query
+        name: scope
+        schema:
+          type: string
+        description: '`personal` (defecto), `household` o `both` (consolidado, sin
+          las cuentas puente).'
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Summary'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+  /api/fms/v1/households/{household_id}/tags:
+    get:
+      operationId: fmsTags
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Tus tags
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - households
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedPage'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+    post:
+      operationId: fmsTagCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Crear: el nombre va cifrado y no se repite (sin mayúsculas ni espacios
+        de más)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NamedCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Named'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Named'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/tags/{id}:
+    patch:
+      operationId: fmsTagPatch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Renombrar o archivar
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedNamedPatch'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Named'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/transfer-ownership:
+    post:
+      operationId: fmsHouseholdTransfer
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: Ceder la propiedad del hogar a otro miembro
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferOwnership'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/transfers:
+    post:
+      operationId: fmsTransferCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Transferir entre cuentas propias; con GMF (4x1000) si el origen no
+        es exento, con la tasa vigente de Parámetros
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferCreate'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/import-mappings:
     get:
       operationId: fmsImportMappings
@@ -5571,7 +9716,7 @@ paths:
           description: ''
   /api/fms/v1/ledger/verify:
     post:
-      operationId: fmsVerify
+      operationId: fmsVerify_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -5602,7 +9747,7 @@ paths:
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/liquidity:
     get:
-      operationId: fmsLiquidity
+      operationId: fmsLiquidity_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -6533,7 +10678,7 @@ paths:
           description: Sin sesión.
   /api/fms/v1/movements:
     get:
-      operationId: fmsMovements
+      operationId: fmsMovements_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -6657,7 +10802,7 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
     post:
-      operationId: fmsMovementCreate
+      operationId: fmsMovementCreate_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -6726,7 +10871,7 @@ paths:
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/movements/{id}:
     get:
-      operationId: fmsMovement
+      operationId: fmsMovement_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -6768,7 +10913,7 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
     patch:
-      operationId: fmsMovementPatch
+      operationId: fmsMovementPatch_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -6835,7 +10980,7 @@ paths:
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/movements/{id}/adjust:
     post:
-      operationId: fmsMovementAdjust
+      operationId: fmsMovementAdjust_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -6910,7 +11055,7 @@ paths:
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/movements/{id}/annul:
     post:
-      operationId: fmsMovementAnnul
+      operationId: fmsMovementAnnul_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -6978,7 +11123,7 @@ paths:
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/movements/{id}/attachments:
     get:
-      operationId: fmsAttachments
+      operationId: fmsAttachments_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -7022,7 +11167,7 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
     post:
-      operationId: fmsAttachmentCreate
+      operationId: fmsAttachmentCreate_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -7103,7 +11248,7 @@ paths:
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/movements/{id}/attachments/{attachment_id}:
     get:
-      operationId: fmsAttachmentDownload
+      operationId: fmsAttachmentDownload_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -7152,7 +11297,7 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
     delete:
-      operationId: fmsAttachmentDelete
+      operationId: fmsAttachmentDelete_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -7197,7 +11342,7 @@ paths:
           description: No existe (o es de otro usuario).
   /api/fms/v1/movements/{id}/confirm:
     post:
-      operationId: fmsMovementConfirm
+      operationId: fmsMovementConfirm_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -7399,7 +11544,7 @@ paths:
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/movements/{id}/entries:
     get:
-      operationId: fmsMovementEntries
+      operationId: fmsMovementEntries_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -7443,7 +11588,7 @@ paths:
           description: No existe (o es de otro usuario).
   /api/fms/v1/movements/duplicates:
     get:
-      operationId: fmsMovementDuplicates
+      operationId: fmsMovementDuplicates_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -7496,7 +11641,7 @@ paths:
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/movements/search:
     post:
-      operationId: fmsMovementSearch
+      operationId: fmsMovementSearch_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -7538,7 +11683,7 @@ paths:
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/movements/suggestion:
     get:
-      operationId: fmsMovementSuggestion
+      operationId: fmsMovementSuggestion_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -8544,7 +12689,7 @@ paths:
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/payment-methods:
     get:
-      operationId: fmsPaymentMethods
+      operationId: fmsPaymentMethods_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -8563,7 +12708,7 @@ paths:
                   $ref: '#/components/schemas/PaymentMethod'
           description: ''
     post:
-      operationId: fmsPaymentMethodCreate
+      operationId: fmsPaymentMethodCreate_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -8632,7 +12777,7 @@ paths:
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/payment-methods/{id}:
     patch:
-      operationId: fmsPaymentMethodPatch
+      operationId: fmsPaymentMethodPatch_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -9408,7 +13553,7 @@ paths:
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/reports:
     get:
-      operationId: fmsReports
+      operationId: fmsReports_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -9438,7 +13583,7 @@ paths:
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/reports/{key}:
     get:
-      operationId: fmsReport
+      operationId: fmsReport_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -9470,6 +13615,11 @@ paths:
           type: string
         description: 'Solo `projection`: `15`, `30`, `60`, `90` o `12m`.'
       - in: query
+        name: household_id
+        schema:
+          type: string
+        description: El hogar de `scope=household|both`; si no eres miembro, 404.
+      - in: query
         name: income_pct
         schema:
           type: string
@@ -9489,6 +13639,12 @@ paths:
         schema:
           type: string
         description: 'Solo `projection`: `base`, `optimistic` o `pessimistic`.'
+      - in: query
+        name: scope
+        schema:
+          type: string
+        description: '`personal` (defecto), `household` o `both` (consolidado; con
+          `household_id`).'
       - in: query
         name: tag
         schema:
@@ -9552,7 +13708,7 @@ paths:
           description: No existe (o es de otro usuario).
   /api/fms/v1/reports/{key}/export:
     post:
-      operationId: fmsReportExport
+      operationId: fmsReportExport_2
       description: 'Un `POST` que **devuelve el archivo** en la respuesta, transmitido
         desde memoria: no se escribe en disco, no se guarda en caché (`Cache-Control:
         private, no-store`) y ningún monto ni filtro va en la URL.'
@@ -9614,7 +13770,7 @@ paths:
           description: Demasiadas peticiones (cupo de la ruta).
   /api/fms/v1/reports/{key}/query:
     post:
-      operationId: fmsReportQuery
+      operationId: fmsReportQuery_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -10631,17 +14787,28 @@ paths:
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/summary:
     get:
-      operationId: fmsSummary
+      operationId: fmsSummary_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
       summary: Gastado, Disponible hoy y Debes del mes, derivados del libro
       parameters:
       - in: query
+        name: household_id
+        schema:
+          type: string
+        description: El hogar de `scope=household|both`; si no eres miembro, 404.
+      - in: query
         name: period
         schema:
           type: string
         description: '`YYYY-MM`; por defecto, el mes en curso en Bogotá.'
+      - in: query
+        name: scope
+        schema:
+          type: string
+        description: '`personal` (defecto), `household` o `both` (consolidado, sin
+          las cuentas puente).'
       tags:
       - summary
       security:
@@ -10673,7 +14840,7 @@ paths:
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
   /api/fms/v1/tags:
     get:
-      operationId: fmsTags
+      operationId: fmsTags_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -10711,7 +14878,7 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
     post:
-      operationId: fmsTagCreate
+      operationId: fmsTagCreate_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -10780,7 +14947,7 @@ paths:
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/tags/{id}:
     patch:
-      operationId: fmsTagPatch
+      operationId: fmsTagPatch_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -10846,7 +15013,7 @@ paths:
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/transfers:
     post:
-      operationId: fmsTransferCreate
+      operationId: fmsTransferCreate_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -11351,6 +15518,14 @@ components:
       - page
       - page_size
       - results
+    AccountScopeEnum:
+      enum:
+      - personal
+      - household
+      type: string
+      description: |-
+        * `personal` - personal
+        * `household` - household
     AccountStatusEnum:
       enum:
       - active
@@ -13081,6 +17256,11 @@ components:
       - field
       - op
       - value
+    ConfirmEnum:
+      enum:
+      - delete
+      type: string
+      description: '* `delete` - delete'
     Consolidation:
       type: object
       properties:
@@ -13483,6 +17663,65 @@ components:
       - rate
       - rate_ea
       - usury_ea
+    CrossAnnul:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 200
+      required:
+      - reason
+    CrossTransfer:
+      type: object
+      properties:
+        personal_account_id:
+          type: string
+          format: uuid
+        household_account_id:
+          type: string
+          format: uuid
+        direction:
+          $ref: '#/components/schemas/CrossTransferDirectionEnum'
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        date:
+          type: string
+          format: date
+        description:
+          type: string
+          maxLength: 200
+      required:
+      - amount
+      - date
+      - direction
+      - household_account_id
+      - personal_account_id
+    CrossTransferDirectionEnum:
+      enum:
+      - to_household
+      - from_household
+      type: string
+      description: |-
+        * `to_household` - to_household
+        * `from_household` - from_household
+    CrossTransferResult:
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+        personal_movement_id:
+          type: string
+          format: uuid
+        household_movement_id:
+          type: string
+          format: uuid
+      required:
+      - group
+      - household_movement_id
+      - personal_movement_id
     Currency:
       type: object
       properties:
@@ -14051,6 +18290,13 @@ components:
       description: |-
         * `.` - .
         * `,` - ,
+    DeleteHousehold:
+      type: object
+      properties:
+        confirm:
+          $ref: '#/components/schemas/ConfirmEnum'
+      required:
+      - confirm
     DryRun:
       type: object
       properties:
@@ -14255,6 +18501,16 @@ components:
         id:
           type: string
           format: uuid
+        created_by:
+          oneOf:
+          - $ref: '#/components/schemas/Person'
+          - type: 'null'
+          description: Quién lo creó (en un hogar, el miembro).
+        updated_by:
+          oneOf:
+          - $ref: '#/components/schemas/Person'
+          - type: 'null'
+          description: Quién lo tocó por última vez.
         number:
           type: integer
           description: «Asiento n.º 1.284».
@@ -14320,6 +18576,7 @@ components:
       - annulled_at
       - balanced
       - confirmed_at
+      - created_by
       - date
       - id
       - kind
@@ -14332,6 +18589,7 @@ components:
       - status
       - total_credit
       - total_debit
+      - updated_by
       - voided
     EntryAdjust:
       type: object
@@ -15317,6 +19575,95 @@ components:
       required:
       - balance
       - days
+    HouseholdCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+      required:
+      - name
+    HouseholdDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/HouseholdRoleEnum'
+        members:
+          type: integer
+        rotating:
+          type: boolean
+          description: '`true` mientras se reescriben las celdas con la llave nueva
+            tras salir un miembro.'
+        members_list:
+          type: array
+          items:
+            $ref: '#/components/schemas/Member'
+        invitations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invitation'
+          description: Pendientes; solo para propietario y administradores.
+      required:
+      - id
+      - invitations
+      - members
+      - members_list
+      - name
+      - role
+      - rotating
+    HouseholdList:
+      type: object
+      properties:
+        households:
+          type: array
+          items:
+            $ref: '#/components/schemas/HouseholdSummary'
+        invitations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invitation'
+      required:
+      - households
+      - invitations
+    HouseholdRoleEnum:
+      enum:
+      - owner
+      - admin
+      - editor
+      - viewer
+      type: string
+      description: |-
+        * `owner` - Owner
+        * `admin` - Admin
+        * `editor` - Editor
+        * `viewer` - Viewer
+    HouseholdSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/HouseholdRoleEnum'
+        members:
+          type: integer
+        rotating:
+          type: boolean
+          description: '`true` mientras se reescriben las celdas con la llave nueva
+            tras salir un miembro.'
+      required:
+      - id
+      - members
+      - name
+      - role
+      - rotating
     ImportActionEnum:
       enum:
       - import
@@ -16107,6 +20454,70 @@ components:
           description: Cuántos cargos de interés se hicieron (0 si ya estaban).
       required:
       - posted
+    InvitableRoleEnum:
+      enum:
+      - admin
+      - editor
+      - viewer
+      type: string
+      description: |-
+        * `admin` - admin
+        * `editor` - editor
+        * `viewer` - viewer
+    Invitation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        household_id:
+          type: string
+          format: uuid
+        household_name:
+          type: string
+          description: Solo lo ve la persona invitada y quien gestiona el hogar.
+        role:
+          $ref: '#/components/schemas/HouseholdRoleEnum'
+        status:
+          type: string
+        invited_by:
+          type:
+          - string
+          - 'null'
+        expires_at:
+          type: string
+          format: date-time
+        invitee:
+          type: string
+          description: Quien gestiona ve a quién se invitó (nombre visible).
+      required:
+      - expires_at
+      - household_id
+      - household_name
+      - id
+      - invited_by
+      - role
+      - status
+    Invite:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          $ref: '#/components/schemas/InvitableRoleEnum'
+      required:
+      - email
+      - role
+    InviteResult:
+      type: object
+      properties:
+        status:
+          type: string
+          description: 'Siempre `sent`: no se confirma qué correos tienen cuenta ni
+            si cumple los requisitos.'
+      required:
+      - status
     Kpi:
       type: object
       properties:
@@ -17072,6 +21483,26 @@ components:
       - km_left
       - reason
       - state
+    Member:
+      type: object
+      properties:
+        user_id:
+          type: integer
+        name:
+          type: string
+        role:
+          $ref: '#/components/schemas/HouseholdRoleEnum'
+        joined_at:
+          type: string
+          format: date-time
+        you:
+          type: boolean
+      required:
+      - joined_at
+      - name
+      - role
+      - user_id
+      - you
     MonthPoint:
       type: object
       properties:
@@ -17094,6 +21525,17 @@ components:
       - closing
       - month
       - state
+    MovedAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        scope:
+          $ref: '#/components/schemas/AccountScopeEnum'
+      required:
+      - id
+      - scope
     MovedReasonEnum:
       enum:
       - holiday
@@ -17108,6 +21550,16 @@ components:
         id:
           type: string
           format: uuid
+        created_by:
+          oneOf:
+          - $ref: '#/components/schemas/Person'
+          - type: 'null'
+          description: Quién lo creó (en un hogar, el miembro).
+        updated_by:
+          oneOf:
+          - $ref: '#/components/schemas/Person'
+          - type: 'null'
+          description: Quién lo tocó por última vez.
         type:
           $ref: '#/components/schemas/MovementTypeEnum'
         origin:
@@ -17225,6 +21677,7 @@ components:
       - classification
       - cost_center
       - counterparty
+      - created_by
       - currency
       - date
       - description
@@ -17244,6 +21697,7 @@ components:
       - tags
       - to_account
       - type
+      - updated_by
       - voided
     MovementAdjust:
       type: object
@@ -17541,6 +21995,7 @@ components:
       - debt_opening
       - goal_contribution
       - import
+      - household_transfer
       type: string
       description: |-
         * `manual` - Manual
@@ -17557,6 +22012,7 @@ components:
         * `debt_opening` - Personal debt lent or received
         * `goal_contribution` - Goal contribution
         * `import` - Imported from a statement
+        * `household_transfer` - Transfer between personal and household
     MovementPage:
       type: object
       properties:
@@ -18261,7 +22717,7 @@ components:
             los escribes tú.'
         scope:
           allOf:
-          - $ref: '#/components/schemas/ScopeEnum'
+          - $ref: '#/components/schemas/ParameterCatalogScopeEnum'
           description: |-
             `user` si tu valor gana sobre el global.
 
@@ -18305,6 +22761,14 @@ components:
       - valid_from
       - valid_to
       - value
+    ParameterCatalogScopeEnum:
+      enum:
+      - global
+      - user
+      type: string
+      description: |-
+        * `global` - global
+        * `user` - user
     ParameterCatalogUnitEnum:
       enum:
       - fraction
@@ -18869,6 +23333,11 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PauseRange'
+    PatchedRole:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/InvitableRoleEnum'
     PatchedRulesPatch:
       type: object
       properties:
@@ -18995,6 +23464,18 @@ components:
       required:
       - id
       - kind
+      - name
+    Person:
+      type: object
+      description: 'Quién creó o tocó por última vez algo (FMS-3b): lo ven los miembros
+        del hogar.'
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+      required:
+      - id
       - name
     PersonBalance:
       type: object
@@ -20301,6 +24782,18 @@ components:
       properties:
         format:
           $ref: '#/components/schemas/ExportFormatEnum'
+        scope:
+          allOf:
+          - $ref: '#/components/schemas/ReportScopeEnum'
+          description: |-
+            Ruta personal: `household` o `both` (consolidado) piden además `household_id`.
+
+            * `personal` - personal
+            * `household` - household
+            * `both` - both
+        household_id:
+          type: string
+          format: uuid
         month:
           type: string
           description: '`YYYY-MM`; sustituye a `from` y `to`.'
@@ -20413,6 +24906,18 @@ components:
       description: Los filtros del informe en el cuerpo de un `POST` (FMS-2b), incluido
         `threshold` (un monto no va en la URL).
       properties:
+        scope:
+          allOf:
+          - $ref: '#/components/schemas/ReportScopeEnum'
+          description: |-
+            Ruta personal: `household` o `both` (consolidado) piden además `household_id`.
+
+            * `personal` - personal
+            * `household` - household
+            * `both` - both
+        household_id:
+          type: string
+          format: uuid
         month:
           type: string
           description: '`YYYY-MM`; sustituye a `from` y `to`.'
@@ -20456,6 +24961,16 @@ components:
         * `base` - base
         * `optimistic` - optimistic
         * `pessimistic` - pessimistic
+    ReportScopeEnum:
+      enum:
+      - personal
+      - household
+      - both
+      type: string
+      description: |-
+        * `personal` - personal
+        * `household` - household
+        * `both` - both
     ReportSpec:
       type: object
       properties:
@@ -20746,14 +25261,6 @@ components:
       description: |-
         * `current` - current
         * `projected` - projected
-    ScopeEnum:
-      enum:
-      - global
-      - user
-      type: string
-      description: |-
-        * `global` - global
-        * `user` - user
     SettleRequest:
       type: object
       properties:
@@ -20778,6 +25285,14 @@ components:
       required:
       - account_id
       - date
+    ShareAccount:
+      type: object
+      properties:
+        household_id:
+          type: string
+          format: uuid
+      required:
+      - household_id
     SharePerson:
       type: object
       properties:
@@ -21538,6 +26053,13 @@ components:
       - date
       - from_account_id
       - to_account_id
+    TransferOwnership:
+      type: object
+      properties:
+        user_id:
+          type: integer
+      required:
+      - user_id
     TrendPoint:
       type: object
       properties:

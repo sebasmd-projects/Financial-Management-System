@@ -230,5 +230,8 @@ export const en: Dictionary = {
     "plan-ahorro": "Savings",
     "plan-objetivos": "Goals",
     "informes-estadisticas": "Statistics",
+    hogares: "Households",
+    hogar: "Household",
+    "hogar-invitaciones": "Household invitations",
   },
 };

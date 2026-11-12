@@ -15,6 +15,10 @@ import { setDraft } from "../draft-store";
 import { effectPhrase, fill, movementAccounts, signedAmount, transferAccounts } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, DefinitionList, Empty, ErrorState, FormActions, Loading, Modal, Money, ScreenHeader, Section, Segmented, SelectField, TextArea, TextField } from "../kit";
+import { AuthorLine, ReadOnlyBanner } from "../../household/notices";
+import { AnnulTransfer } from "../../household/cross-transfer";
+import { transferOfMovement } from "../../household/cross-memory";
+import { useCanWrite, useScope } from "../../household/scope-store";
 import { EditPreviewPanel } from "./edit-preview";
 import { EntryTable } from "./entry-table";
 import { amountToInput } from "./movement-form";
@@ -28,8 +32,12 @@ export function MovementDetail({ id }: { id: string }) {
   const href = useHref();
   const router = useRouter();
   const movement = useResource<Movement>(paths.movement(id));
-  const attributeDefs = useAll<CustomAttribute>(paths.customAttributes());
+  const scope = useScope();
+  const canWrite = useCanWrite();
+  const inHousehold = scope.kind === "household";
+  const attributeDefs = useAll<CustomAttribute>(inHousehold ? null : paths.customAttributes());
   const [action, setAction] = useState<Action>(null);
+  const [annullingTransfer, setAnnullingTransfer] = useState(false);
   const back = { href: href("movimientos"), label: dict.screens.movimientos };
 
   if (movement.loading && !movement.data) return <div className="screen"><ScreenHeader title={dict.screens.movimiento} back={back} /><Loading /></div>;
@@ -46,6 +54,9 @@ export function MovementDetail({ id }: { id: string }) {
   const kind = m.type === "expense" ? "egreso" : m.type === "income" ? "ingreso" : "transferencia";
   const pending = m.status === "pendiente";
   const closed = m.voided || m.status === "anulado";
+  // La mitad de un traslado entre Personal y Hogar no se anula ni se ajusta sola: se anula el traslado (si esta sesión lo conoce).
+  const crossHalf = m.origin === "household_transfer";
+  const knownTransfer = crossHalf ? transferOfMovement(m.id) : null;
   const title = m.counterparty?.name ?? m.description ?? m.category?.name ?? dict.fin.form.types[m.type];
   const phrase = effectPhrase(
     { type: m.type, pending, account: { name: m.account.name, kind: m.origin === "card_purchase" ? "credit_card" : "savings", posted_balance: "0" }, toAccount: m.to_account ? { name: m.to_account.name, kind: m.origin === "card_payment" ? "credit_card" : "savings" } : null, amount: null },
@@ -94,9 +105,22 @@ export function MovementDetail({ id }: { id: string }) {
           <span className="muted">{formatDateLong(m.date, locale)}</span>
         </p>
         {phrase && <p className="fin-phrase">{phrase}</p>}
+        {inHousehold && <AuthorLine className="muted" createdBy={m.created_by} updatedBy={m.updated_by} />}
       </section>
+      <ReadOnlyBanner />
 
-      {!closed && (
+      {crossHalf && !closed && canWrite && (
+        <div className="actions">
+          {knownTransfer ? (
+            <button type="button" className="button button--ghost" onClick={() => setAnnullingTransfer(true)}>
+              {dict.fin.hh.cross.annul}
+            </button>
+          ) : (
+            <p className="hint">{dict.fin.hh.cross.cannotKnow}</p>
+          )}
+        </div>
+      )}
+      {!closed && canWrite && !crossHalf && (
         <div className="actions">
           {pending && (
             <button type="button" className="button button--primary" onClick={() => setAction("confirm")}>
@@ -119,7 +143,7 @@ export function MovementDetail({ id }: { id: string }) {
           </button>
         </div>
       )}
-      {closed && (
+      {closed && canWrite && (
         <div className="actions">
           <button type="button" className="button button--ghost" onClick={duplicate}>
             {t.duplicate}
@@ -167,9 +191,21 @@ export function MovementDetail({ id }: { id: string }) {
 
       <nav className="fin-links" aria-label={t.more}>
         <Link href={href("movimiento-asientos", [m.id])}>{t.viewEntries}</Link>
-        <Link href={href("movimiento-historial", [m.id])}>{dict.screens["movimiento-historial"]}</Link>
+        {!inHousehold && <Link href={href("movimiento-historial", [m.id])}>{dict.screens["movimiento-historial"]}</Link>}
       </nav>
 
+      {knownTransfer && (
+        <AnnulTransfer
+          open={annullingTransfer}
+          householdId={knownTransfer.householdId}
+          group={knownTransfer.group}
+          onClose={() => setAnnullingTransfer(false)}
+          onDone={() => {
+            setAnnullingTransfer(false);
+            movement.reload();
+          }}
+        />
+      )}
       <Modal open={action === "confirm"} title={t.confirm} onClose={() => setAction(null)}>
         <ConfirmForm movement={m} onDone={done} onCancel={() => setAction(null)} />
       </Modal>
@@ -294,10 +330,13 @@ function EditForm({ movement, onDone, onCancel }: { movement: Movement; onDone: 
   const [preview, setPreview] = useState<EditPreview | null>(null);
   const amount = parsePositiveAmount(amountText);
   const isTransfer = movement.type === "transfer";
+  // En el hogar no existe la vista previa de efectos (`edit/preview`): lo confirmado se corrige con «Ajustar monto» o anulando.
+  const inHousehold = useScope().kind === "household";
+  const moneyLocked = inHousehold && !pending;
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!amount) return;
+    if (!amount && !moneyLocked) return;
     const inPlace = {
       description: description.trim() || null,
       counterparty: counterparty.trim() || null,
@@ -306,8 +345,8 @@ function EditForm({ movement, onDone, onCancel }: { movement: Movement; onDone: 
       classification: classification as "" | "necessary" | "discretionary",
       tags: tags.split(",").map((tag) => tag.trim()).filter(Boolean),
     };
-    const money = {
-      ...(compareAmounts(amount, movement.amount) !== 0 ? { amount } : {}),
+    const money = moneyLocked ? {} : {
+      ...(amount && compareAmounts(amount, movement.amount) !== 0 ? { amount } : {}),
       ...(date !== movement.date ? { date } : {}),
       ...(accountId !== movement.account.id ? { account_id: accountId } : {}),
       ...(!isTransfer && categoryId !== (movement.category?.id ?? "") ? { category_id: categoryId || null } : {}),
@@ -333,11 +372,15 @@ function EditForm({ movement, onDone, onCancel }: { movement: Movement; onDone: 
 
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
-      {!pending && <p className="muted">{dict.fin.edit.moneyHint}</p>}
-      <AmountField apiCode={submit.errorCode} label={f.amount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />
-      <TextField label={f.date} type="date" value={date} onChange={setDate} required />
-      <SelectField label={f.account} value={accountId} onChange={setAccountId} options={(isTransfer ? transferAccounts(accounts.items) : movementAccounts(accounts.items)).map((a) => ({ value: a.id, label: a.name }))} />
-      {!isTransfer && <SelectField label={f.category} value={categoryId} onChange={setCategoryId} placeholder={f.noCategory} options={categories.items.filter((c) => c.kind === (movement.type === "income" ? "income" : "expense")).map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />}
+      {moneyLocked ? <p className="muted">{dict.fin.hh.movements.editLimited}</p> : !pending && <p className="muted">{dict.fin.edit.moneyHint}</p>}
+      {!moneyLocked && (
+        <>
+          <AmountField apiCode={submit.errorCode} label={f.amount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />
+          <TextField label={f.date} type="date" value={date} onChange={setDate} required />
+          <SelectField label={f.account} value={accountId} onChange={setAccountId} options={(isTransfer ? transferAccounts(accounts.items) : movementAccounts(accounts.items)).map((a) => ({ value: a.id, label: a.name }))} />
+          {!isTransfer && <SelectField label={f.category} value={categoryId} onChange={setCategoryId} placeholder={f.noCategory} options={categories.items.filter((c) => c.kind === (movement.type === "income" ? "income" : "expense")).map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />}
+        </>
+      )}
       {!isTransfer && <TextField label={f.counterparty} value={counterparty} onChange={setCounterparty} maxLength={80} />}
       <TextField label={f.description} value={description} onChange={setDescription} maxLength={200} />
       {!isTransfer && (
@@ -349,7 +392,7 @@ function EditForm({ movement, onDone, onCancel }: { movement: Movement; onDone: 
       )}
       <TextArea label={f.notes} value={notes} onChange={setNotes} maxLength={280} />
       {submit.error && submit.errorCode !== "too_many_decimals" && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
-      <Buttons pending={submit.pending} label={pending ? dict.fin.common.save : dict.fin.edit.preview} onCancel={onCancel} disabled={!amount} />
+      <Buttons pending={submit.pending} label={pending ? dict.fin.common.save : dict.fin.edit.preview} onCancel={onCancel} disabled={!moneyLocked && !amount} />
     </form>
   );
 }

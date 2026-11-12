@@ -230,6 +230,9 @@ export const es = {
     "plan-ahorro": "Ahorro",
     "plan-objetivos": "Objetivos",
     "informes-estadisticas": "Estadísticas",
+    hogares: "Hogares",
+    hogar: "Hogar",
+    "hogar-invitaciones": "Invitaciones a hogares",
   } satisfies Record<RouteId, string>,
 };
 

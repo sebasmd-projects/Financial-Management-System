@@ -1,3 +1,4 @@
+import { errorsHEn, finHEn } from "./fin-h-en";
 import { finCEn } from "./fin-c-en";
 import { errorsDEn, finDEn } from "./fin-d-en";
 import { errorsEEn, finEEn } from "./fin-e-en";
@@ -6,10 +7,12 @@ import type { FinDictionary } from "./fin-es";
 
 /** English strings for the FMS-1 finance screens. Must satisfy the same type as Spanish. */
 export const finEn: FinDictionary = {
+  hh: finHEn,
   currentPeriodParam: "current",
   errors: {
     ...errorsDEn,
     ...errorsEEn,
+    ...errorsHEn,
     generic: "We could not complete the action. Please try again in a moment.",
     network: "There is no connection to the server. Check your network and try again: nothing will be duplicated.",
     csrf: "We could not validate the request. Reload the page and try again.",

@@ -43,6 +43,8 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    // Firma el release con tu llave (mobile/keystore.properties); falla si no reconoce la plantilla de Gradle.
+    "./plugins/release-signing",
     "expo-secure-store",
     ["expo-splash-screen", { image: "./assets/splash-icon.png", imageWidth: 160, backgroundColor: "#f6f5f1", dark: { backgroundColor: "#111318" } }],
     ["expo-local-authentication", { faceIDPermission: false }],

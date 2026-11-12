@@ -16,9 +16,11 @@ function walk(dir: string): string[] {
 }
 
 const rel = (path: string) => relative(ROOT, path).split("\\").join("/");
-const all = walk(SRC);
+const CORE = join(ROOT, "core");
+const all = [...walk(SRC), ...walk(CORE)];
 const isTest = (path: string) => /\.test\.(ts|tsx)$/.test(path) || rel(path).startsWith("src/test/");
-const code = all.filter((path) => /\.(ts|tsx)$/.test(path) && !isTest(path));
+const isGenerated = (path: string) => rel(path) === "core/api/schema.gen.ts";
+const code = all.filter((path) => /\.(ts|tsx)$/.test(path) && !isTest(path) && !isGenerated(path));
 const styles = all.filter((path) => path.endsWith(".css"));
 
 /** Sin comentarios (los de bloque y los `//` precedidos de espacio o de inicio de línea, que no son parte de una URL). */
@@ -63,7 +65,21 @@ describe("el dinero no pasa por Number", () => {
     expect(offenders.map(rel)).toEqual([]);
   });
   it("money.ts no usa Math ni Intl", () => {
-    expect(read(join(ROOT, "src/lib/money.ts"))).not.toMatch(/\bMath\.|\bIntl\b/);
+    expect(read(join(ROOT, "core/money.ts"))).not.toMatch(/\bMath\.|\bIntl\b/);
+  });
+});
+
+describe("core/ es código sin plataforma", () => {
+  const core = code.filter((path) => rel(path).startsWith("core/"));
+  it("no importa react, next, react-native ni expo, ni nada de src/ (lo comparten la web y la app)", () => {
+    const platform = /(?:from\s+|import\s*\(\s*|require\s*\(\s*)["'](?:react|react-dom|next|react-native|expo|@react-native|@expo|@\/)[^"']*["']|from\s+["'][^"']*\bsrc\//;
+    expect(core.filter((path) => platform.test(read(path))).map(rel)).toEqual([]);
+  });
+  it("no toca el DOM ni el navegador (document, window, localStorage, crypto.randomUUID)", () => {
+    expect(core.filter((path) => /\b(document|window|localStorage|sessionStorage|navigator)\b|crypto\.randomUUID/.test(read(path))).map(rel)).toEqual([]);
+  });
+  it("no usa Intl: el motor de la app no siempre trae datos de zonas horarias", () => {
+    expect(core.filter((path) => /\bIntl\b/.test(read(path))).map(rel)).toEqual([]);
   });
 });
 

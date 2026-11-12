@@ -8,7 +8,7 @@ export default defineConfig({
   resolve: { alias: { "@": fromRoot("./src") } },
   test: {
     environment: "node",
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/**/*.test.{ts,tsx}", "core/**/*.test.ts"],
     restoreMocks: true,
     unstubEnvs: true,
     unstubGlobals: true,

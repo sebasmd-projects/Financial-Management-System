@@ -1,4 +1,4 @@
-import type { components } from "@/api/schema.gen";
+import type { components } from "../../../core/api/schema.gen";
 import { SPENDABLE_KINDS } from "../finance/helpers";
 
 /**

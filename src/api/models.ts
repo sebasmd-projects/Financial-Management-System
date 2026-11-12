@@ -3,7 +3,7 @@
  * Si el backend cambia el contrato, se vuelve a copiar el YAML, se regeneran los tipos y `tsc` señala lo que se rompe: aquí no se
  * reescribe a mano ningún campo. Los montos son `string` (cadenas decimales); se operan con `@/lib/money`.
  */
-import type { components } from "./schema.gen";
+import type { components } from "../../core/api/schema.gen";
 
 type S = components["schemas"];
 

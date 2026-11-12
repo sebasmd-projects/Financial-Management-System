@@ -10,10 +10,10 @@ const STORAGE = ["localStorage", "sessionStorage", "indexedDB", "caches"];
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "e2e/**", "next-env.d.ts", "src/api/schema.gen.ts"]),
+  globalIgnores([".next/**", "out/**", "build/**", "coverage/**", "e2e/**", "mobile/**", "next-env.d.ts", "core/api/schema.gen.ts"]),
   {
-    files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/**/*.test.{ts,tsx}"],
+    files: ["src/**/*.{ts,tsx}", "core/**/*.ts"],
+    ignores: ["src/**/*.test.{ts,tsx}", "core/**/*.test.ts"],
     rules: {
       "no-restricted-globals": ["error", ...STORAGE.map((name) => ({ name, message: "Nada financiero en el navegador: solo el tema (src/ui/theme/storage.ts)." }))],
       "no-restricted-properties": [
@@ -26,7 +26,7 @@ const eslintConfig = defineConfig([
   },
   {
     // Dinero: cadenas decimales y BigInt. Ni `Number` ni `parseFloat` ni `Math` (redondeo) ni `Intl` (varía entre motores).
-    files: ["src/lib/money.ts"],
+    files: ["core/money.ts"],
     rules: {
       "no-restricted-globals": ["error", { name: "Number", message: "Dinero: BigInt o cadenas, nunca Number." }, { name: "parseFloat", message: "Dinero: nunca parseFloat." }, { name: "parseInt", message: "Dinero: usa BigInt." }, { name: "Intl", message: "Dinero: formato propio, no Intl." }],
       "no-restricted-properties": [
@@ -36,6 +36,13 @@ const eslintConfig = defineConfig([
         { object: "Number", property: "parseFloat", message: "Dinero: nunca parseFloat." },
       ],
       "no-restricted-syntax": ["error", { selector: "CallExpression[callee.property.name=/^(toFixed|toLocaleString)$/]", message: "Dinero: nunca toFixed/toLocaleString." }],
+    },
+  },
+  {
+    // `core/` lo comparten la web y la app: nada de React, Next, React Native ni Expo, ni del DOM de la web (`src/`).
+    files: ["core/**/*.ts"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [{ regex: "^(react|react-dom|next|react-native|expo|@react-native|@expo)(/|$)|^@/|src/", message: "core/ no depende de plataforma ni de la web." }] }],
     },
   },
   {

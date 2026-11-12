@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { api } from "@/api";
-import type { HouseholdDetail, HouseholdMember, InvitableRole } from "@/api/models";
+import type { HouseholdDetail, HouseholdMember, HouseholdRename, InvitableRole } from "@/api/models";
 import { paths } from "@/api/paths";
 import { useI18n } from "@/i18n/provider";
 import { formatDate } from "@/lib/dates";
@@ -99,6 +99,12 @@ function HouseholdBody({ household, back, reload }: { household: HouseholdDetail
       </div>
       <p className="hint">{t.detail.accountsHint}</p>
 
+      {manage && (
+        <Section title={t.detail.renameTitle}>
+          <RenameForm household={household} onRenamed={changed} />
+        </Section>
+      )}
+
       <Section title={t.detail.members}>
         <ul className="fin-list" aria-label={t.detail.members}>
           {household.members_list.map((member) => (
@@ -173,6 +179,45 @@ function HouseholdBody({ household, back, reload }: { household: HouseholdDetail
         </ConfirmDialog>
       )}
     </div>
+  );
+}
+
+/** Renombrar el hogar (`PATCH households/{id}`, propietario y administradores): el nombre viaja en el cuerpo y se cifra con la llave del hogar. */
+function RenameForm({ household, onRenamed }: { household: HouseholdDetail; onRenamed: () => void }) {
+  const { dict, locale } = useI18n();
+  const t = dict.fin.hh.detail;
+  const submit = useSubmit();
+  const [name, setName] = useState(household.name);
+  const [saved, setSaved] = useState(false);
+  const trimmed = name.trim();
+  const unchanged = trimmed === household.name;
+
+  async function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setSaved(false);
+    if (trimmed === "" || unchanged) return;
+    const body: HouseholdRename = { name: trimmed };
+    const result = await submit.run(body, (key) => api.patch(paths.household(household.id), body, { idempotencyKey: key, locale }));
+    if (result.ok) {
+      setSaved(true);
+      onRenamed();
+    }
+  }
+  return (
+    <form onSubmit={onSubmit} noValidate className="fin-form">
+      <TextField label={t.renameLabel} value={name} onChange={(value) => { setName(value); setSaved(false); }} maxLength={80} required />
+      {submit.error && (
+        <Banner tone="negative" live="assertive">
+          {submit.error}
+        </Banner>
+      )}
+      {saved && <Banner tone="positive">{t.renamed}</Banner>}
+      <FormActions>
+        <button type="submit" className="button button--primary" disabled={submit.pending || trimmed === "" || unchanged}>
+          {submit.pending ? dict.fin.common.saving : t.renameSave}
+        </button>
+      </FormActions>
+    </form>
   );
 }
 

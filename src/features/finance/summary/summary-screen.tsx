@@ -12,6 +12,8 @@ import { setDraft } from "../draft-store";
 import { fill, relativeDays } from "../helpers";
 import { useHref, useResource } from "../hooks";
 import { Badge, DefinitionList, Empty, ErrorState, HiddenAmountsContext, Loading, Modal, Money, Progress, ScreenHeader, Section, Slots } from "../kit";
+import { ConsolidatedSummary } from "../../household/consolidated-summary";
+import { useScope } from "../../household/scope-store";
 import { AmountOrPending, IndexNoticeBanner, PendingAmount } from "../uvr/pending";
 import { alertTarget, barSegments, clampIndex, isFirstUse, railTarget } from "./logic";
 
@@ -27,7 +29,10 @@ export function SummaryScreen() {
   const [period, setPeriod] = useState(current);
   const [hidden, setHidden] = useState(false);
   const [sheet, setSheet] = useState<"left" | "liquidity" | null>(null);
-  const data = useResource<Dashboard>(paths.dashboard(period === current ? undefined : period));
+  const scope = useScope();
+  const both = scope.kind === "both" ? scope : null;
+  // «Ambos» no tiene tablero: el servidor suma las cifras de los dos ámbitos (`GET summary?scope=both`).
+  const data = useResource<Dashboard>(both ? null : paths.dashboard(period === current ? undefined : period));
   const d = data.data;
   const past = period !== current;
 
@@ -62,23 +67,32 @@ export function SummaryScreen() {
           </p>
         )}
 
-        {data.loading && !d && <Loading />}
-        {data.failure && <ErrorState message={t.loadError} onRetry={data.reload} />}
-        {d && <IndexNoticeBanner notices={d.notices} />}
-        {d && (
+        {both && <ConsolidatedSummary householdId={both.id} period={period} />}
+        {!both && data.loading && !d && <Loading />}
+        {!both && data.failure && <ErrorState message={t.loadError} onRetry={data.reload} />}
+        {!both && d && <IndexNoticeBanner notices={d.notices} />}
+        {!both && d && (
           <div className={`summary__grid${data.loading ? " fin-stale" : ""}`}>
             <KpiCard d={d} past={past} onLeft={() => setSheet("left")} onLiquidity={() => setSheet("liquidity")} />
-            <div className={`summary__rail${past ? " summary__dim" : ""}`}>
-              <Rail items={d.rail} />
-            </div>
-            <FixedGrid d={d} />
+            {scope.kind === "household" ? (
+              <p className="muted" role="note">
+                {dict.fin.hh.summary.personalHint}
+              </p>
+            ) : (
+              <>
+                <div className={`summary__rail${past ? " summary__dim" : ""}`}>
+                  <Rail items={d.rail} />
+                </div>
+                <FixedGrid d={d} />
+              </>
+            )}
             <div className={past ? "summary__dim" : undefined}>
               <Shortcuts d={d} />
               <Alerts d={d} />
             </div>
           </div>
         )}
-        {d && isFirstUse(d) && (
+        {!both && d && isFirstUse(d) && (
           <Empty
             icon="wallet"
             title={t.firstUseTitle}

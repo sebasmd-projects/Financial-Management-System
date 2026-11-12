@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/api";
 import type { Account, Entry, Page } from "@/api/models";
@@ -11,6 +12,10 @@ import { EntryTable } from "../movements/entry-table";
 import { useHref, useResource, useSubmit } from "../hooks";
 import { Badge, Banner, Checkbox, DefinitionList, ErrorState, FormActions, Loading, Modal, Money, Pager, ScreenHeader, Section, TextField } from "../kit";
 import { accountGroup } from "../helpers";
+import { shareable } from "../../household/blockers";
+import { ReadOnlyBanner } from "../../household/notices";
+import { setScope, useCanWrite, useScope } from "../../household/scope-store";
+import { ShareAccountDialog, UnshareAccountDialog } from "../../household/share-account";
 
 /** Detalle de cuenta (diseño §3.6): saldos, acciones, bandera 4x1000 y «Ver asientos». */
 export function AccountDetail({ id }: { id: string }) {
@@ -21,6 +26,10 @@ export function AccountDetail({ id }: { id: string }) {
   const [renaming, setRenaming] = useState(false);
   const [showEntries, setShowEntries] = useState(false);
   const toggle = useSubmit();
+  const router = useRouter();
+  const scope = useScope();
+  const canWrite = useCanWrite();
+  const [moving, setMoving] = useState(false);
 
   const back = { href: href("cuentas"), label: dict.screens.cuentas };
   if (account.loading && !account.data) return <div className="screen"><ScreenHeader title={dict.screens.cuenta} back={back} /><Loading /></div>;
@@ -48,11 +57,14 @@ export function AccountDetail({ id }: { id: string }) {
         eyebrow={dict.fin.accountKinds[a.kind] ?? a.kind}
         back={back}
         actions={
-          <button type="button" className="button button--ghost" onClick={() => setRenaming(true)}>
-            {t.rename}
-          </button>
+          canWrite ? (
+            <button type="button" className="button button--ghost" onClick={() => setRenaming(true)}>
+              {t.rename}
+            </button>
+          ) : undefined
         }
       />
+      <ReadOnlyBanner />
       <section className="fin-card" aria-label={t.balances}>
         <p className="muted">{t.confirmedBalance}</p>
         <p className="fin-big">
@@ -70,12 +82,12 @@ export function AccountDetail({ id }: { id: string }) {
       </section>
 
       <div className="actions">
-        {(group === "bancos" || group === "efectivo") && (
+        {(group === "bancos" || group === "efectivo") && canWrite && (
           <Link className="button button--primary" href={`${href("movimiento-nuevo")}?tipo=transferencia&desde=${encodeURIComponent(a.id)}`}>
             {t.transfer}
           </Link>
         )}
-        {(group === "bancos" || group === "efectivo") && (
+        {(group === "bancos" || group === "efectivo") && scope.kind !== "household" && (
           <Link className="button button--ghost" href={href("cuenta-conciliar", [a.id])}>
             {dict.fin.recon.action}
           </Link>
@@ -83,13 +95,23 @@ export function AccountDetail({ id }: { id: string }) {
         <Link className="button button--ghost" href={`${href("movimientos")}?cuenta=${encodeURIComponent(a.id)}`}>
           {t.viewMovements}
         </Link>
+        {scope.kind !== "household" && shareable(a) && (
+          <button type="button" className="button button--ghost" onClick={() => setMoving(true)}>
+            {dict.fin.hh.share.action}
+          </button>
+        )}
+        {scope.kind === "household" && canWrite && shareable(a) && (
+          <button type="button" className="button button--ghost" onClick={() => setMoving(true)}>
+            {dict.fin.hh.share.unshare}
+          </button>
+        )}
         <button type="button" className="button button--ghost" aria-expanded={showEntries} onClick={() => setShowEntries((v) => !v)}>
           {t.viewEntries}
         </button>
       </div>
 
       <Section title={t.settings}>
-        <Checkbox label={t.fields.exempt} hint={t.fields.exemptHint} checked={a.gmf_exempt} onChange={(v) => void setExempt(v)} />
+        <Checkbox label={t.fields.exempt} hint={t.fields.exemptHint} checked={a.gmf_exempt} disabled={!canWrite} onChange={(v) => void setExempt(v)} />
         {toggle.error && <Banner tone="negative" live="assertive">{toggle.error}</Banner>}
         <DefinitionList
           rows={[
@@ -101,6 +123,31 @@ export function AccountDetail({ id }: { id: string }) {
       </Section>
 
       {showEntries && <AccountEntries accountId={a.id} />}
+
+      {scope.kind !== "household" ? (
+        <ShareAccountDialog
+          open={moving}
+          account={a}
+          onClose={() => setMoving(false)}
+          onDone={(householdId) => {
+            setMoving(false);
+            setScope({ kind: "household", id: householdId });
+            router.push(href("cuentas"));
+          }}
+        />
+      ) : (
+        <UnshareAccountDialog
+          open={moving}
+          householdId={scope.id}
+          account={a}
+          onClose={() => setMoving(false)}
+          onDone={() => {
+            setMoving(false);
+            setScope({ kind: "personal" });
+            router.push(href("cuentas"));
+          }}
+        />
+      )}
 
       <Modal open={renaming} title={t.rename} onClose={() => setRenaming(false)}>
         <RenameForm

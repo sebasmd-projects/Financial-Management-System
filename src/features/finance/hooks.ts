@@ -26,7 +26,8 @@ export interface Resource<T> {
 }
 
 /** GET de una ruta de la API (`null` = no pedir). Cancela al desmontar o al cambiar de ruta. */
-export function useResource<T>(path: string | null): Resource<T> {
+export function useResource<T>(path: string | null, options: { unscoped?: boolean } = {}): Resource<T> {
+  const unscoped = options.unscoped === true;
   const [nonce, setNonce] = useState(0);
   const [done, setDone] = useState<{ key: string; result: ApiResult<T> } | null>(null);
   const [last, setLast] = useState<T | null>(null);
@@ -35,13 +36,13 @@ export function useResource<T>(path: string | null): Resource<T> {
   useEffect(() => {
     if (path === null) return;
     const controller = new AbortController();
-    void api.get<T>(path, { signal: controller.signal }).then((result) => {
+    void api.get<T>(path, { signal: controller.signal, unscoped }).then((result) => {
       if (controller.signal.aborted) return;
       setDone({ key, result });
       if (result.ok) setLast(result.data);
     });
     return () => controller.abort();
-  }, [path, key]);
+  }, [path, key, unscoped]);
 
   const current = path !== null && done?.key === key ? done.result : null;
   return {
@@ -139,7 +140,8 @@ export function useSubmit(): Submit {
 const MAX_PAGES = 50;
 
 /** Todas las páginas de una lista (para selectores y catálogos). Cancela al desmontar. */
-export function useAll<T>(path: string | null): Resource<T[]> & { items: T[] } {
+export function useAll<T>(path: string | null, options: { unscoped?: boolean } = {}): Resource<T[]> & { items: T[] } {
+  const unscoped = options.unscoped === true;
   const [nonce, setNonce] = useState(0);
   const [done, setDone] = useState<{ key: string; failure: Failure | null; items: T[] } | null>(null);
   const [last, setLast] = useState<T[] | null>(null);
@@ -152,7 +154,7 @@ export function useAll<T>(path: string | null): Resource<T[]> & { items: T[] } {
       const items: T[] = [];
       for (let page = 1; page <= MAX_PAGES; page++) {
         const url = page === 1 ? path : `${path}${path.includes("?") ? "&" : "?"}page=${page}`;
-        const result = await api.get<Page<T>>(url, { signal: controller.signal });
+        const result = await api.get<Page<T>>(url, { signal: controller.signal, unscoped });
         if (controller.signal.aborted) return;
         if (!result.ok) {
           setDone({ key, failure: result, items: [] });
@@ -165,7 +167,7 @@ export function useAll<T>(path: string | null): Resource<T[]> & { items: T[] } {
       setLast(items);
     })();
     return () => controller.abort();
-  }, [path, key]);
+  }, [path, key, unscoped]);
 
   const current = path !== null && done?.key === key ? done : null;
   const data = current && !current.failure ? current.items : last;

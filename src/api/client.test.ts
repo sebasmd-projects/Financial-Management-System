@@ -10,6 +10,24 @@ function setup(routes: Parameters<typeof mockFetch>[0], cookies: Record<string, 
   return { ...mock, client, onUnauthorized };
 }
 
+describe("ámbito: reescritura de la ruta", () => {
+  const rewritePath = (path: string) => `/households/h1${path}`;
+  function scoped() {
+    const mock = mockFetch({ "GET /api/fms/v1/households/h1/accounts": { status: 200, json: [] }, "GET /api/fms/v1/accounts": { status: 200, json: [] } });
+    return { ...mock, client: createApiClient({ fetch: mock.fetch, readCookie: () => null, onUnauthorized: () => undefined, rewritePath }) };
+  }
+  it("aplica la reescritura del ámbito a cada petición", async () => {
+    const { client, calls } = scoped();
+    await client.get("/accounts");
+    expect(calls[0].url).toBe("/api/fms/v1/households/h1/accounts");
+  });
+  it("`unscoped` pide la ruta tal cual (lo personal estando en el hogar)", async () => {
+    const { client, calls } = scoped();
+    await client.get("/accounts", { unscoped: true });
+    expect(calls[0].url).toBe("/api/fms/v1/accounts");
+  });
+});
+
 describe("cliente de la API", () => {
   it("GET: mismo origen, cookie de sesión, sin caché y sin CSRF", async () => {
     const { client, calls } = setup({ "GET /api/fms/v1/health": { status: 200, json: { ok: true } } });

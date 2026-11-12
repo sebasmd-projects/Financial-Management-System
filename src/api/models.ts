@@ -232,3 +232,16 @@ export type SharedDirection = S["SharedDirectionEnum"];
 export type SettleRequest = S["SettleRequest"];
 export type VehicleOdometer = S["VehicleOdometer"];
 export type NamedCreate = S["NamedCreate"];
+
+// FMS-3b (corte 3.5): Hogar
+export type Household = S["HouseholdSummary"];
+export type HouseholdDetail = S["HouseholdDetail"];
+export type HouseholdList = S["HouseholdList"];
+export type HouseholdRole = S["HouseholdRoleEnum"];
+export type InvitableRole = S["InvitableRoleEnum"];
+export type HouseholdMember = S["Member"];
+export type HouseholdInvitation = S["Invitation"];
+export type CrossTransfer = S["CrossTransfer"];
+export type CrossTransferResult = S["CrossTransferResult"];
+export type MovedAccount = S["MovedAccount"];
+export type Person = S["Person"];

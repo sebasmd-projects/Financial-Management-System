@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/i18n/provider";
+import { PersonalTag } from "@/features/household/notices";
 import { fmsHref, PROFILE_ROUTE } from "@/nav/routes";
 import { searchScreens } from "@/nav/search";
 import { Icon } from "@/ui/icons";
@@ -62,6 +63,7 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
               <Link href={fmsHref(locale, section.route)} onClick={onClose} className="sheet__row">
                 <Icon name={section.icon} size={20} />
                 <span>{dict.nav.sections[section.id]}</span>
+                {items.length === 0 && <PersonalTag route={section.route} />}
                 <Icon name="chevron-right" size={20} />
               </Link>
             </h3>
@@ -71,6 +73,7 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
                   <li key={item.id}>
                     <Link href={fmsHref(locale, item.route)} onClick={onClose} className="sheet__row sheet__row--item">
                       {dict.nav.items[item.id]}
+                      <PersonalTag route={item.route} />
                     </Link>
                   </li>
                 ))}
@@ -80,6 +83,11 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
         ))}
       </nav>
       <div className="sheet__footer">
+        <Link href={fmsHref(locale, "hogares")} onClick={onClose} className="sheet__row">
+          <Icon name="user" size={20} />
+          <span>{dict.screens.hogares}</span>
+          <Icon name="chevron-right" size={20} />
+        </Link>
         <Link href={fmsHref(locale, PROFILE_ROUTE)} onClick={onClose} className="sheet__row">
           <Icon name="user" size={20} />
           <span>{dict.nav.profile}</span>

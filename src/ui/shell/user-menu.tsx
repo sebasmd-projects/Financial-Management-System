@@ -52,6 +52,10 @@ export function UserMenu({ me }: { me: MeResponse }) {
             <span className="caption">{dict.userMenu.signedInAs}</span>
             <strong>{me.user.display_name}</strong>
           </p>
+          <Link href={fmsHref(locale, "hogares")} className="menu__item" onClick={() => setOpen(false)}>
+            <Icon name="user" size={20} />
+            {dict.screens.hogares}
+          </Link>
           <Link href={fmsHref(locale, PROFILE_ROUTE)} className="menu__item" onClick={() => setOpen(false)}>
             <Icon name="shield" size={20} />
             {dict.nav.profile}

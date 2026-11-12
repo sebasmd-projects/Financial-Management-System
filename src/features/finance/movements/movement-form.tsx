@@ -1,5 +1,7 @@
 "use client";
 
+import { ReadOnlyBanner } from "../../household/notices";
+import { useCanWrite, useScope } from "../../household/scope-store";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -70,6 +72,8 @@ export function MovementForm() {
   const href = useHref();
   const params = useSearchParams();
   const submit = useSubmit();
+  const canWrite = useCanWrite();
+  const inHousehold = useScope().kind === "household";
   const [state, setState] = useState<FormState>(() => initialState(params, peekDraft()));
   const [moreOpen, setMoreOpen] = useState(false);
   const [touched, setTouched] = useState(false);
@@ -83,7 +87,8 @@ export function MovementForm() {
   const methods = useResource<PaymentMethod[]>(paths.paymentMethods());
   const tagList = useAll<Named>(paths.tags());
   const centers = useAll<Named>(paths.costCenters());
-  const attributeDefs = useAll<CustomAttribute>(paths.customAttributes());
+  // Los atributos personalizados y otras monedas son solo personales por ahora: en el hogar no se piden ni se ofrecen.
+  const attributeDefs = useAll<CustomAttribute>(inHousehold ? null : paths.customAttributes());
   const recents = useResource<Page<Movement>>(paths.movements({ page_size: 30 }));
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setState((current) => ({ ...current, [key]: value }));
@@ -226,7 +231,8 @@ export function MovementForm() {
 
       {loading && <Loading />}
       {accounts.failure && <ErrorState message={dict.fin.errors.generic} onRetry={accounts.reload} />}
-      {accounts.data && usable.length === 0 && (
+      <ReadOnlyBanner />
+      {accounts.data && usable.length === 0 && canWrite && (
         <Empty
           title={t.noAccountsTitle}
           body={t.noAccountsBody}
@@ -238,7 +244,7 @@ export function MovementForm() {
         />
       )}
 
-      {accounts.data && usable.length > 0 && (
+      {accounts.data && usable.length > 0 && canWrite && (
         <form onSubmit={onSubmit} noValidate className="fin-form">
           {quickRecents.length > 0 && !isTransfer && (
             <section aria-labelledby="recents-title" className="fin-recents">
@@ -261,7 +267,7 @@ export function MovementForm() {
           <Segmented legend={t.type} options={typeOptions} value={state.type} onChange={(v) => set("type", v as MovementType)} />
 
           {!foreignOn && <AmountField apiCode={submit.errorCode} label={t.amount} value={state.amount} onChange={(v) => set("amount", v)} error={errors.amount} required preview={amount ? formatCop(amount) : null} />}
-          {!isTransfer && <ForeignFields state={foreign} onChange={setForeign} fx={fx} touched={touched} />}
+          {!isTransfer && !inHousehold && <ForeignFields state={foreign} onChange={setForeign} fx={fx} touched={touched} />}
 
           {phrase && <p className="fin-phrase">{phrase}</p>}
           {overdraw && <Banner tone="warning">{overdraw}</Banner>}

@@ -1,5 +1,7 @@
 "use client";
 
+import { reportScopeFields } from "../../household/scope";
+import { useScope } from "../../household/scope-store";
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
 import { errorText } from "@/api/errors";
@@ -64,10 +66,13 @@ export function ReportTableView({ table }: { table: ReportTable }) {
   const { dict } = useI18n();
   const rep = dict.fin.rep;
   const href = useHref();
+  const inHousehold = useScope().kind === "household";
   const label = known(rep, table.title);
   const cols = table.columns;
   const refHref = (row: ReportTable["rows"][number]): string | null => {
     if (!row.ref) return null;
+    // Créditos, tarjetas, recurrencias y deudas son solo personales: en el hogar no hay a dónde llevar.
+    if (inHousehold && row.ref.kind !== "account") return null;
     switch (row.ref.kind) {
       case "account":
         return href("cuenta", [row.ref.id]);
@@ -246,7 +251,8 @@ export function FilterBar({ filters, onChange }: { filters: ReportFilters; onCha
   const [open, setOpen] = useState(false);
   const categories = useAll<Category>(open ? paths.categories() : null);
   const accounts = useAll<Account>(open ? paths.accounts() : null);
-  const cards = useAll<Card>(open ? paths.cards() : null);
+  const inHousehold = useScope().kind === "household";
+  const cards = useAll<Card>(open && !inHousehold ? paths.cards() : null);
   const tags = useAll<Named>(open ? paths.tags() : null);
   const set = (patch: Partial<ReportFilters>) => onChange({ ...filters, ...patch });
   const active = [filters.category, filters.account, filters.card, filters.tag, filters.type].filter(Boolean).length;
@@ -289,7 +295,7 @@ export function FilterBar({ filters, onChange }: { filters: ReportFilters; onCha
         <div id="report-filters" className="fin-filters">
           <SelectField label={rep.category} value={filters.category} onChange={(v) => set({ category: v })} placeholder={rep.all} options={categories.items.map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />
           <SelectField label={rep.account} value={filters.account} onChange={(v) => set({ account: v })} placeholder={rep.all} options={accounts.items.map((a) => ({ value: a.id, label: a.name }))} />
-          <SelectField label={rep.card} value={filters.card} onChange={(v) => set({ card: v })} placeholder={rep.all} options={cards.items.map((c) => ({ value: c.id, label: c.name }))} />
+          {!inHousehold && <SelectField label={rep.card} value={filters.card} onChange={(v) => set({ card: v })} placeholder={rep.all} options={cards.items.map((c) => ({ value: c.id, label: c.name }))} />}
           <SelectField label={rep.tag} value={filters.tag} onChange={(v) => set({ tag: v })} placeholder={rep.all} options={tags.items.map((t) => ({ value: t.id, label: t.name }))} />
           <SelectField label={rep.type} value={filters.type} onChange={(v) => set({ type: v as ReportFilters["type"] })} placeholder={rep.all} options={(["income", "expense", "transfer"] as const).map((k) => ({ value: k, label: dict.fin.form.types[k] }))} />
           {active > 0 && (
@@ -310,12 +316,13 @@ export function FilterBar({ filters, onChange }: { filters: ReportFilters; onCha
 export function ExportBar({ reportKey, filters, extra }: { reportKey: ReportKey; filters: ReportFilters; extra?: { projection?: ProjectionOptions; threshold?: string } }) {
   const { dict, locale } = useI18n();
   const t = dict.fin.rep.export;
+  const scope = useScope();
   const [busy, setBusy] = useState<ExportFormat | null>(null);
   const [failed, setFailed] = useState<{ format: ExportFormat; text: string } | null>(null);
   async function run(format: ExportFormat) {
     setBusy(format);
     setFailed(null);
-    const failure = await downloadExport(paths.reportExport(reportKey), exportBody(filters, format, extra), exportFileName(reportKey, format, todayBogota()), locale);
+    const failure = await downloadExport(paths.reportExport(reportKey), { ...exportBody(filters, format, extra), ...reportScopeFields(scope) }, exportFileName(reportKey, format, todayBogota()), locale);
     setBusy(null);
     if (failure) setFailed({ format, text: errorText(failure, dict.fin.errors) });
   }
@@ -346,7 +353,9 @@ export function ReportView({ reportKey, extra, before }: { reportKey: ReportKey;
   const { dict } = useI18n();
   const [filters, setFilters] = useState<ReportFilters>(EMPTY_FILTERS);
   const ready = filtersReady(filters);
-  const report = useQuery<Report>(paths.reportQuery(reportKey), ready ? queryBody(filters, extra) : null);
+  const scope = useScope();
+  // «Ambos» pide el consolidado en el cuerpo (nunca en la URL); en el hogar la ruta ya es la de su ámbito.
+  const report = useQuery<Report>(paths.reportQuery(reportKey), ready ? { ...queryBody(filters, extra), ...reportScopeFields(scope) } : null);
   return (
     <div className="rep-view">
       <FilterBar filters={filters} onChange={setFilters} />

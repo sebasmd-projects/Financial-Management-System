@@ -244,12 +244,12 @@ export function SelectField({ label, hint, error, required, value, onChange, opt
   );
 }
 
-export function Checkbox({ label, checked, onChange, hint }: { label: string; checked: boolean; onChange: (checked: boolean) => void; hint?: string }) {
+export function Checkbox({ label, checked, onChange, hint, disabled = false }: { label: string; checked: boolean; onChange: (checked: boolean) => void; hint?: string; disabled?: boolean }) {
   const id = useId();
   return (
     <div className="field">
       <label className="check" htmlFor={id}>
-        <input id={id} type="checkbox" checked={checked} aria-describedby={hint ? `${id}-hint` : undefined} onChange={(event) => onChange(event.target.checked)} />
+        <input id={id} type="checkbox" checked={checked} disabled={disabled} aria-describedby={hint ? `${id}-hint` : undefined} onChange={(event) => onChange(event.target.checked)} />
         <span>{label}</span>
       </label>
       {hint && (

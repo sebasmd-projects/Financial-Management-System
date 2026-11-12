@@ -6,6 +6,8 @@ import type { Category, Named } from "@/api/models";
 import { paths, roots } from "@/api/paths";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
+import { ReadOnlyBanner } from "../../household/notices";
+import { useCanWrite } from "../../household/scope-store";
 import { useAll, useSubmit } from "../hooks";
 import { Badge, Banner, Checkbox, Empty, ErrorState, FormActions, Loading, Modal, ScreenHeader, Section, Segmented, SelectField, Tabs, TextField } from "../kit";
 import { AttributesPanel } from "../classification/attributes-panel";
@@ -15,6 +17,7 @@ import { CostCentersPanel } from "../classification/cost-centers-panel";
 export function CategoriesScreen() {
   const { dict } = useI18n();
   const t = dict.fin.categories;
+  const canWrite = useCanWrite();
   const [archived, setArchived] = useState(false);
   const categories = useAll<Category>(paths.categories({ archived }));
   const [editing, setEditing] = useState<Category | "new" | null>(null);
@@ -26,12 +29,15 @@ export function CategoriesScreen() {
         title={dict.screens["config-categorias"]}
         eyebrow={dict.nav.sections.config}
         actions={
-          <button type="button" className="button button--primary" onClick={() => setEditing("new")}>
-            <Icon name="plus" size={20} />
-            {t.add}
-          </button>
+          canWrite ? (
+            <button type="button" className="button button--primary" onClick={() => setEditing("new")}>
+              <Icon name="plus" size={20} />
+              {t.add}
+            </button>
+          ) : undefined
         }
       />
+      <ReadOnlyBanner />
       <Checkbox label={t.showArchived} checked={archived} onChange={setArchived} />
       {categories.loading && !categories.data && <Loading />}
       {categories.failure && <ErrorState message={dict.fin.errors.generic} onRetry={categories.reload} />}
@@ -48,10 +54,12 @@ export function CategoriesScreen() {
                     <span className="fin-row__title">{category.name}</span>
                     {category.archived && <Badge>{t.archived}</Badge>}
                   </span>
-                  <button type="button" className="button button--ghost" onClick={() => setEditing(category)}>
-                    {t.edit}
-                    <span className="visually-hidden"> {category.name}</span>
-                  </button>
+                  {canWrite && (
+                    <button type="button" className="button button--ghost" onClick={() => setEditing(category)}>
+                      {t.edit}
+                      <span className="visually-hidden"> {category.name}</span>
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -119,6 +127,7 @@ function TagsPanel() {
   const { dict, locale } = useI18n();
   const t = dict.fin.tags;
   const tags = useAll<Named>(paths.tags());
+  const canWrite = useCanWrite();
   const [editing, setEditing] = useState<Named | "new" | null>(null);
   const submit = useSubmit();
   const [name, setName] = useState("");
@@ -146,12 +155,15 @@ function TagsPanel() {
 
   return (
     <div className="fin-stack">
-      <div className="actions">
-        <button type="button" className="button button--primary" onClick={() => open("new")}>
-          <Icon name="plus" size={20} />
-          {t.add}
-        </button>
-      </div>
+      <ReadOnlyBanner />
+      {canWrite && (
+        <div className="actions">
+          <button type="button" className="button button--primary" onClick={() => open("new")}>
+            <Icon name="plus" size={20} />
+            {t.add}
+          </button>
+        </div>
+      )}
       {tags.loading && !tags.data && <Loading />}
       {tags.failure && <ErrorState message={dict.fin.errors.generic} onRetry={tags.reload} />}
       {tags.data && tags.items.length === 0 && <Empty title={t.emptyTitle} body={t.emptyBody} icon="list" />}
@@ -163,10 +175,12 @@ function TagsPanel() {
                 <span className="fin-row__title">#{tag.name}</span>
                 {tag.archived && <Badge>{t.archived}</Badge>}
               </span>
-              <button type="button" className="button button--ghost" onClick={() => open(tag)}>
-                {t.edit}
-                <span className="visually-hidden"> {tag.name}</span>
-              </button>
+              {canWrite && (
+                <button type="button" className="button button--ghost" onClick={() => open(tag)}>
+                  {t.edit}
+                  <span className="visually-hidden"> {tag.name}</span>
+                </button>
+              )}
             </li>
           ))}
         </ul>

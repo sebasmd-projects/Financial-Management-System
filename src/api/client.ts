@@ -35,6 +35,8 @@ export interface RequestOptions {
   redirectOn401?: boolean;
   /** Va en `Accept-Language`: Django escribe en ese idioma sus mensajes. */
   locale?: string;
+  /** `true`: la ruta se usa tal cual, sin pasar por `rewritePath` (p. ej. pedir lo PERSONAL estando en el ámbito del Hogar). */
+  unscoped?: boolean;
   /** La respuesta buena es un archivo (exportaciones): se entrega como `Blob`, sin leerla como JSON. Los errores siguen siendo JSON. */
   asBlob?: boolean;
 }
@@ -44,6 +46,8 @@ export interface ClientDeps {
   /** Lee una cookie legible por JavaScript (la de CSRF, si no es HttpOnly). */
   readCookie: (name: string) => string | null;
   onUnauthorized: () => void;
+  /** Reescribe la ruta según el ámbito activo (Personal u Hogar): las rutas de datos del hogar cuelgan de `households/{id}/…`. */
+  rewritePath?: (path: string) => string;
 }
 
 const SAFE_METHODS = new Set<Method>(["GET"]);
@@ -94,7 +98,7 @@ export function createApiClient(deps: ClientDeps) {
 
     let response: Response;
     try {
-      response = await deps.fetch(`${FMS_API}${path}`, {
+      response = await deps.fetch(`${FMS_API}${options.unscoped || !deps.rewritePath ? path : deps.rewritePath(path)}`, {
         method,
         headers,
         credentials: "same-origin",

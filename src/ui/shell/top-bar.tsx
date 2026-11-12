@@ -9,6 +9,7 @@ import { paths } from "@/api/paths";
 import { useI18n } from "@/i18n/provider";
 import type { MeResponse } from "@/api/types";
 import { fmsHref, NEW_MOVEMENT_ROUTE, NOTIFICATIONS_ROUTE } from "@/nav/routes";
+import { ScopeSwitcher } from "@/features/household/scope-switcher";
 import { UserMenu } from "./user-menu";
 import { Icon } from "@/ui/icons";
 import { ThemeToggle } from "@/ui/theme/theme-toggle";
@@ -33,6 +34,7 @@ export function TopBar({ onSearch, me }: { onSearch: () => void; me: MeResponse 
   return (
     <header className="topbar">
       <span className="topbar__brand">{dict.appName}</span>
+      <ScopeSwitcher />
       <div className="topbar__actions">
         <Link href={fmsHref(locale, NEW_MOVEMENT_ROUTE)} className="button button--accent topbar__new" aria-keyshortcuts="N">
           <Icon name="plus" size={20} />

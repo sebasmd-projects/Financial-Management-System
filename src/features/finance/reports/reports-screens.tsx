@@ -1,5 +1,7 @@
 "use client";
 
+import { isPersonalOnlyRoute } from "../../household/scope";
+import { useScope } from "../../household/scope-store";
 import Link from "next/link";
 import { useState } from "react";
 import { errorText } from "@/api/errors";
@@ -23,7 +25,10 @@ export function ReportsHome() {
   const rep = dict.fin.rep;
   const href = useHref();
   const catalog = useResource<ReportCatalog>(paths.reports());
-  const keys: readonly ReportKey[] = catalog.data ? catalog.data.reports.map((r) => r.key) : REPORT_KEYS;
+  const inHousehold = useScope().kind === "household";
+  const all: readonly ReportKey[] = catalog.data ? catalog.data.reports.map((r) => r.key) : REPORT_KEYS;
+  // En el hogar solo los informes cuya pantalla sabe trabajar con un hogar (las proyecciones y escenarios son personales).
+  const keys = inHousehold ? all.filter((key) => !isPersonalOnlyRoute(reportRoute(key).route)) : all;
   return (
     <div className="screen">
       <ScreenHeader title={dict.screens.informes} eyebrow={dict.nav.sections.informes} />

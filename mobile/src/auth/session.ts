@@ -39,6 +39,8 @@ export interface SessionDeps {
   biometric: Biometric;
   /** Se pide perezosamente: el cliente HTTP necesita al controlador (`onSessionEnded`) y el controlador al cliente. */
   api: () => { fms: Pick<Http["fms"], "get">; allauth: Pick<AllauthApi, "login" | "submitCode" | "logout"> };
+  /** Antes de invalidar la sesión (p. ej. revocar el destino de push). Un fallo o una demora no retienen el cierre de sesión. */
+  beforeLogout?: () => Promise<void>;
 }
 
 /** ¿Está la cuenta lista para usar el FMS? Segundo factor de ESTA sesión, activación y la versión vigente de los textos. */
@@ -183,7 +185,14 @@ export function createSession(deps: SessionDeps) {
     refresh: loadMe,
 
     async logout(): Promise<void> {
-      if (deps.token.get()) await deps.api().allauth.logout();
+      if (deps.token.get()) {
+        try {
+          await deps.beforeLogout?.();
+        } catch {
+          // La sesión se cierra igual: el servidor también borra los destinos de push al revocar el dispositivo.
+        }
+        await deps.api().allauth.logout();
+      }
       expire("logged_out");
     },
 

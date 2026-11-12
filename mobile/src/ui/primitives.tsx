@@ -87,6 +87,15 @@ export function Check({ label, hint, value, onChange }: { label: string; hint?: 
   );
 }
 
+export function Chip({ label, selected = false, onPress, a11yLabel }: { label: string; selected?: boolean; onPress: () => void; a11yLabel?: string }) {
+  const c = useTheme();
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={a11yLabel ?? label} accessibilityState={{ selected }} onPress={onPress} style={[styles.chip, { backgroundColor: selected ? c.primaryContainer : c.surface, borderColor: selected ? c.primary : c.border }]}>
+      <Text style={[type.label, { color: selected ? c.onPrimaryContainer : c.textPrimary }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export function Card({ children }: { children: ReactNode }) {
   const c = useTheme();
   return <View style={[styles.card, { backgroundColor: c.surface, borderColor: c.border }]}>{children}</View>;
@@ -101,5 +110,6 @@ const styles = StyleSheet.create({
   input: { minHeight: targetMin, borderWidth: 1, borderRadius: radius.sm, paddingHorizontal: space[12] },
   check: { flexDirection: "row", gap: space[12], alignItems: "flex-start", minHeight: targetMin, paddingVertical: space[4] },
   box: { width: 24, height: 24, borderRadius: radius.xs, borderWidth: 2, alignItems: "center", justifyContent: "center", marginTop: space[2] },
+  chip: { minHeight: targetMin, paddingHorizontal: space[16], borderRadius: radius.full, borderWidth: 1, justifyContent: "center" },
   card: { borderWidth: 1, borderRadius: radius.md, padding: space[16], gap: space[8] },
 });

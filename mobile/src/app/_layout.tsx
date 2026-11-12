@@ -4,12 +4,14 @@ import { Slot } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ReauthPrompt } from "@/auth/reauth-prompt";
+import { useNotificationTaps } from "@/auth/use-push";
 import { usePhase, useSession } from "@/auth/use-session";
 import { LockScreen } from "@/lock/lock-screen";
 import { PrivacyShield } from "@/lock/privacy-shield";
 import { useTheme } from "@/theme/use-theme";
 
 export default function RootLayout() {
+  useNotificationTaps();
   return (
     <SafeAreaProvider>
       <PrivacyShield>

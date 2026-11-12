@@ -5,6 +5,8 @@ import expo from "eslint-config-expo/flat.js";
 // repite las que importan sobre el TEXTO de los ficheros, por si alguien apaga el lint con un comentario.
 const DISK = ["@react-native-async-storage/async-storage", "react-native-mmkv", "expo-sqlite", "expo-file-system", "expo-file-system/*", "expo-sharing", "expo-media-library", "expo-document-picker", "expo-image-picker", "react-native-fs", "realm", "@op-engineering/op-sqlite", "react-native-sqlite-storage", "@react-native-clipboard/clipboard", "expo-clipboard"];
 const TELEMETRY = ["expo-updates", "@sentry/*", "sentry-expo", "@bugsnag/*", "@datadog/*", "firebase", "@react-native-firebase/*", "expo-firebase-analytics", "react-native-mixpanel", "mixpanel-react-native", "@amplitude/*", "posthog-react-native", "@segment/*", "expo-tracking-transparency", "react-native-code-push"];
+const NOTIFICATIONS = { name: "expo-notifications", message: "Solo src/features/notifications/native.ts." };
+const NATIVE = "src/features/notifications/native.ts";
 const message = (what) => `${what}: la app no deja datos financieros en disco ni usa analítica o reportes de fallos (AGENTS.md).`;
 
 export default defineConfig([
@@ -37,17 +39,17 @@ export default defineConfig([
   {
     // Cada API sensible tiene UN módulo que la toca.
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/auth/token-store.ts", "**/*.test.{ts,tsx}"],
-    rules: { "no-restricted-imports": ["error", { paths: [{ name: "expo-secure-store", message: "Solo src/auth/token-store.ts toca el llavero." }, ...DISK.map((name) => ({ name })), ...TELEMETRY.map((name) => ({ name }))] }] },
+    ignores: ["src/auth/token-store.ts", NATIVE, "**/*.test.{ts,tsx}"],
+    rules: { "no-restricted-imports": ["error", { paths: [NOTIFICATIONS, { name: "expo-secure-store", message: "Solo src/auth/token-store.ts toca el llavero." }, ...DISK.map((name) => ({ name })), ...TELEMETRY.map((name) => ({ name }))] }] },
   },
   {
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/lock/biometric.ts", "src/auth/token-store.ts", "**/*.test.{ts,tsx}"],
-    rules: { "no-restricted-imports": ["error", { paths: [{ name: "expo-local-authentication", message: "Solo src/lock/biometric.ts." }, { name: "expo-secure-store", message: "Solo src/auth/token-store.ts." }, ...DISK.map((name) => ({ name })), ...TELEMETRY.map((name) => ({ name }))] }] },
+    ignores: ["src/lock/biometric.ts", "src/auth/token-store.ts", NATIVE, "**/*.test.{ts,tsx}"],
+    rules: { "no-restricted-imports": ["error", { paths: [NOTIFICATIONS, { name: "expo-local-authentication", message: "Solo src/lock/biometric.ts." }, { name: "expo-secure-store", message: "Solo src/auth/token-store.ts." }, ...DISK.map((name) => ({ name })), ...TELEMETRY.map((name) => ({ name }))] }] },
   },
   {
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/lock/biometric.ts", "src/auth/token-store.ts", "src/lock/privacy-shield.tsx", "**/*.test.{ts,tsx}"],
-    rules: { "no-restricted-imports": ["error", { paths: [{ name: "expo-local-authentication", message: "Solo src/lock/biometric.ts." }, { name: "expo-secure-store", message: "Solo src/auth/token-store.ts." }, { name: "expo-screen-capture", message: "Solo src/lock/privacy-shield.tsx." }, ...DISK.map((name) => ({ name })), ...TELEMETRY.map((name) => ({ name }))] }] },
+    ignores: ["src/lock/biometric.ts", "src/auth/token-store.ts", "src/lock/privacy-shield.tsx", NATIVE, "**/*.test.{ts,tsx}"],
+    rules: { "no-restricted-imports": ["error", { paths: [NOTIFICATIONS, { name: "expo-local-authentication", message: "Solo src/lock/biometric.ts." }, { name: "expo-secure-store", message: "Solo src/auth/token-store.ts." }, { name: "expo-screen-capture", message: "Solo src/lock/privacy-shield.tsx." }, ...DISK.map((name) => ({ name })), ...TELEMETRY.map((name) => ({ name }))] }] },
   },
 ]);

@@ -37,6 +37,8 @@ const config: ExpoConfig = {
       "android.permission.VIBRATE",
       "android.permission.USE_FINGERPRINT",
       "android.permission.RECORD_AUDIO",
+      // FCM entrega sin esto; no hay avisos locales programados que reprogramar al reiniciar.
+      "android.permission.RECEIVE_BOOT_COMPLETED",
     ],
     adaptiveIcon: { foregroundImage: "./assets/adaptive-icon.png", backgroundColor: "#2f3eb8" },
     ...(existsSync(googleServices) ? { googleServicesFile: googleServices } : {}),
@@ -46,6 +48,8 @@ const config: ExpoConfig = {
     // Firma el release con tu llave (mobile/keystore.properties); falla si no reconoce la plantilla de Gradle.
     "./plugins/release-signing",
     "expo-secure-store",
+    // Canal por defecto de los avisos de FCM: el de vencimientos. Los cinco canales se crean al abrir la app (src/features/notifications/native.ts).
+    ["expo-notifications", { defaultChannel: "due" }],
     ["expo-splash-screen", { image: "./assets/splash-icon.png", imageWidth: 160, backgroundColor: "#f6f5f1", dark: { backgroundColor: "#111318" } }],
     ["expo-local-authentication", { faceIDPermission: false }],
     ["expo-build-properties", { android: { usesCleartextTraffic: false, minSdkVersion: 26 } }],

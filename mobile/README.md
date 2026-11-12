@@ -4,10 +4,11 @@ React Native con **Expo SDK 58** (React Native 0.88, Expo Router). Habla con la 
 allauth (`/_allauth/app/v1/`) del backend del CV. Paquete `com.sebasmoralesd.finanzas`. Android primero.
 
 **Distribución**: un **APK firmado de descarga directa**. Sin tiendas, sin EAS, sin cuenta de Expo y sin el servicio de push de Expo. Se compila en
-tu máquina con `expo prebuild` + Gradle (más abajo). Las notificaciones (siguiente entrega) irán por FCM directo.
+tu máquina con `expo prebuild` + Gradle (más abajo). Las notificaciones van por FCM directo.
 
-Estado de esta entrega: base (`core/` compartido con la web), esqueleto, y sesión + bloqueo (entrar con contraseña y código, «Recordarme», activar el
-FMS y el segundo factor, dispositivos, reautenticación, bloqueo biométrico). **Todavía no hay** Resumen, alta rápida, movimientos ni notificaciones.
+Estado de esta entrega: base (`core/` compartido con la web), sesión + bloqueo (entrar con contraseña y código, «Recordarme», activar el FMS y el segundo
+factor, dispositivos, reautenticación, bloqueo biométrico) y, encima, **Resumen, alta rápida, movimientos y avisos** (más abajo). Lo demás del FMS (cuentas y
+tarjetas, pagos, créditos, presupuestos, informes, configuración) dice «Disponible en la web» en la pestaña «Más».
 
 ## Reglas que no se rompen (las vigilan `eslint.config.mjs` y `guards.test.ts`)
 
@@ -17,7 +18,10 @@ FMS y el segundo factor, dispositivos, reautenticación, bloqueo biométrico). *
 * **Un módulo por API sensible**: el llavero solo en `src/auth/token-store.ts`, la biometría solo en `src/lock/biometric.ts`, la captura de
   pantalla solo en `src/lock/privacy-shield.tsx`, las peticiones solo por `src/api/http.ts`.
 * **Dinero = cadenas decimales** y `BigInt` (`core/money.ts`, compartido con la web). Nunca `Number`, `parseFloat`, `toFixed` ni `Intl.NumberFormat`.
-* **Sin montos en rutas ni enlaces profundos**: las rutas no llevan parámetros (`src/auth/routes.ts`).
+* **Sin montos en rutas ni enlaces profundos**: las rutas no llevan parámetros (`src/auth/routes.ts`). Lo que pasa de una pantalla a otra (la plantilla de un atajo) va
+  por un almacén **en memoria** (`features/quick-add/store.ts`), y los enlaces `finanzas://…` pasan por una lista blanca que descarta toda consulta (`src/nav/deeplink.ts`).
+* **Nada en la URL de una petición que sea un monto** (`features/common/paths.ts` lanza si una clave lo parece). Los filtros con montos van en el cuerpo de `POST movements/search`.
+* **Todo lo que la persona ve vive en memoria y se borra al bloquear o cerrar sesión** (`features/common/memory.ts`): ámbito, ojo de «ocultar montos», borrador, claves de idempotencia.
 * **Una `Idempotency-Key` por intención** de la persona, con `expo-crypto` (`src/api/ids.ts`).
 * Bogotá es **UTC−5 fijo** en `core/dates.ts` (Hermes no siempre trae datos de zonas horarias).
 
@@ -34,6 +38,31 @@ FMS y el segundo factor, dispositivos, reautenticación, bloqueo biométrico). *
 | Reautenticación | El FMS contesta `403 reauthentication_required` (allauth: `401` con el flujo `reauthenticate`/`mfa_reauthenticate`): la app pide la contraseña o un código, llama a `auth/reauthenticate` o `auth/2fa/reauthenticate` y **repite la petición** una vez (con la misma `Idempotency-Key`) |
 | Sesión terminada | `401 device_expired`, `device_revoked` o `invalid_token` del FMS, o `410` de allauth: se borra todo, se vuelve a la entrada y se dice por qué |
 | Dispositivos | Lista, cerrar uno y «cerrar las demás» (con reautenticación). Cerrar el propio es cerrar sesión |
+
+## Pantallas
+
+| Pestaña | Qué hace |
+|---|---|
+| **Resumen** (`(app)/(tabs)/home.tsx`) | El tablero del servidor (`GET dashboard`): *Te queda*, gastado, disponible hoy, liquidez 15/30/60/90, riel de próximos pagos, rejilla de gastos fijos, atajos y la alerta más urgente. Selector de periodo (12 meses), ojo de «ocultar montos» y ámbito **Personal / Hogar / Ambos** (Hogar: `households/{id}/dashboard`; Ambos: `GET summary?scope=both`). Montos con `<Money>` (`core/money`, `•••••` al ocultar, el lector dice «monto oculto») |
+| **+ Nuevo movimiento** (`(app)/quick-add.tsx`) | Hoja con el **teclado numérico propio** (nunca el del sistema): el monto es una cadena decimal (`features/quick-add/keypad-logic.ts`). Un atajo del Resumen la abre con monto, descripción y categoría **desde memoria**: atajo → «Guardar» son dos toques. Una `Idempotency-Key` por intención: «Reintentar» reenvía **la misma** clave mientras no cambie lo enviado. Egreso e ingreso; la transferencia se hace en la web |
+| **Movimientos** (`(app)/(tabs)/movements.tsx`) | Historial agrupado por día con neto, filtros (tipo, estado, periodo, cuenta, monto mínimo y máximo con el mismo teclado) por `POST movements/search`, «Cargar más» |
+| **Avisos** (`(app)/(tabs)/notifications.tsx`) | Centro de avisos: Hoy / Esta semana / Anteriores, leído, «Marcar todo», **Posponer** y **Marcar pagado** (gasto fijo: paga lo que falta con confirmación y clave de idempotencia; tarjeta y cuota de préstamo dicen «Pagar en la web») |
+| **Más** | «Disponible en la web» para lo que falta, seguridad, dispositivos y cerrar sesión |
+
+## Avisos push (FCM directo)
+
+* El permiso del sistema **solo se pide cuando la persona toca «Activar avisos»** en el centro de avisos (nunca al abrir). Al abrir, si el permiso ya está concedido, se
+  sincroniza el token; si no, no se pregunta nada. Sin permiso todo llega dentro de la app; con «no volver a preguntar» la banda manda a Ajustes.
+* Token **nativo** de FCM (`getDevicePushTokenAsync`; nada de `getExpoPushTokenAsync`): `PUT push/endpoints/fcm` (idempotente, un token por dispositivo) y, si el servidor lo
+  tiene apagado, `PATCH notification-prefs {push_enabled: true}`. El token no se guarda ni se escribe en ningún registro. Si Firebase lo rota, se registra el nuevo.
+* **Cerrar sesión revoca el destino** (`DELETE push/endpoints/{id}`; con la sesión recordada se busca el `fcm` de este dispositivo en `GET push/endpoints`). Revocar el dispositivo
+  desde el servidor también lo borra.
+* Canales de Android (diseño §3.16): `due` (Vencimientos, alta; es el canal por defecto de FCM), `confirm`, `alerts`, `digest` (baja) y `security` (alta). El servidor manda por
+  `due` o `security`.
+* **Tocar un aviso**: la carga lleva **solo ids** (`type`, `notification_id`, `object_kind`, `object_id`). `routing.ts` valida su forma, la app **no navega a la `path`** del
+  servidor: guarda los ids en memoria (`pending.ts`) y abre `/notifications` (ruta literal) **cuando la sesión esté lista**, es decir, después de desbloquear; el aviso llega resaltado.
+  El texto del aviso lo decide el servidor (sin cifras salvo que la persona lo haya pedido allí); la app nunca lo lee.
+* `expo-notifications` solo lo importa `src/features/notifications/native.ts` (ESLint y `guards.test.ts`).
 
 ## Desarrollo
 
@@ -103,16 +132,17 @@ sha256sum app-release.apk                                                       
 Para actualizar: sube `android.versionCode` (y `version`) en `app.config.ts`, repite los pasos y firma con **la misma llave**. Instalar: abre el APK en el teléfono
 (permite «instalar apps desconocidas» para tu navegador) o `adb install -r app-release.apk`.
 
-### 3. `google-services.json` (solo para las notificaciones, siguiente entrega)
+### 3. `google-services.json` (para los avisos push)
 
-Las notificaciones usarán Firebase Cloud Messaging directo (`expo-notifications`, token nativo de FCM; sin servicio de push de Expo). Cuando lleguen:
+Los avisos van por Firebase Cloud Messaging directo (`expo-notifications`, token nativo de FCM; sin servicio de push de Expo). Sin este archivo la app compila y funciona, pero
+no obtiene token (el centro de avisos muestra «No pudimos activar los avisos»). Para activarlos:
 
 1. En la consola de Firebase crea un proyecto y añade una app Android con el paquete **`com.sebasmoralesd.finanzas`**.
 2. Descarga `google-services.json` y déjalo en **`mobile/google-services.json`** (ignorado por git), o apunta a otra ruta con `GOOGLE_SERVICES_JSON=/ruta/google-services.json`.
    `app.config.ts` lo incluye solo si existe. La cuenta de servicio del servidor es aparte (`DEPLOYMENT.md` §33 del CV).
 3. Repite el `prebuild`.
 
-Hoy no hace falta y la app no lo usa.
+Sin Firebase, el resto de la app no cambia.
 
 ## Dependencias
 
@@ -127,5 +157,5 @@ Hoy no hace falta y la app no lo usa.
 ## Qué NO se ha podido comprobar
 
 No hay dispositivo ni emulador en el entorno de desarrollo de esta entrega. Está comprobado con pruebas, `expo export` y `expo prebuild`; **no** se ha visto la app en
-pantalla ni se ha compilado el APK con Gradle. Revisa a mano en un teléfono real: el aviso de huella al abrir, el bloqueo a los 60 s, que no se pueda capturar la pantalla
+pantalla ni se ha compilado el APK con Gradle. Revisa a mano en un teléfono real: **Resumen y alta rápida en pantalla** (la geometría del diseño §2.2 a 390×844 y 360×740 no se ha medido; el Resumen se desplaza en vertical), el teclado propio, el permiso de notificaciones de Android 13+, que un aviso FCM real llegue, se vea con el texto genérico y abra el centro de avisos tras desbloquear, el aviso de huella al abrir, el bloqueo a los 60 s, que no se pueda capturar la pantalla
 ni ver la miniatura en recientes, el aviso de reautenticación y que `usePreventScreenCapture` no choque con el diálogo de huella.

@@ -1620,7 +1620,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Renombrar el hogar (propietario y administradores); el nombre se cifra con la llave del hogar
+         * @description Base: las rutas de gestión las puede usar cualquier rol (el servicio decide); las de datos exigen escritura.
+         */
+        patch: operations["fmsHouseholdRename"];
         trace?: never;
     };
     "/api/fms/v1/households/{household_id}/accounts": {
@@ -2377,6 +2381,47 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         post: operations["fmsMovementConfirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/movements/{id}/edit/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aplicar una edición con el token de la vista previa: anula y recrea de forma atómica (auditoría viejo → nuevo)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsMovementEditApply"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/movements/{id}/edit/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Vista previa de editar un movimiento confirmado: qué asientos se anulan y nacen, y qué valores derivados cambian. No escribe
+         * @description Un cambio de **una cifra** sin encadenamientos es un asiento de ajuste (`mode: adjustment`); varios campos o algo encadenado (cuotas, GMF, otra pierna, ocurrencia) es anular y recrear (`annul_and_recreate`). El `token` es de un solo uso, atado a la versión actual del movimiento y caduca (`FMS_EDIT_TOKEN_SECONDS`).
+         */
+        post: operations["fmsMovementEditPreview"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3385,7 +3430,7 @@ export interface paths {
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
-        post: operations["fmsMovementEditApply"];
+        post: operations["fmsMovementEditApply_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3405,7 +3450,7 @@ export interface paths {
          * Vista previa de editar un movimiento confirmado: qué asientos se anulan y nacen, y qué valores derivados cambian. No escribe
          * @description Un cambio de **una cifra** sin encadenamientos es un asiento de ajuste (`mode: adjustment`); varios campos o algo encadenado (cuotas, GMF, otra pierna, ocurrencia) es anular y recrear (`annul_and_recreate`). El `token` es de un solo uso, atado a la versión actual del movimiento y caduca (`FMS_EDIT_TOKEN_SECONDS`).
          */
-        post: operations["fmsMovementEditPreview"];
+        post: operations["fmsMovementEditPreview_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6322,6 +6367,11 @@ export interface components {
             reverses_id: string | null;
             /** Format: uuid */
             adjusts_id: string | null;
+            /**
+             * Format: uuid
+             * @description Lo comparte con su pareja en el otro ámbito (cuenta pasada al hogar o traslado entre ámbitos). Un traslado se anula con `households/{id}/cross-transfers/{split_group}/annul`.
+             */
+            split_group: string | null;
             memo: string | null;
             reason: string | null;
             /** Format: date-time */
@@ -6580,6 +6630,12 @@ export interface components {
                 [key: string]: unknown;
             }[];
         };
+        FmsBlocker: {
+            /** @description Qué lo impide: `reconciliation`, `recurrence`, `budget`, `goal`, `import`, `credit`, `asset`, `category`, `reconciled_entry`, `pending_entry`, `linked_transfer`, `child_account`, `parent_account`, `system_account`, `not_asset_account`... */
+            kind: string;
+            /** @description Cuántas filas (o asientos) hay de ese tipo. */
+            count: number;
+        };
         FmsConsent: {
             /** @description La versión vigente de los textos legales (`apps.legal`). */
             required_version: string;
@@ -6589,6 +6645,8 @@ export interface components {
         FmsError: {
             detail: string;
             code: string;
+            /** @description Solo en los `409` de mover una cuenta al hogar o sacarla (`account_in_use`, `reconciled_entries`, `pending_entries`, `linked_transfers`, `account_not_movable`): la lista legible por máquina de lo que lo impide. */
+            blockers?: components["schemas"]["FmsBlocker"][];
             /** @description Solo en el 401: a dónde mandar al usuario a entrar. */
             login_url?: string;
         };
@@ -7359,6 +7417,13 @@ export interface components {
             type: string;
             kind: string;
         };
+        LinkedTransfer: {
+            /**
+             * Format: uuid
+             * @description Se pasa a `households/{id}/cross-transfers/{group}/annul` (`annul_linked`): anula los dos asientos juntos.
+             */
+            group: string;
+        };
         Liquidity: {
             horizons: components["schemas"]["Horizon"][];
             /** Format: date */
@@ -7856,6 +7921,13 @@ export interface components {
             /** Format: uuid */
             entry_id: string;
             entry_number: number;
+            /**
+             * Format: uuid
+             * @description El de su asiento: lo comparte con su pareja en el otro ámbito.
+             */
+            split_group: string | null;
+            /** @description Solo un traslado entre ámbitos vigente: anularlo solo da `409 linked_entry`; se anula por el grupo. */
+            linked_transfer: components["schemas"]["LinkedTransfer"] | null;
             attachments: number;
             installment_plan: components["schemas"]["Plan"] | null;
             warnings?: components["schemas"]["Warning"][];
@@ -8496,6 +8568,9 @@ export interface components {
             /** @example 180000 */
             planned_contribution?: string | null;
             status?: components["schemas"]["GoalStatusEnum"];
+        };
+        PatchedHouseholdRename: {
+            name?: string;
         };
         PatchedMaintenancePatch: {
             name?: string;
@@ -16151,6 +16226,76 @@ export interface operations {
             };
         };
     };
+    fmsHouseholdRename: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedHouseholdRename"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HouseholdSummary"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsAccounts_2: {
         parameters: {
             query?: {
@@ -18981,6 +19126,166 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Movement"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsMovementEditApply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditApply"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditApplied"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active` o `account_blocked`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsMovementEditPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MovementEdit"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EditPreview"];
                 };
             };
             /** @description Cuerpo inválido o falta `Idempotency-Key`. */
@@ -22437,7 +22742,7 @@ export interface operations {
             };
         };
     };
-    fmsMovementEditApply: {
+    fmsMovementEditApply_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -22516,7 +22821,7 @@ export interface operations {
             };
         };
     };
-    fmsMovementEditPreview: {
+    fmsMovementEditPreview_2: {
         parameters: {
             query?: never;
             header?: never;

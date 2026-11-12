@@ -1,24 +1,30 @@
 import { describe, expect, it } from "vitest";
-import { inUseKinds, moveBlocker, shareable } from "./blockers";
+import { blockerItems, moveBlocker, shareable } from "./blockers";
 
-describe("módulos personales que usan la cuenta (account_in_use)", () => {
-  it("los clasifica y los ordena", () => {
-    expect(inUseKinds("finance_planning.goal, finance_reconcile.reconciliation, finance_recurring.recurrence")).toEqual(["reconciliations", "recurrences", "goals"]);
-    expect(inUseKinds("finance_planning.budget,finance_imports.importbatch")).toEqual(["budgets", "imports"]);
+describe("bloqueos estructurados (blockers del 409)", () => {
+  it("lee la lista tal cual, en el orden del servidor", () => {
+    expect(blockerItems({ blockers: [{ kind: "goal", count: 2 }, { kind: "reconciliation", count: 1 }] })).toEqual([
+      { kind: "goal", count: 2 },
+      { kind: "reconciliation", count: 1 },
+    ]);
   });
-  it("lo desconocido o ausente cae en «otros módulos»", () => {
-    expect(inUseKinds("finance_credit.loan")).toEqual(["other"]);
-    expect(inUseKinds(undefined)).toEqual(["other"]);
-    expect(inUseKinds("")).toEqual(["other"]);
+  it("suma un tipo repetido, manda lo desconocido a «other» y descarta lo que no es una lista válida", () => {
+    expect(blockerItems({ blockers: [{ kind: "budget", count: 1 }, { kind: "budget", count: 2 }, { kind: "algo_nuevo", count: 4 }, null, { count: 3 }] })).toEqual([
+      { kind: "budget", count: 3 },
+      { kind: "other", count: 4 },
+    ]);
+    expect(blockerItems(undefined)).toEqual([]);
+    expect(blockerItems({ blockers: "x" })).toEqual([]);
+    expect(blockerItems({ detail: "finance_planning.goal" })).toEqual([]);
   });
 });
 
 describe("bloqueos de pasar o sacar una cuenta", () => {
   it.each(["pending_entries", "linked_transfers", "reconciled_entries", "account_not_movable", "not_your_shared_account", "household_read_only"])("%s", (code) => {
-    expect(moveBlocker({ code, data: { code, detail: "x" } })).toEqual({ code, kinds: [] });
+    expect(moveBlocker({ code, data: { code, detail: "x" } })).toEqual({ code, items: [] });
   });
-  it("account_in_use trae los módulos del detalle", () => {
-    expect(moveBlocker({ code: "account_in_use", data: { code: "account_in_use", detail: "finance_recurring.recurrence" } })).toEqual({ code: "account_in_use", kinds: ["recurrences"] });
+  it("account_in_use trae los tipos de blockers", () => {
+    expect(moveBlocker({ code: "account_in_use", data: { code: "account_in_use", detail: "x", blockers: [{ kind: "recurrence", count: 1 }] } })).toEqual({ code: "account_in_use", items: [{ kind: "recurrence", count: 1 }] });
   });
   it("otro fallo (red, sesión) no es un bloqueo", () => {
     expect(moveBlocker({ code: "network", data: undefined })).toBeNull();

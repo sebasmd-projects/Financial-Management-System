@@ -5395,6 +5395,65 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
+    patch:
+      operationId: fmsHouseholdRename
+      description: 'Base: las rutas de gestión las puede usar cualquier rol (el servicio
+        decide); las de datos exigen escritura.'
+      summary: Renombrar el hogar (propietario y administradores); el nombre se cifra
+        con la llave del hogar
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedHouseholdRename'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HouseholdSummary'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/households/{household_id}/accounts:
     get:
       operationId: fmsAccounts_2
@@ -8173,6 +8232,154 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Movement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/movements/{id}/edit/apply:
+    post:
+      operationId: fmsMovementEditApply
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Aplicar una edición con el token de la vista previa: anula y recrea
+        de forma atómica (auditoría viejo → nuevo)'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditApply'
+        required: true
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EditApplied'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active` o `account_blocked`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/movements/{id}/edit/preview:
+    post:
+      operationId: fmsMovementEditPreview
+      description: 'Un cambio de **una cifra** sin encadenamientos es un asiento de
+        ajuste (`mode: adjustment`); varios campos o algo encadenado (cuotas, GMF,
+        otra pierna, ocurrencia) es anular y recrear (`annul_and_recreate`). El `token`
+        es de un solo uso, atado a la versión actual del movimiento y caduca (`FMS_EDIT_TOKEN_SECONDS`).'
+      summary: 'Vista previa de editar un movimiento confirmado: qué asientos se anulan
+        y nacen, y qué valores derivados cambian. No escribe'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovementEdit'
+      security:
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EditPreview'
           description: ''
         '400':
           content:
@@ -11408,7 +11615,7 @@ paths:
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/movements/{id}/edit/apply:
     post:
-      operationId: fmsMovementEditApply
+      operationId: fmsMovementEditApply_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
@@ -11476,7 +11683,7 @@ paths:
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/movements/{id}/edit/preview:
     post:
-      operationId: fmsMovementEditPreview
+      operationId: fmsMovementEditPreview_2
       description: 'Un cambio de **una cifra** sin encadenamientos es un asiento de
         ajuste (`mode: adjustment`); varios campos o algo encadenado (cuotas, GMF,
         otra pierna, ocurrencia) es anular y recrear (`annul_and_recreate`). El `token`
@@ -18534,6 +18741,13 @@ components:
           - string
           - 'null'
           format: uuid
+        split_group:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Lo comparte con su pareja en el otro ámbito (cuenta pasada
+            al hogar o traslado entre ámbitos). Un traslado se anula con `households/{id}/cross-transfers/{split_group}/annul`.
         memo:
           type:
           - string
@@ -18586,6 +18800,7 @@ components:
       - reason
       - reconciled_at
       - reverses_id
+      - split_group
       - status
       - total_credit
       - total_debit
@@ -19140,6 +19355,21 @@ components:
       - id
       - object
       - object_id
+    FmsBlocker:
+      type: object
+      properties:
+        kind:
+          type: string
+          description: 'Qué lo impide: `reconciliation`, `recurrence`, `budget`, `goal`,
+            `import`, `credit`, `asset`, `category`, `reconciled_entry`, `pending_entry`,
+            `linked_transfer`, `child_account`, `parent_account`, `system_account`,
+            `not_asset_account`...'
+        count:
+          type: integer
+          description: Cuántas filas (o asientos) hay de ese tipo.
+      required:
+      - count
+      - kind
     FmsConsent:
       type: object
       properties:
@@ -19161,6 +19391,13 @@ components:
           type: string
         code:
           type: string
+        blockers:
+          type: array
+          items:
+            $ref: '#/components/schemas/FmsBlocker'
+          description: 'Solo en los `409` de mover una cuenta al hogar o sacarla (`account_in_use`,
+            `reconciled_entries`, `pending_entries`, `linked_transfers`, `account_not_movable`):
+            la lista legible por máquina de lo que lo impide.'
         login_url:
           type: string
           description: 'Solo en el 401: a dónde mandar al usuario a entrar.'
@@ -20685,6 +20922,16 @@ components:
       - kind
       - name
       - type
+    LinkedTransfer:
+      type: object
+      properties:
+        group:
+          type: string
+          format: uuid
+          description: 'Se pasa a `households/{id}/cross-transfers/{group}/annul`
+            (`annul_linked`): anula los dos asientos juntos.'
+      required:
+      - group
     Liquidity:
       type: object
       properties:
@@ -21658,6 +21905,18 @@ components:
           format: uuid
         entry_number:
           type: integer
+        split_group:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: 'El de su asiento: lo comparte con su pareja en el otro ámbito.'
+        linked_transfer:
+          oneOf:
+          - $ref: '#/components/schemas/LinkedTransfer'
+          - type: 'null'
+          description: 'Solo un traslado entre ámbitos vigente: anularlo solo da `409
+            linked_entry`; se anula por el grupo.'
         attachments:
           type: integer
         installment_plan:
@@ -21686,6 +21945,7 @@ components:
       - gmf
       - id
       - installment_plan
+      - linked_transfer
       - nature
       - notes
       - origin
@@ -21693,6 +21953,7 @@ components:
       - payment_method
       - refund_of_id
       - replaces_id
+      - split_group
       - status
       - tags
       - to_account
@@ -23018,6 +23279,12 @@ components:
           example: '180000'
         status:
           $ref: '#/components/schemas/GoalStatusEnum'
+    PatchedHouseholdRename:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
     PatchedMaintenancePatch:
       type: object
       properties:

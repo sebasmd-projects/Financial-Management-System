@@ -11,51 +11,68 @@ import { DrillLink } from "../finance/drill-link";
 import { fill } from "../finance/helpers";
 import { useHref, useSubmit } from "../finance/hooks";
 import { Banner, FormActions, Modal, SelectField } from "../finance/kit";
-import { moveBlocker, type InUseKind, type MoveBlocker } from "./blockers";
+import { moveBlocker, type BlockerKind, type MoveBlocker } from "./blockers";
 import { canWriteRole } from "./scope";
 import { refreshHouseholds, useHouseholds } from "./scope-store";
 
-const IN_USE_ROUTE: Record<Exclude<InUseKind, "other">, { route: RouteId; withAccount?: boolean; label: "goReconciliations" | "goRecurrences" | "goBudgets" | "goGoals" | "goImports" }> = {
-  reconciliations: { route: "cuenta-conciliar", withAccount: true, label: "goReconciliations" },
-  recurrences: { route: "pagos-fijos", label: "goRecurrences" },
-  budgets: { route: "plan-presupuestos", label: "goBudgets" },
-  goals: { route: "plan-objetivos", label: "goGoals" },
-  imports: { route: "cuentas-importar", label: "goImports" },
+type KindLink = { route: RouteId; withAccount?: boolean; personalOnly: boolean };
+
+/** El siguiente paso de cada tipo de bloqueo. Los módulos solo personales no se alcanzan desde el ámbito del Hogar (`personalOnly`). */
+const KIND_ROUTE: Partial<Record<BlockerKind, KindLink>> = {
+  reconciliation: { route: "cuenta-conciliar", withAccount: true, personalOnly: true },
+  recurrence: { route: "pagos-fijos", personalOnly: true },
+  budget: { route: "plan-presupuestos", personalOnly: true },
+  goal: { route: "plan-objetivos", personalOnly: true },
+  import: { route: "cuentas-importar", personalOnly: true },
+  credit: { route: "creditos", personalOnly: true },
+  asset: { route: "informes-patrimonio", personalOnly: true },
+  category: { route: "config-categorias", personalOnly: false },
+  linked_transfer: { route: "movimientos-transferencias", personalOnly: false },
 };
 
+function BlockerNextStep({ kind, accountId, links }: { kind: BlockerKind; accountId: string; links: boolean }) {
+  const { dict } = useI18n();
+  const href = useHref();
+  const label = (dict.fin.hh.share.go as Partial<Record<BlockerKind, string>>)[kind];
+  if (!label) return null;
+  const target = KIND_ROUTE[kind];
+  if (kind !== "pending_entry" && kind !== "reconciled_entry" && (!target || (target.personalOnly && !links))) return null;
+  return (
+    <>
+      {" · "}
+      {kind === "pending_entry" || kind === "reconciled_entry" ? (
+        <DrillLink filter={{ account: accountId, status: kind === "pending_entry" ? "pendiente" : "conciliado" }}>{label}</DrillLink>
+      ) : (
+        <Link href={href(target!.route, target!.withAccount ? [accountId] : [])}>{label}</Link>
+      )}
+    </>
+  );
+}
+
 /**
- * Lo que el servidor dijo para no mover la cuenta, en palabras y con el siguiente paso: pendientes por confirmar o descartar,
- * traslado entre ámbitos por anular, conciliados, o los módulos solo personales que la usan. Sin valores.
+ * Lo que el servidor dijo para no mover la cuenta, en palabras y con el siguiente paso: un mensaje y un enlace por cada tipo de
+ * `blockers`. Si el `409` no trae la lista (otro motivo, p. ej. un visor), se explica el `code`. Sin valores, solo cuentas de filas.
  */
 export function BlockerPanel({ blocker, accountId, links }: { blocker: MoveBlocker; accountId: string; links: boolean }) {
   const { dict } = useI18n();
   const t = dict.fin.hh.share;
-  const href = useHref();
   return (
     <div className="status status--negative hh-blocker" role="alert">
       <div>
         <p>
-          <strong>{t.blockedTitle}.</strong> {t.blockers[blocker.code]}
+          <strong>{t.blockedTitle}.</strong>{" "}
+          {blocker.items.length === 0 ? t.blockers[blocker.code] : null}
         </p>
-        {blocker.code === "account_in_use" && (
+        {blocker.items.length > 0 && (
           <ul>
-            {blocker.kinds.map((kind) => (
-              <li key={kind}>
-                {t.inUse[kind]}
-                {links && kind !== "other" && (
-                  <>
-                    {" · "}
-                    <Link href={href(IN_USE_ROUTE[kind].route, IN_USE_ROUTE[kind].withAccount ? [accountId] : [])}>{t[IN_USE_ROUTE[kind].label]}</Link>
-                  </>
-                )}
+            {blocker.items.map((item) => (
+              <li key={item.kind}>
+                {fill(t.kinds[item.kind], { n: String(item.count) })}
+                <BlockerNextStep kind={item.kind} accountId={accountId} links={links} />
               </li>
             ))}
           </ul>
         )}
-        {blocker.code === "pending_entries" && (
-          <DrillLink filter={{ account: accountId, status: "pendiente" }}>{t.goPending}</DrillLink>
-        )}
-        {blocker.code === "linked_transfers" && <Link href={href("movimientos-transferencias")}>{t.goTransfers}</Link>}
       </div>
     </div>
   );

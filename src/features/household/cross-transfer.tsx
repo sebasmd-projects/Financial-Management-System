@@ -12,7 +12,8 @@ import { transferAccounts } from "../finance/helpers";
 import { useAll, useSubmit } from "../finance/hooks";
 import { AmountField, Banner, FormActions, Modal, Segmented, SelectField, TextField, TextArea } from "../finance/kit";
 import { ConfirmDialog } from "./confirm-dialog";
-import { forgetTransfer, rememberTransfer } from "./cross-memory";
+import { canWriteRole } from "./scope";
+import { useHouseholds, useScope } from "./scope-store";
 
 /**
  * Traslado entre una cuenta personal y una del hogar (`POST households/{id}/cross-transfers`). Las dos listas se piden por su ruta
@@ -65,10 +66,7 @@ function CrossTransferForm({ householdId, onClose }: { householdId: string; onCl
       ...(description.trim() ? { description: description.trim() } : {}),
     };
     const result = await submit.run(body, (key) => api.post<CrossTransferResult>(paths.crossTransfers(householdId), body, { idempotencyKey: key, locale, unscoped: true }));
-    if (result.ok) {
-      rememberTransfer({ group: result.data.group, householdId, personalMovementId: result.data.personal_movement_id, householdMovementId: result.data.household_movement_id });
-      setDone(result.data);
-    }
+    if (result.ok) setDone(result.data);
   }
 
   if (done) {
@@ -152,27 +150,33 @@ function CrossTransferForm({ householdId, onClose }: { householdId: string; onCl
   );
 }
 
-/** Anular un traslado entre ámbitos: los dos asientos juntos, con motivo. Solo se conoce el identificador del traslado en esta sesión. */
-export function AnnulTransfer({ open, householdId, group, onClose, onDone }: { open: boolean; householdId: string; group: string; onClose: () => void; onDone: () => void }) {
+/**
+ * Anular un traslado entre ámbitos: los dos asientos juntos, con motivo. El `group` sale del propio movimiento (`linked_transfer.group`),
+ * así que vale desde cualquier sesión. El hogar es el activo; en el ámbito Personal, el único donde se pueda escribir (o el que se elija).
+ */
+export function AnnulTransfer({ open, householdId, group, onClose, onDone }: { open: boolean; householdId?: string; group: string; onClose: () => void; onDone: () => void }) {
   const { dict, locale } = useI18n();
   const t = dict.fin.hh.cross;
+  const scope = useScope();
+  const { data } = useHouseholds();
   const [reason, setReason] = useState("");
+  const [chosen, setChosen] = useState("");
+  const candidates = householdId ? [{ id: householdId, name: "" }] : scope.kind !== "personal" ? [{ id: scope.id, name: "" }] : (data?.households ?? []).filter((h) => canWriteRole(h.role));
+  const target = candidates.find((h) => h.id === chosen)?.id ?? candidates[0]?.id ?? "";
   return (
     <ConfirmDialog
       open={open}
       danger
       title={t.annulTitle}
       confirmLabel={t.annul}
-      disabled={reason.trim() === ""}
-      fingerprint={{ group, reason: reason.trim() }}
-      call={(key) => api.post(paths.crossTransferAnnul(householdId, group), { reason: reason.trim() }, { idempotencyKey: key, locale, unscoped: true })}
+      disabled={reason.trim() === "" || target === ""}
+      fingerprint={{ group, household: target, reason: reason.trim() }}
+      call={(key) => api.post(paths.crossTransferAnnul(target, group), { reason: reason.trim() }, { idempotencyKey: key, locale, unscoped: true })}
       onClose={onClose}
-      onDone={() => {
-        forgetTransfer(group);
-        onDone();
-      }}
+      onDone={onDone}
     >
       <p className="muted">{t.annulBody}</p>
+      {candidates.length > 1 && <SelectField label={t.annulHousehold} value={target} onChange={setChosen} options={candidates.map((h) => ({ value: h.id, label: h.name }))} />}
       <TextArea label={t.reason} value={reason} onChange={setReason} required maxLength={200} />
     </ConfirmDialog>
   );

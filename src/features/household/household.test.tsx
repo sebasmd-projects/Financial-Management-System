@@ -12,7 +12,6 @@ import { MovementsScreen } from "../finance/movements/movements-screen";
 import { FinanceScreen } from "../finance/screens";
 import { SummaryScreen } from "../finance/summary/summary-screen";
 import { ReportView } from "../finance/reports/report-view";
-import { rememberTransfer, resetKnownTransfers } from "./cross-memory";
 import { CrossTransferDialog } from "./cross-transfer";
 import { HouseholdScreen } from "./household-detail";
 import { HouseholdsScreen } from "./households-screen";
@@ -34,7 +33,7 @@ const account = (id: string, name: string, kind = "savings") => ({
 });
 const movement = (over: Record<string, unknown> = {}) => ({
   id: "m1", created_by: { id: 3, name: "Ana" }, updated_by: { id: 5, name: "Beto" }, type: "expense", origin: "manual", status: "confirmado", voided: false, date: todayBogota(), amount: "45000.00", currency: "COP", original: null, attributes: {}, description: "Mercado", notes: null, counterparty: null, category: null, nature: "", classification: "", tags: [], cost_center: null, payment_method: null,
-  account: { id: "a1", name: "Ahorros Casa" }, to_account: null, refund_of_id: null, replaces_id: null, gmf: null, entry_id: "e1", entry_number: 1, attachments: 0, installment_plan: null, warnings: [], ...over,
+  account: { id: "a1", name: "Ahorros Casa" }, to_account: null, refund_of_id: null, replaces_id: null, gmf: null, entry_id: "e1", entry_number: 1, attachments: 0, installment_plan: null, warnings: [], split_group: null, linked_transfer: null, ...over,
 });
 
 let mounted: Mounted | null = null;
@@ -44,7 +43,6 @@ async function mount(element: ReactElement, routes: Record<string, MockReply>) {
 }
 beforeEach(() => {
   resetHouseholdState();
-  resetKnownTransfers();
 });
 afterEach(() => {
   mounted?.unmount();
@@ -190,12 +188,12 @@ describe("movimientos en el hogar: autoría y solo lectura", () => {
     expect(hasControl(m, es.fin.detail.duplicate)).toBe(false);
     expect(m.visible()).toContain("Solo lectura");
   });
-  it("la mitad de un traslado entre ámbitos no se anula sola y lo dice", async () => {
+  it("la mitad de un traslado entre ámbitos no se anula ni se ajusta sola: ofrece anular el traslado", async () => {
     setScope({ kind: "household", id: H });
-    const m = await mount(<MovementDetail id="m1" />, { ...search("editor"), [`GET ${API}/households/${H}/movements/m1`]: { status: 200, json: movement({ origin: "household_transfer" }) } });
-    expect(hasControl(m, es.fin.detail.annul)).toBe(false);
-    expect(hasControl(m, es.fin.detail.adjust)).toBe(false);
-    expect(m.visible()).toContain(es.fin.hh.cross.cannotKnow);
+    const m = await mount(<MovementDetail id="m1" />, { ...search("editor"), [`GET ${API}/households/${H}/movements/m1`]: { status: 200, json: movement({ origin: "household_transfer", split_group: "g1", linked_transfer: { group: "g1" } }) } });
+    expect(controls(m)).not.toContain(es.fin.detail.annul);
+    expect(controls(m)).not.toContain(es.fin.detail.adjust);
+    expect(controls(m)).toContain(es.fin.hh.cross.annul);
   });
 });
 
@@ -332,6 +330,29 @@ describe("gestión del hogar", () => {
     expect(post.body).toEqual({ confirm: "delete" });
     expect(post.headers.get("Idempotency-Key")).toBeTruthy();
   });
+  it("el propietario renombra el hogar con PATCH e Idempotency-Key; el visor y el editor no ven el formulario", async () => {
+    const m = await mount(<HouseholdScreen id={H} />, { [`GET ${API}/households/${H}`]: detail("owner"), [`GET ${API}/households`]: list("owner"), [`PATCH ${API}/households/${H}`]: { status: 200, json: hh("owner", { name: "Casa Nueva" }) } });
+    const input = m.host.querySelector<HTMLInputElement>(`input[value="Casa"]`)!;
+    typeInto(input, "Casa Nueva");
+    click(byText(m.host, "button", es.fin.hh.detail.renameSave));
+    await wait();
+    const patch = m.mock.calls.find((c) => c.method === "PATCH" && c.url === `${API}/households/${H}`)!;
+    expect(patch.body).toEqual({ name: "Casa Nueva" });
+    expect(patch.headers.get("Idempotency-Key")).toBeTruthy();
+    expect(m.visible()).toContain(es.fin.hh.detail.renamed);
+    for (const role of ["editor", "viewer"]) {
+      const other = await mountScreen(<HouseholdScreen id={H} />, { [`GET ${API}/households/${H}`]: detail(role) });
+      expect(hasControl(other, es.fin.hh.detail.renameSave)).toBe(false);
+      other.unmount();
+    }
+  });
+  it("un 403 al renombrar se explica", async () => {
+    const m = await mount(<HouseholdScreen id={H} />, { [`GET ${API}/households/${H}`]: detail("admin"), [`GET ${API}/households`]: list("admin"), [`PATCH ${API}/households/${H}`]: { status: 403, json: { code: "household_manage_forbidden", detail: "x" } } });
+    typeInto(m.host.querySelector<HTMLInputElement>(`input[value="Casa"]`)!, "Otra");
+    click(byText(m.host, "button", es.fin.hh.detail.renameSave));
+    await wait();
+    expect(m.visible()).toContain(es.fin.errors.household_manage_forbidden);
+  });
   it("muestra que la llave se está cambiando", async () => {
     const m = await mount(<HouseholdScreen id={H} />, { [`GET ${API}/households/${H}`]: detail("owner", { rotating: true }) });
     expect(m.visible()).toContain(es.fin.hh.detail.rotatingTitle);
@@ -380,25 +401,39 @@ describe("pasar una cuenta al hogar: los bloqueos del servidor", () => {
     expect(post.body).toEqual({ household_id: H });
     expect(post.headers.get("Idempotency-Key")).toBeTruthy();
   });
-  it("pending_entries: confirmar o descartar los pendientes primero, con enlace a verlos", async () => {
-    const m = await share({ status: 409, json: { code: "pending_entries", detail: "pending entries" } });
-    expect(m.text()).toContain(es.fin.hh.share.blockers.pending_entries);
-    expect(m.text()).toContain(es.fin.hh.share.goPending);
+  const blocked = (code: string, blockers: { kind: string; count: number }[]) => ({ status: 409, json: { code, detail: "x", blockers } });
+  it("pending_entries: un mensaje con su cuenta y enlace a verlos", async () => {
+    const m = await share(blocked("pending_entries", [{ kind: "pending_entry", count: 2 }]));
+    expect(m.text()).toContain("Tiene movimientos pendientes (2)");
+    expect(m.text()).toContain(es.fin.hh.share.go.pending_entry);
   });
   it("linked_transfers: anular el traslado primero", async () => {
-    const m = await share({ status: 409, json: { code: "linked_transfers", detail: "x" } });
-    expect(m.text()).toContain(es.fin.hh.share.blockers.linked_transfers);
-    expect(m.text()).toContain(es.fin.hh.share.goTransfers);
+    const m = await share(blocked("linked_transfers", [{ kind: "linked_transfer", count: 1 }]));
+    expect(m.text()).toContain("traslados vigentes entre Personal y Hogar (1)");
+    expect(m.text()).toContain(es.fin.hh.share.go.linked_transfer);
   });
-  it("account_in_use: nombra cada módulo personal que la usa", async () => {
-    const m = await share({ status: 409, json: { code: "account_in_use", detail: "finance_reconcile.reconciliation, finance_recurring.recurrence, finance_planning.budget, finance_planning.goal, finance_imports.importbatch" } });
-    const text = m.text();
-    expect(text).toContain(es.fin.hh.share.blockers.account_in_use);
-    for (const label of ["Conciliaciones", "Recurrencias", "Presupuestos", "Metas", "Importaciones"]) expect(text).toContain(label);
+  it("account_in_use: un mensaje y un enlace por cada tipo, sin interpretar el texto del detalle", async () => {
+    const kinds = ["reconciliation", "recurrence", "budget", "goal", "import", "credit", "asset", "category"] as const;
+    const m = await share(blocked("account_in_use", kinds.map((kind, i) => ({ kind, count: i + 1 }))));
+    const items = [...m.host.querySelectorAll(".hh-blocker li")];
+    expect(items).toHaveLength(kinds.length);
+    kinds.forEach((kind, i) => {
+      expect(items[i].textContent).toContain(`(${i + 1})`);
+      expect(items[i].textContent).toContain(es.fin.hh.share.go[kind]);
+      expect(items[i].querySelector("a")).not.toBeNull();
+    });
   });
-  it("reconciled_entries", async () => {
-    const m = await share({ status: 409, json: { code: "reconciled_entries", detail: "x" } });
-    expect(m.text()).toContain(es.fin.hh.share.blockers.reconciled_entries);
+  it("reconciled_entries y account_not_movable", async () => {
+    let m = await share(blocked("reconciled_entries", [{ kind: "reconciled_entry", count: 3 }]));
+    expect(m.text()).toContain("movimientos conciliados (3)");
+    m.unmount();
+    m = mounted = await share(blocked("account_not_movable", [{ kind: "child_account", count: 1 }, { kind: "system_account", count: 1 }]));
+    expect(m.text()).toContain(es.fin.hh.share.kinds.child_account);
+    expect(m.text()).toContain(es.fin.hh.share.kinds.system_account);
+  });
+  it("sin lista de bloqueos (servidor viejo) explica el código", async () => {
+    const m = await share({ status: 409, json: { code: "pending_entries", detail: "x" } });
+    expect(m.text()).toContain(es.fin.hh.share.blockers.pending_entries);
   });
   it("un visor recibe 403 household_read_only explicado", async () => {
     const m = await share({ status: 403, json: { code: "household_read_only", detail: "x" } });
@@ -430,21 +465,99 @@ describe("traslados entre Personal y Hogar", () => {
     expect(m.text()).toContain(es.fin.hh.cross.needAccounts);
     expect(m.host.querySelector("dialog form")).toBeNull();
   });
-  it("un traslado de esta sesión se anula desde su movimiento, con motivo", async () => {
-    setScope({ kind: "household", id: H });
-    rememberTransfer({ group: "g1", householdId: H, personalMovementId: "pm1", householdMovementId: "m1" });
-    const m = await mount(<MovementDetail id="m1" />, {
-      [`GET ${API}/households`]: list("editor"),
-      [`GET ${API}/households/${H}/movements/m1`]: { status: 200, json: movement({ origin: "household_transfer" }) },
-      [`POST ${API}/households/${H}/cross-transfers/g1/annul`]: { status: 204 },
-    });
+  async function annulFrom(m: Mounted) {
     click(byText(m.host, "button", es.fin.hh.cross.annul));
     await wait();
     typeInto(m.host.querySelector<HTMLTextAreaElement>("dialog textarea")!, "Error de digitación");
     click(byText(m.host, "dialog button[type=submit]", es.fin.hh.cross.annul));
     await wait();
+  }
+  it("un traslado se anula desde su movimiento con el grupo que trae el servidor, sin haberlo creado en esta sesión", async () => {
+    setScope({ kind: "household", id: H });
+    const m = await mount(<MovementDetail id="m1" />, {
+      [`GET ${API}/households`]: list("editor"),
+      [`GET ${API}/households/${H}/movements/m1`]: { status: 200, json: movement({ origin: "household_transfer", split_group: "g1", linked_transfer: { group: "g1" } }) },
+      [`POST ${API}/households/${H}/cross-transfers/g1/annul`]: { status: 204 },
+    });
+    await annulFrom(m);
     const post = m.mock.calls.find((c) => c.url.endsWith("/annul"))!;
     expect(post.body).toEqual({ reason: "Error de digitación" });
     expect(post.headers.get("Idempotency-Key")).toBeTruthy();
+  });
+  it("desde el ámbito Personal usa el único hogar donde se puede escribir", async () => {
+    const m = await mount(<MovementDetail id="m1" />, {
+      [`GET ${API}/households`]: list("editor"),
+      [`GET ${API}/movements/m1`]: { status: 200, json: movement({ origin: "household_transfer", split_group: "g2", linked_transfer: { group: "g2" } }) },
+      [`POST ${API}/households/${H}/cross-transfers/g2/annul`]: { status: 204 },
+    });
+    await annulFrom(m);
+    expect(m.mock.calls.some((c) => c.method === "POST" && c.url === `${API}/households/${H}/cross-transfers/g2/annul`)).toBe(true);
+  });
+  it("con varios hogares en Personal pregunta cuál", async () => {
+    const H2 = "7b0a6f0e-0000-4000-8000-000000000002";
+    const m = await mount(<MovementDetail id="m1" />, {
+      [`GET ${API}/households`]: { status: 200, json: { households: [hh("editor"), { ...hh("owner"), id: H2, name: "Finca" }], invitations: [] } },
+      [`GET ${API}/movements/m1`]: { status: 200, json: movement({ origin: "household_transfer", split_group: "g3", linked_transfer: { group: "g3" } }) },
+      [`POST ${API}/households/${H2}/cross-transfers/g3/annul`]: { status: 204 },
+    });
+    click(byText(m.host, "button", es.fin.hh.cross.annul));
+    await wait();
+    typeInto(m.host.querySelector<HTMLSelectElement>("dialog select")!, H2);
+    typeInto(m.host.querySelector<HTMLTextAreaElement>("dialog textarea")!, "Duplicado");
+    click(byText(m.host, "dialog button[type=submit]", es.fin.hh.cross.annul));
+    await wait();
+    expect(m.mock.calls.some((c) => c.method === "POST" && c.url === `${API}/households/${H2}/cross-transfers/g3/annul`)).toBe(true);
+  });
+  it("una cuenta pasada al hogar (split_group sin traslado) no ofrece anular traslado", async () => {
+    setScope({ kind: "household", id: H });
+    const m = await mount(<MovementDetail id="m1" />, { [`GET ${API}/households`]: list("editor"), [`GET ${API}/households/${H}/movements/m1`]: { status: 200, json: movement({ split_group: "g9" }) } });
+    expect(controls(m)).not.toContain(es.fin.hh.cross.annul);
+    expect(controls(m)).toContain(es.fin.detail.annul);
+  });
+});
+
+describe("editar un movimiento confirmado del hogar", () => {
+  const EFFECTS = { mode: "adjustment", changed_fields: ["amount"], chained: [], entries_annulled: [], entries_created: [], balances: [], spent: [], gmf: { before: null, after: null }, installments: null, notes: [] };
+  const base = {
+    [`GET ${API}/households`]: list("editor"),
+    [`GET ${API}/households/${H}/movements/m1`]: { status: 200, json: movement() },
+    [`GET ${API}/households/${H}/accounts?page_size=100`]: page([account("a1", "Ahorros Casa")]),
+  };
+  async function openEdit(routes: Record<string, MockReply>) {
+    setScope({ kind: "household", id: H });
+    const m = await mount(<MovementDetail id="m1" />, { ...base, ...routes });
+    click(byText(m.host, "button", es.fin.detail.edit));
+    await wait();
+    return m;
+  }
+  const submitEdit = async (m: Mounted) => {
+    typeInto(m.host.querySelector<HTMLInputElement>("dialog input[inputmode=decimal]")!, "50000");
+    click(byText(m.host, "dialog button[type=submit]", es.fin.edit.preview));
+    await wait();
+  };
+  it("el monto ya no está bloqueado: pide la vista previa del hogar y aplica con el token", async () => {
+    const m = await openEdit({
+      [`POST ${API}/households/${H}/movements/m1/edit/preview`]: { status: 200, json: { token: "tok-1", expires_at: "2026-11-10T19:32:00Z", version: "v1", effects: EFFECTS } },
+      [`POST ${API}/households/${H}/movements/m1/edit/apply`]: { status: 200, json: { movement: movement({ id: "m2" }), effects: EFFECTS } },
+    });
+    await submitEdit(m);
+    const preview = m.mock.calls.find((c) => c.url.endsWith("/edit/preview"))!;
+    expect(preview.body).toMatchObject({ amount: "50000" });
+    expect(preview.headers.get("Idempotency-Key")).toBeTruthy();
+    expect(m.host.querySelector('[data-testid="edit-mode"]')?.textContent).toContain("asiento de ajuste");
+    typeInto(m.host.querySelector<HTMLTextAreaElement>("dialog textarea")!, "Corrección");
+    click(byText(m.host, "dialog button[type=submit]", es.fin.edit.apply));
+    await wait();
+    const apply = m.mock.calls.find((c) => c.url.endsWith("/edit/apply"))!;
+    expect(apply.url).toBe(`${API}/households/${H}/movements/m1/edit/apply`);
+    expect(apply.body).toEqual({ token: "tok-1", reason: "Corrección" });
+    expect(apply.headers.get("Idempotency-Key")).toBeTruthy();
+  });
+  it("409 linked_entry: dice que se anula el traslado y se registra de nuevo", async () => {
+    const m = await openEdit({ [`POST ${API}/households/${H}/movements/m1/edit/preview`]: { status: 409, json: { code: "linked_entry", detail: "x" } } });
+    await submitEdit(m);
+    expect(m.text()).toContain(es.fin.errors.linked_entry);
+    expect(es.fin.errors.linked_entry).toContain("vuelve a registrarlo");
+    expect(m.host.querySelector('[data-testid="edit-mode"]')).toBeNull();
   });
 });

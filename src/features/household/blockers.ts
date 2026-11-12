@@ -1,29 +1,52 @@
+import type { components } from "@/api/schema.gen";
 import { SPENDABLE_KINDS } from "../finance/helpers";
 
 /**
  * Por qué el servidor no deja pasar una cuenta al hogar (o sacarla): los códigos de `409`/`403` de `accounts/{id}/share` y de
- * `…/unshare`, y qué hacer en cada caso. Lógica pura; los textos viven en el diccionario.
+ * `…/unshare`, y qué hacer en cada caso. Lógica pura; los textos viven en el diccionario. El detalle sale de `blockers: [{kind, count}]`
+ * del propio `409` (legible por máquina): no se interpreta ningún texto.
  */
 
-export type InUseKind = "reconciliations" | "recurrences" | "budgets" | "goals" | "imports" | "other";
+export type BlockerKind =
+  | "reconciliation"
+  | "recurrence"
+  | "budget"
+  | "goal"
+  | "import"
+  | "credit"
+  | "asset"
+  | "category"
+  | "pending_entry"
+  | "linked_transfer"
+  | "reconciled_entry"
+  | "system_account"
+  | "not_asset_account"
+  | "parent_account"
+  | "child_account"
+  | "other";
 
-const IN_USE_ORDER: readonly InUseKind[] = ["reconciliations", "recurrences", "budgets", "goals", "imports", "other"];
+const KINDS: ReadonlySet<string> = new Set<BlockerKind>([
+  "reconciliation",
+  "recurrence",
+  "budget",
+  "goal",
+  "import",
+  "credit",
+  "asset",
+  "category",
+  "pending_entry",
+  "linked_transfer",
+  "reconciled_entry",
+  "system_account",
+  "not_asset_account",
+  "parent_account",
+  "child_account",
+  "other",
+]);
 
-/** `account_in_use` trae en `detail` los módulos personales que apuntan a la cuenta (`app.modelo`, separados por coma). */
-export function inUseKinds(detail: unknown): InUseKind[] {
-  if (typeof detail !== "string") return ["other"];
-  const found = new Set<InUseKind>();
-  for (const label of detail.toLowerCase().split(",")) {
-    const text = label.trim();
-    if (text === "") continue;
-    if (/reconcil/.test(text)) found.add("reconciliations");
-    else if (/recurr|occurrence/.test(text)) found.add("recurrences");
-    else if (/budget/.test(text)) found.add("budgets");
-    else if (/goal/.test(text)) found.add("goals");
-    else if (/import/.test(text)) found.add("imports");
-    else found.add("other");
-  }
-  return found.size === 0 ? ["other"] : IN_USE_ORDER.filter((kind) => found.has(kind));
+export interface BlockerItem {
+  kind: BlockerKind;
+  count: number;
 }
 
 export type MoveBlockerCode =
@@ -51,16 +74,32 @@ const CODES: ReadonlySet<string> = new Set<MoveBlockerCode>([
 
 export interface MoveBlocker {
   code: MoveBlockerCode;
-  /** Solo en `account_in_use`: qué módulos personales usan la cuenta. */
-  kinds: InUseKind[];
+  /** Lo que lo impide, tal como lo dice `blockers` (vacío si el servidor no lo trae: entonces se explica el `code`). */
+  items: BlockerItem[];
+}
+
+type Blocker = components["schemas"]["FmsBlocker"];
+
+/** Los `blockers` del cuerpo del error: un tipo desconocido cae en `other`; lo que no es una lista válida se ignora. */
+export function blockerItems(data: unknown): BlockerItem[] {
+  const raw = typeof data === "object" && data !== null ? (data as { blockers?: unknown }).blockers : undefined;
+  if (!Array.isArray(raw)) return [];
+  const items: BlockerItem[] = [];
+  for (const entry of raw as Partial<Blocker>[]) {
+    if (typeof entry !== "object" || entry === null || typeof entry.kind !== "string") continue;
+    const kind: BlockerKind = KINDS.has(entry.kind) ? (entry.kind as BlockerKind) : "other";
+    const count = typeof entry.count === "number" && Number.isFinite(entry.count) ? entry.count : 0;
+    const same = items.find((item) => item.kind === kind);
+    if (same) same.count += count;
+    else items.push({ kind, count });
+  }
+  return items;
 }
 
 /** El bloqueo que entiende la interfaz, o `null` si el fallo es otro (red, sesión…) y toca el texto genérico. */
 export function moveBlocker(failure: { code: string; data: unknown }): MoveBlocker | null {
   if (!CODES.has(failure.code)) return null;
-  const code = failure.code as MoveBlockerCode;
-  const detail = typeof failure.data === "object" && failure.data !== null ? (failure.data as { detail?: unknown }).detail : undefined;
-  return { code, kinds: code === "account_in_use" ? inUseKinds(detail) : [] };
+  return { code: failure.code as MoveBlockerCode, items: blockerItems(failure.data) };
 }
 
 const MOVABLE_KINDS: readonly string[] = SPENDABLE_KINDS;

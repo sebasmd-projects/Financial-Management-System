@@ -266,7 +266,7 @@ export function MovementForm() {
 
           <Segmented legend={t.type} options={typeOptions} value={state.type} onChange={(v) => set("type", v as MovementType)} />
 
-          {!foreignOn && <AmountField apiCode={submit.errorCode} label={t.amount} value={state.amount} onChange={(v) => set("amount", v)} error={errors.amount} required preview={amount ? formatCop(amount) : null} />}
+          {!foreignOn && <AmountField apiCode={submit.errorCode} label={t.amount} value={state.amount} onChange={(v) => set("amount", v)} error={errors.amount} required />}
           {!isTransfer && !inHousehold && <ForeignFields state={foreign} onChange={setForeign} fx={fx} touched={touched} />}
 
           {phrase && <p className="fin-phrase">{phrase}</p>}
@@ -286,7 +286,7 @@ export function MovementForm() {
               <Segmented legend={t.to} variant="chips" options={usable.filter((a) => a.id !== accountId).map((a) => ({ value: a.id, label: a.name }))} value={state.toAccountId} onChange={(v) => set("toAccountId", v)} />
               {errors.toAccount && <p className="field__error">{errors.toAccount}</p>}
               {account && (
-                <Checkbox label={t.applyGmf} hint={account.gmf_exempt ? t.gmfExempt : t.gmfHint} checked={gmfApplies} onChange={(v) => set("gmf", v)} />
+                <Checkbox label={t.applyGmf} help={dict.fin.help.texts.gmfExempt} hint={account.gmf_exempt ? t.gmfExempt : t.gmfHint} checked={gmfApplies} onChange={(v) => set("gmf", v)} />
               )}
             </>
           )}

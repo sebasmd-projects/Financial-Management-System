@@ -8,7 +8,6 @@ import type { Account, Category, Frequency, Recurrence, RecurrenceKind } from "@
 import { paths, roots } from "@/api/paths";
 import { normalizeAmountInput } from "@/lib/amount-input";
 import { toInt } from "@/lib/ints";
-import { formatCop } from "@/lib/money";
 import { formatDate, todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import { movementAccounts } from "../helpers";
@@ -137,7 +136,7 @@ export function RecurrenceForm() {
         <form onSubmit={onSubmit} noValidate className="fin-form">
           <SelectField label={t.kind} value={kind} onChange={(v) => setKind(v as RecurrenceKind)} options={(["fixed_expense", "subscription", "income", "other"] as const).map((k) => ({ value: k, label: t.kinds[k] }))} />
           <TextField label={t.name} value={name} onChange={setName} maxLength={80} required error={touched && name.trim() === "" ? req : null} />
-          <AmountField label={t.amount} value={amountText} onChange={setAmountText} required error={touched && amount === null ? dict.fin.common.invalidAmount : null} preview={amount ? formatCop(amount) : null} />
+          <AmountField label={t.amount} value={amountText} onChange={setAmountText} required error={touched && amount === null ? dict.fin.common.invalidAmount : null} />
           <Checkbox label={t.estimate} hint={t.estimateHint} checked={estimate} onChange={setEstimate} />
           <SelectField label={isIncome ? t.accountIn : t.accountOut} value={account} onChange={setAccountId} options={sources.map((a) => ({ value: a.id, label: a.name }))} />
           <SelectField label={dict.fin.form.category} value={categoryId} onChange={setCategoryId} placeholder={dict.fin.form.noCategory} options={categories.items.filter((c) => c.kind === (isIncome ? "income" : "expense")).map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />

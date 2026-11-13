@@ -8,11 +8,13 @@ import { formatPercent } from "@/lib/percent";
 import { useI18n } from "@/i18n/provider";
 import { UsuryNote } from "../credit/notes";
 import { SelectField } from "../kit";
+import { useConventionLabel } from "../conventions";
 import { RateInput, SimulationStatus, SimulatorShell, useSimulation } from "./sim-kit";
 
 /** Conversor de tasas (§3.9): una tasa en cualquier convención y todas sus equivalentes (nunca se divide una efectiva entre 12). */
 export function RatesSimulator() {
   const { dict, locale } = useI18n();
+  const convName = useConventionLabel();
   const t = dict.fin.sim.rates;
   const [rate, setRate] = useState("");
   const [convention, setConvention] = useState<RateConvention>("EA");
@@ -40,7 +42,7 @@ export function RatesSimulator() {
               <tbody>
                 {sim.data.lines.map((line) => (
                   <tr key={line.convention}>
-                    <th scope="row">{dict.fin.sim.conventions[line.convention]}{line.days_in_year ? ` (${line.days_in_year})` : ""}</th>
+                    <th scope="row">{convName(line.convention)}{line.days_in_year ? ` (${line.days_in_year})` : ""}</th>
                     <td className="table__num tabular">{formatPercent(line.percent, locale, 4)}</td>
                   </tr>
                 ))}

@@ -87,7 +87,7 @@ export function CardPay({ id }: { id: string }) {
               value={kind}
               onChange={(v) => setKind(v as PayKind)}
             />
-            {kind === "amount" && <AmountField label={t.fields.payAmount} value={amountText} onChange={setAmountText} required error={amountText && !amount ? dict.fin.common.invalidAmount : null} preview={amount ? formatCop(amount) : null} />}
+            {kind === "amount" && <AmountField label={t.fields.payAmount} value={amountText} onChange={setAmountText} required error={amountText && !amount ? dict.fin.common.invalidAmount : null} />}
             <SelectField label={t.fields.payFrom} value={from} onChange={setFromAccount} options={sources.map((a) => ({ value: a.id, label: a.name }))} />
             {fromName && sources.find((a) => a.id === from) && (
               <p className="muted">

@@ -8,14 +8,16 @@ import { fractionToPercent, percentToFraction } from "@/lib/amount-input";
 import { formatDate, todayBogota } from "@/lib/dates";
 import { formatPercent } from "@/lib/percent";
 import { useI18n } from "@/i18n/provider";
-import { RATE_CONVENTIONS, type RateConventionCode } from "../cards/cards-screen";
+import { ConventionSelect, type RateConventionCode } from "./../conventions";
 import { useResource, useSubmit } from "../hooks";
+import { useConventionLabel } from "../conventions";
 import { UsuryRateCheck } from "../credit/usury-check";
 import { Badge, Banner, ErrorState, FormActions, Loading, Modal, Section, SelectField, TextField } from "../kit";
 
 /** Tasas con vigencia (§3.8): cada tasa lleva su fuente; una tasa corriente nueva cierra la vigente y recalcula lo pendiente. */
 export function RatesPanel({ loanId, canRecalculate, onChanged }: { loanId: string; canRecalculate: boolean; onChanged: () => void }) {
   const { dict, locale } = useI18n();
+  const convName = useConventionLabel();
   const t = dict.fin.credit.rates;
   const rates = useResource<LoanRates>(paths.loanRates(loanId));
   const [adding, setAdding] = useState(false);
@@ -38,7 +40,7 @@ export function RatesPanel({ loanId, canRecalculate, onChanged }: { loanId: stri
             <li key={rate.id} className="fin-row fin-row--static">
               <span className="fin-row__main">
                 <span className="fin-row__title">
-                  {formatPercent(fractionToPercent(rate.rate, 4), locale, 4)} {rate.convention} · {t.kinds[rate.kind]}
+                  {formatPercent(fractionToPercent(rate.rate, 4), locale, 4)} {convName(rate.convention)} · {t.kinds[rate.kind]}
                 </span>
                 <span className="fin-row__sub muted">
                   {formatDate(rate.valid_from)} – {rate.valid_to ? formatDate(rate.valid_to) : t.open} · {t.source}: {rate.source}
@@ -89,8 +91,8 @@ function RateForm({ loanId, onDone, onCancel }: { loanId: string; onDone: () => 
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <SelectField label={t.kind} value={kind} onChange={(v) => setKind(v as "current" | "late")} options={[{ value: "current", label: t.kinds.current }, { value: "late", label: t.kinds.late }]} />
       <div className="fin-grid-2">
-        <TextField label={dict.fin.loans.fields.rate} hint={dict.fin.cards.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" required error={touched && rateValue === null ? dict.fin.cards.rateInvalid : null} />
-        <SelectField label={dict.fin.loans.fields.convention} value={convention} onChange={(v) => setConvention(v as RateConventionCode)} options={RATE_CONVENTIONS.map((c) => ({ value: c, label: c }))} />
+        <TextField label={dict.fin.loans.fields.rate} help={dict.fin.help.texts.rate} hint={dict.fin.cards.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" required error={touched && rateValue === null ? dict.fin.cards.rateInvalid : null} />
+        <ConventionSelect label={dict.fin.loans.fields.convention} value={convention} onChange={setConvention} />
       </div>
       <UsuryRateCheck rate={rateValue} convention={convention} on={validFrom} />
       <TextField label={t.validFrom} type="date" value={validFrom} onChange={setValidFrom} required />

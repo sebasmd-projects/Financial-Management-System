@@ -120,8 +120,8 @@ function PrefsForm({ prefs, onSaved }: { prefs: Prefs; onSaved: () => void }) {
         </div>
       )}
       <div className="fin-grid-2">
-        <TextField label={t.quietStart} type="time" value={quietStart} onChange={setQuietStart} error={touched && !isTime(quietStart) ? t.invalidTime : null} />
-        <TextField label={t.quietEnd} type="time" value={quietEnd} onChange={setQuietEnd} error={touched && !isTime(quietEnd) ? t.invalidTime : null} />
+        <TextField label={t.quietStart} help={dict.fin.help.texts.quietHours} type="time" value={quietStart} onChange={setQuietStart} error={touched && !isTime(quietStart) ? t.invalidTime : null} />
+        <TextField label={t.quietEnd} help={dict.fin.help.texts.quietHours} type="time" value={quietEnd} onChange={setQuietEnd} error={touched && !isTime(quietEnd) ? t.invalidTime : null} />
       </div>
       <p className="hint">{t.quietHint}</p>
       <Checkbox label={t.showAmounts} hint={t.showAmountsHint} checked={showAmounts} onChange={setShowAmounts} />

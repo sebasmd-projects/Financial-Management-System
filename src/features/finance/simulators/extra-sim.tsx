@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { ExtraPayment, ExtraScenario } from "@/api/models";
 import { paths } from "@/api/paths";
-import { compareAmounts, formatCop } from "@/lib/money";
+import { compareAmounts } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { fill } from "../helpers";
 import { AmountField, Badge, Money, TextField } from "../kit";
@@ -33,11 +33,11 @@ export function ExtraPaymentSimulator() {
   return (
     <SimulatorShell route="simulador-abono-extra">
       <form className="fin-form" onSubmit={(event) => event.preventDefault()} noValidate>
-        <AmountField label={t.principal} hint={t.principalHint} value={input.principal} onChange={set("principal")} preview={built.body ? formatCop(built.body.principal) : null} />
+        <AmountField label={t.principal} hint={t.principalHint} value={input.principal} onChange={set("principal")} />
         <RateInput rate={input.rate} onRate={set("rate")} convention={input.convention} onConvention={set("convention")} />
-        <TextField label={dict.fin.loans.fields.term} value={input.term} onChange={set("term")} inputMode="numeric" maxLength={4} error={built.termProblem ? dict.fin.sim.termProblems[built.termProblem] : null} />
+        <TextField label={dict.fin.loans.fields.term} help={dict.fin.help.texts.term} value={input.term} onChange={set("term")} inputMode="numeric" maxLength={4} error={built.termProblem ? dict.fin.sim.termProblems[built.termProblem] : null} />
         <TextField label={t.after} hint={t.afterHint} value={input.afterInstallment} onChange={set("afterInstallment")} inputMode="numeric" maxLength={3} error={built.afterProblem ? t.afterProblem : null} />
-        <AmountField label={t.extra} value={input.extra} onChange={set("extra")} preview={built.body ? formatCop(built.body.extra) : null} />
+        <AmountField label={t.extra} value={input.extra} onChange={set("extra")} />
       </form>
       <SimulationStatus sim={sim} incomplete={t.incomplete} />
       {d && (

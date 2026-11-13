@@ -6,7 +6,6 @@ import type { Account, CrossTransferResult } from "@/api/models";
 import { paths } from "@/api/paths";
 import { normalizeAmountInput } from "@/lib/amount-input";
 import { todayBogota } from "@/lib/dates";
-import { formatCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { transferAccounts } from "../finance/helpers";
 import { useAll, useSubmit } from "../finance/hooks";
@@ -129,7 +128,6 @@ function CrossTransferForm({ householdId, onClose }: { householdId: string; onCl
         onChange={setAmountText}
         required
         error={touched && !positive ? dict.fin.common.invalidAmount : null}
-        preview={positive ? formatCop(amount!) : null}
       />
       <TextField label={t.date} type="date" value={date} onChange={setDate} required />
       <TextField label={t.description} value={description} onChange={setDescription} maxLength={200} />

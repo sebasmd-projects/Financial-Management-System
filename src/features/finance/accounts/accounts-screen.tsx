@@ -6,7 +6,7 @@ import { type Account, type Institution, type PaymentMethod, type Summary } from
 import { api } from "@/api";
 import { normalizeAmountInput } from "@/lib/amount-input";
 import { toInt } from "@/lib/ints";
-import { compareAmounts, formatCop } from "@/lib/money";
+import { compareAmounts } from "@/lib/money";
 import { todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import type { RouteId } from "@/nav/routes";
@@ -129,6 +129,15 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
       )}
       {tab === "todas" && !inHousehold && <CardList embedded />}
       {tab === "todas" && inHousehold && household && <p className="muted">{dict.fin.hh.accounts.cardsPersonal}</p>}
+      {tab === "credito" && !inHousehold && (
+        <div className="fin-phrase">
+          <p>{dict.fin.loans.fromAccounts}</p>
+          <Link href={href("creditos")} className="button button--ghost">
+            <Icon name="plus" size={20} />
+            {dict.fin.loans.add}
+          </Link>
+        </div>
+      )}
       {tab === "credito" && <CardList />}
       {tab === "debito" && <DebitMethods />}
 
@@ -273,9 +282,9 @@ function AccountForm({ onDone, onCancel }: { onDone: () => void; onCancel: () =>
       <TextField label={t.fields.name} value={name} onChange={setName} maxLength={80} required error={nameError} />
       <SelectField label={t.fields.kind} value={kind} onChange={(v) => setKind(v as CreatableKind)} options={SPENDABLE_KINDS.map((k) => ({ value: k, label: dict.fin.accountKinds[k] }))} />
       <SelectField label={t.fields.institution} value={institution} onChange={setInstitution} placeholder={t.noInstitution} options={(institutions.data ?? []).map((i) => ({ value: String(i.id), label: i.name }))} />
-      <AmountField label={t.fields.opening} hint={t.fields.openingHint} value={opening} onChange={setOpening} error={openingError} preview={openingValue && openingValue !== "0" ? formatCop(openingValue) : null} />
+      <AmountField label={t.fields.opening} hint={t.fields.openingHint} value={opening} onChange={setOpening} error={openingError} />
       <TextField label={t.fields.last4} value={last4} onChange={setLast4} inputMode="numeric" maxLength={4} error={last4Error} />
-      <Checkbox label={t.fields.exempt} hint={t.fields.exemptHint} checked={exempt} onChange={setExempt} />
+      <Checkbox label={t.fields.exempt} help={dict.fin.help.texts.gmfExempt} hint={t.fields.exemptHint} checked={exempt} onChange={setExempt} />
       {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
       <FormActions>
         <button type="submit" className="button button--primary" disabled={submit.pending}>

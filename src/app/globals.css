@@ -370,11 +370,17 @@ kbd {
   width: 100%;
   max-width: 100%;
   height: 92dvh;
-  max-height: 92dvh;
+  /* Nunca más alta que el área visible (teclado abierto incluido: `resizes-content`) ni que las zonas seguras. */
+  max-height: min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
+  min-width: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
   margin: auto 0 0;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
-.sheet::backdrop { background: var(--scrim); }
+.sheet::backdrop { background: var(--scrim); overscroll-behavior: contain; }
+/* Con una hoja abierta la página de detrás no se desplaza (`lib/scroll-lock`); sin JavaScript, el mismo efecto con :has(). */
+html:has(dialog.sheet[open]) { overflow: hidden; }
 .sheet__header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-8) var(--space-8) 0 var(--space-16); }
 .sheet__search {
   display: flex;
@@ -388,7 +394,7 @@ kbd {
 }
 .sheet__search input { flex: 1; min-width: 0; min-height: var(--target-min); border: 0; background: transparent; outline: none; }
 .sheet__search:focus-within { outline: var(--focus-ring); outline-offset: var(--focus-offset); }
-.sheet__list { flex: 1; overflow-y: auto; padding: 0 var(--space-8); }
+.sheet__list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--space-8); }
 .sheet__section { font: var(--text-label); text-transform: uppercase; letter-spacing: 0.04em; }
 .sheet__row {
   display: flex;
@@ -405,7 +411,7 @@ kbd {
 .sheet__row--item { color: var(--color-text-secondary); padding-left: var(--space-48); font: var(--text-body-s); }
 .sheet__footer { padding: var(--space-8); border-top: 1px solid var(--color-border); padding-bottom: calc(var(--space-8) + env(safe-area-inset-bottom)); }
 @media (min-width: 600px) {
-  .sheet[open] { width: 560px; height: auto; max-height: 80dvh; margin: auto; border-radius: var(--radius-lg); }
+  .sheet[open] { width: min(560px, 100%); height: auto; max-height: min(80dvh, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))); margin: auto; border-radius: var(--radius-lg); }
 }
 
 /* ---------- Estado vacío ---------- */

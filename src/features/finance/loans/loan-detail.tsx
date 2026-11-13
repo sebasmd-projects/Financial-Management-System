@@ -16,6 +16,7 @@ import { LatePanel } from "../credit/late-panel";
 import { RateMissingNotice } from "../credit/notes";
 import { RatesPanel } from "./rates-panel";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
+import { useConventionLabel } from "../conventions";
 import { AmountField, Badge, Banner, DefinitionList, ErrorState, FormActions, Loading, Modal, Money, Progress, ScreenHeader, Section, SelectField, TextField } from "../kit";
 import { indexOf, isUvr, pesoEstimate } from "../uvr/logic";
 import { PendingAmount, RegisterIndexLink } from "../uvr/pending";
@@ -24,6 +25,7 @@ import { IndexValues, useValuation, ValuationPanel, VariableRatePanel } from "..
 /** Un préstamo (`/creditos/[id]`): saldo, avance, próxima cuota con su reparto y «Pagar cuota». */
 export function LoanDetail({ id }: { id: string }) {
   const { dict } = useI18n();
+  const convName = useConventionLabel();
   const t = dict.fin.loans;
   const href = useHref();
   const loan = useResource<Loan>(paths.loan(id));
@@ -124,7 +126,7 @@ export function LoanDetail({ id }: { id: string }) {
       <Section title={t.data}>
         <DefinitionList
           rows={[
-            { label: t.fields.rate, value: `${fractionToPercent(l.rate)} % ${l.rate_convention}` },
+            { label: t.fields.rate, value: `${fractionToPercent(l.rate)} % ${convName(l.rate_convention)}` },
             ...(index ? [{ label: dict.fin.uvr.variableRate, value: `${dict.fin.uvr.indices[index]} + ${fractionToPercent(l.margin ?? "0")} %` }] : []),
             { label: t.fields.system, value: dict.fin.systems[l.system] ?? l.system },
             { label: t.fields.term, value: String(l.term) },

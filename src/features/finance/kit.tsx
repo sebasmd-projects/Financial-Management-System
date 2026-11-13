@@ -5,11 +5,12 @@
  * progreso, estados vacío / cargando / error. Accesibles por teclado, con etiqueta visible y objetivos de 44 dp.
  */
 import Link from "next/link";
-import { createContext, useContext, useEffect, useId, useRef, type ReactNode } from "react";
-import { amountInputProblem } from "@/lib/amount-input";
+import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { amountInputProblem, normalizeAmountInput } from "@/lib/amount-input";
 import { formatCop, formatCopCompact, HIDDEN_AMOUNT, spokenCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { Icon, type IconName } from "@/ui/icons";
+import { useScrollLock } from "@/ui/scroll-lock";
 
 export function ScreenHeader({ title, eyebrow, back, actions }: { title: string; eyebrow?: string; back?: { href: string; label: string }; actions?: ReactNode }) {
   return (
@@ -153,16 +154,50 @@ interface BaseField {
   hint?: string;
   error?: string | null;
   required?: boolean;
+  /** Ayuda «(?)»: una explicación corta de un dato poco obvio (botón que abre un texto; teclado, lector de pantalla y toque). */
+  help?: string;
 }
 
-function FieldShell({ id, label, hint, error, required, children }: BaseField & { id: string; children: ReactNode }) {
+/**
+ * «(?)» junto a una etiqueta: un botón (`aria-expanded` + `aria-controls`) que muestra u oculta el texto debajo. No depende del
+ * cursor (sirve con teclado y en el teléfono); Esc lo cierra. El texto es una nota (`role="note"`), no un aviso en vivo.
+ */
+export function HelpTip({ label, text }: { label: string; text: string }) {
   const { dict } = useI18n();
+  const [open, setOpen] = useState(false);
+  const id = useId();
+  return (
+    <span className="help-tip" onKeyDown={(event) => { if (event.key === "Escape" && open) { event.stopPropagation(); setOpen(false); } }}>
+      <button type="button" className="help-tip__button" aria-expanded={open} aria-controls={open ? id : undefined} aria-label={dict.fin.help.helpFor.replace("{label}", label)} onClick={() => setOpen((v) => !v)}>
+        <span aria-hidden="true">?</span>
+      </button>
+      {open && (
+        <span id={id} role="note" className="help-tip__text">
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
+
+function FieldShell({ id, label, hint, error, required, help, children }: BaseField & { id: string; children: ReactNode }) {
+  const { dict } = useI18n();
+  const labelNode = (
+    <label htmlFor={id} className="field__label">
+      {label}
+      {required ? <span className="visually-hidden"> ({dict.fin.common.required})</span> : null}
+    </label>
+  );
   return (
     <div className="field">
-      <label htmlFor={id} className="field__label">
-        {label}
-        {required ? <span className="visually-hidden"> ({dict.fin.common.required})</span> : null}
-      </label>
+      {help ? (
+        <div className="field__labelrow">
+          {labelNode}
+          <HelpTip label={label} text={help} />
+        </div>
+      ) : (
+        labelNode
+      )}
       {children}
       {hint && !error && (
         <p id={`${id}-hint`} className="hint">
@@ -182,30 +217,36 @@ function describedBy(id: string, hint?: string, error?: string | null): string |
   return error ? `${id}-error` : hint ? `${id}-hint` : undefined;
 }
 
-export function TextField({ label, hint, error, required, value, onChange, type = "text", inputMode, autoComplete = "off", maxLength, placeholder, list, name }: BaseField & { value: string; onChange: (value: string) => void; type?: "text" | "date" | "email" | "time"; inputMode?: "text" | "decimal" | "numeric"; autoComplete?: string; maxLength?: number; placeholder?: string; list?: string; name?: string }) {
+export function TextField({ label, hint, error, required, help, value, onChange, type = "text", inputMode, autoComplete = "off", maxLength, placeholder, list, name }: BaseField & { value: string; onChange: (value: string) => void; type?: "text" | "date" | "email" | "time"; inputMode?: "text" | "decimal" | "numeric"; autoComplete?: string; maxLength?: number; placeholder?: string; list?: string; name?: string }) {
   const id = useId();
   return (
-    <FieldShell id={id} label={label} hint={hint} error={error} required={required}>
+    <FieldShell id={id} label={label} hint={hint} error={error} required={required} help={help}>
       <input id={id} name={name} className="input" type={type} value={value} inputMode={inputMode} autoComplete={autoComplete} maxLength={maxLength} placeholder={placeholder} list={list} required={required} aria-invalid={error ? true : undefined} aria-describedby={describedBy(id, hint, error)} onChange={(event) => onChange(event.target.value)} />
     </FieldShell>
   );
 }
 
 /**
- * Monto: texto con teclado decimal; el valor se interpreta con `lib/amount-input.ts`, nunca con `Number`. Hasta 2 decimales: más
- * se avisa aquí mismo (`too_many_decimals`, el mismo código del servidor, que además puede devolverlo: `apiCode`).
+ * Monto en pesos: texto con teclado decimal; el valor se interpreta con `lib/amount-input.ts`, nunca con `Number`. Hasta 2
+ * decimales: más se avisa aquí mismo (`too_many_decimals`, el mismo código del servidor, que además puede devolverlo: `apiCode`).
+ *
+ * La vista previa («$1.000.000», con los decimales tal como se escriben) la calcula el propio campo: ningún formulario tiene que
+ * acordarse de ella, y un campo opcional vacío no muestra nada. Todo monto en pesos de un formulario usa este componente
+ * (`kit.test.tsx` lo vigila).
  */
-export function AmountField(props: BaseField & { value: string; onChange: (value: string) => void; preview?: string | null; apiCode?: string | null }) {
+export function AmountField(props: BaseField & { value: string; onChange: (value: string) => void; apiCode?: string | null }) {
   const id = useId();
   const { dict } = useI18n();
-  const { value, onChange, preview, apiCode, ...shell } = props;
+  const { value, onChange, apiCode, ...shell } = props;
   const decimals = amountInputProblem(value) === "too_many_decimals" || apiCode === "too_many_decimals";
   const error = decimals ? dict.fin.errors.too_many_decimals : shell.error;
+  const normalized = decimals ? null : normalizeAmountInput(value);
+  const preview = normalized !== null ? formatCop(normalized) : null;
   return (
     <FieldShell id={id} {...shell} error={error} hint={shell.hint}>
       <input id={id} className="input input--amount tabular" type="text" inputMode="decimal" autoComplete="off" placeholder="0" value={value} required={shell.required} aria-invalid={error ? true : undefined} aria-describedby={describedBy(id, shell.hint, error)} onChange={(event) => onChange(event.target.value)} />
-      {preview && !decimals && (
-        <p className="fin-amount-preview tabular" aria-live="polite">
+      {preview && (
+        <p className="fin-amount-preview tabular" aria-live="polite" data-testid="amount-preview">
           {preview}
         </p>
       )}
@@ -213,10 +254,10 @@ export function AmountField(props: BaseField & { value: string; onChange: (value
   );
 }
 
-export function TextArea({ label, hint, error, required, value, onChange, maxLength, rows = 3 }: BaseField & { value: string; onChange: (value: string) => void; maxLength?: number; rows?: number }) {
+export function TextArea({ label, hint, error, required, help, value, onChange, maxLength, rows = 3 }: BaseField & { value: string; onChange: (value: string) => void; maxLength?: number; rows?: number }) {
   const id = useId();
   return (
-    <FieldShell id={id} label={label} hint={hint} error={error} required={required}>
+    <FieldShell id={id} label={label} hint={hint} error={error} required={required} help={help}>
       <textarea id={id} className="input" rows={rows} value={value} maxLength={maxLength} required={required} aria-invalid={error ? true : undefined} aria-describedby={describedBy(id, hint, error)} onChange={(event) => onChange(event.target.value)} />
     </FieldShell>
   );
@@ -228,10 +269,10 @@ export interface Option {
   disabled?: boolean;
 }
 
-export function SelectField({ label, hint, error, required, value, onChange, options, placeholder }: BaseField & { value: string; onChange: (value: string) => void; options: readonly Option[]; placeholder?: string }) {
+export function SelectField({ label, hint, error, required, help, value, onChange, options, placeholder }: BaseField & { value: string; onChange: (value: string) => void; options: readonly Option[]; placeholder?: string }) {
   const id = useId();
   return (
-    <FieldShell id={id} label={label} hint={hint} error={error} required={required}>
+    <FieldShell id={id} label={label} hint={hint} error={error} required={required} help={help}>
       <select id={id} className="input" value={value} required={required} aria-invalid={error ? true : undefined} aria-describedby={describedBy(id, hint, error)} onChange={(event) => onChange(event.target.value)}>
         {placeholder !== undefined && <option value="">{placeholder}</option>}
         {options.map((option) => (
@@ -244,14 +285,24 @@ export function SelectField({ label, hint, error, required, value, onChange, opt
   );
 }
 
-export function Checkbox({ label, checked, onChange, hint, disabled = false }: { label: string; checked: boolean; onChange: (checked: boolean) => void; hint?: string; disabled?: boolean }) {
+export function Checkbox({ label, checked, onChange, hint, disabled = false, help }: { label: string; checked: boolean; onChange: (checked: boolean) => void; hint?: string; disabled?: boolean; help?: string }) {
   const id = useId();
+  const box = (
+    <label className="check" htmlFor={id}>
+      <input id={id} type="checkbox" checked={checked} disabled={disabled} aria-describedby={hint ? `${id}-hint` : undefined} onChange={(event) => onChange(event.target.checked)} />
+      <span>{label}</span>
+    </label>
+  );
   return (
     <div className="field">
-      <label className="check" htmlFor={id}>
-        <input id={id} type="checkbox" checked={checked} disabled={disabled} aria-describedby={hint ? `${id}-hint` : undefined} onChange={(event) => onChange(event.target.checked)} />
-        <span>{label}</span>
-      </label>
+      {help ? (
+        <div className="field__labelrow">
+          {box}
+          <HelpTip label={label} text={help} />
+        </div>
+      ) : (
+        box
+      )}
       {hint && (
         <p id={`${id}-hint`} className="hint">
           {hint}
@@ -320,6 +371,7 @@ export function Modal({ open, title, onClose, children }: { open: boolean; title
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
+  useScrollLock(open);
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;

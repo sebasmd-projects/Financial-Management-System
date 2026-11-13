@@ -71,7 +71,7 @@ export function DebtForm({ initialDirection, onDone, onCancel }: { initialDirect
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <SelectField label={t.direction} value={direction} onChange={(v) => setDirection(v as "owe" | "owed")} options={[{ value: "owe", label: t.owe }, { value: "owed", label: t.owed }]} />
       <TextField label={t.person} value={person} onChange={setPerson} maxLength={80} required error={touched && person.trim() === "" ? req : null} />
-      <AmountField label={t.principal} value={principal} onChange={setPrincipal} required error={touched && principalValue === null ? dict.fin.common.invalidAmount : null} preview={principalValue ? formatCop(principalValue) : null} />
+      <AmountField label={t.principal} value={principal} onChange={setPrincipal} required error={touched && principalValue === null ? dict.fin.common.invalidAmount : null} />
       <div className="fin-grid-2">
         <TextField label={t.agreedDate} type="date" value={agreed} onChange={setAgreed} required />
         <TextField label={t.dueDate} type="date" value={due} onChange={setDue} />
@@ -118,7 +118,7 @@ export function DebtPayForm({ debt, onDone, onCancel }: { debt: Debt; onDone: ()
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <p className="muted">{fill(debt.direction === "owed" ? t.payIntroOwed : t.payIntroOwe, { person: debt.person })}</p>
-      <AmountField label={t.paymentAmount} hint={fill(t.paymentMax, { balance: formatCop(debt.balance) })} value={amount} onChange={setAmount} required error={touched && amountValue === null ? dict.fin.common.invalidAmount : null} preview={amountValue ? formatCop(amountValue) : null} apiCode={submit.errorCode} />
+      <AmountField label={t.paymentAmount} hint={fill(t.paymentMax, { balance: formatCop(debt.balance) })} value={amount} onChange={setAmount} required error={touched && amountValue === null ? dict.fin.common.invalidAmount : null} apiCode={submit.errorCode} />
       <SelectField label={debt.direction === "owed" ? t.receivingAccount : t.payingAccount} value={from} onChange={setAccount} options={options.map((a) => ({ value: a.id, label: a.name }))} />
       <TextField label={dict.fin.form.date} type="date" value={date} onChange={setDate} required />
       <TextField label={t.note} value={note} onChange={setNote} maxLength={200} />

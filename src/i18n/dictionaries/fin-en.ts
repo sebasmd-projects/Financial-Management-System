@@ -3,11 +3,13 @@ import { finCEn } from "./fin-c-en";
 import { errorsDEn, finDEn } from "./fin-d-en";
 import { errorsEEn, finEEn } from "./fin-e-en";
 import { finBEn } from "./fin-b-en";
+import { finHelpEn } from "./fin-help-en";
 import type { FinDictionary } from "./fin-es";
 
 /** English strings for the FMS-1 finance screens. Must satisfy the same type as Spanish. */
 export const finEn: FinDictionary = {
   hh: finHEn,
+  help: finHelpEn,
   currentPeriodParam: "current",
   errors: {
     ...errorsDEn,
@@ -434,6 +436,7 @@ export const finEn: FinDictionary = {
   loans: {
     add: "Add loan",
     create: "Create loan",
+    fromAccounts: "Do you have a consumer, personal, vehicle or mortgage loan? Record it under Loans, with its installments and interest.",
     emptyTitle: "You have no loans recorded",
     emptyBody: "Record a loan to see its balance, its next installment and the amortization table.",
     balance: "Balance",

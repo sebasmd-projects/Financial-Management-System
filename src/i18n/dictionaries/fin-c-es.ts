@@ -160,7 +160,6 @@ export const finCEs = {
   },
   sim: {
     neverWrites: "Los simuladores calculan y comparan; nunca guardan ni cambian nada de tus finanzas.",
-    conventions: { EA: "Efectiva anual (EA)", EM: "Efectiva mensual (EM)", ET: "Efectiva trimestral (ET)", ED: "Diaria (ED)", NMV: "Nominal mes vencido (NMV)", NTV: "Nominal trimestre vencido (NTV)", NAV: "Nominal año vencido (NAV)" },
     termProblems: { invalid: "Escribe un número entero de cuotas (1 a 600).", too_long: "El plazo máximo es de 600 meses." },
     export: {
       label: "Exportar la tabla",

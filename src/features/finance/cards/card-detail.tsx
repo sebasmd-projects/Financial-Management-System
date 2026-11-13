@@ -7,16 +7,18 @@ import type { Account, AdvanceResult, Card, PlanSummary, Statements } from "@/ap
 import { paths } from "@/api/paths";
 import { parsePositiveAmount } from "@/lib/amount-input";
 import { daysBetween, formatDate, todayBogota } from "@/lib/dates";
-import { compareAmounts, formatCop } from "@/lib/money";
+import { compareAmounts } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { relativeDays, transferAccounts } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
+import { useConventionLabel } from "../conventions";
 import { AmountField, Badge, Banner, DefinitionList, Empty, ErrorState, FormActions, Loading, Modal, Money, Progress, ScreenHeader, Section, SelectField, SpentFigure, TextField } from "../kit";
 import { PurchasePanel } from "./card-purchase";
 
 /** Tarjeta de crédito (`/tarjetas/[id]`, diseño §3.7): cupo, fechas, extracto, acciones y compras a cuotas pendientes. */
 export function CardDetail({ id }: { id: string }) {
   const { dict } = useI18n();
+  const convName = useConventionLabel();
   const t = dict.fin.cards;
   const href = useHref();
   const card = useResource<Card>(paths.card(id));
@@ -135,7 +137,7 @@ export function CardDetail({ id }: { id: string }) {
       <Section title={t.data}>
         <DefinitionList
           rows={[
-            { label: t.fields.rate, value: `${c.rate} ${c.rate_convention}` },
+            { label: t.fields.rate, value: `${c.rate} ${convName(c.rate_convention)}` },
             { label: t.fields.cutDay, value: String(c.cut_day) },
             { label: t.fields.payDay, value: String(c.pay_day) },
             { label: t.fields.system, value: dict.fin.systems[c.installment_system] ?? c.installment_system },
@@ -177,7 +179,7 @@ function AdvanceForm({ card, onDone, onCancel }: { card: Card; onDone: () => voi
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <p className="muted">{t.advanceIntro}</p>
-      <AmountField label={t.fields.advanceAmount} value={amountText} onChange={setAmountText} required error={amountText && !amount ? dict.fin.common.invalidAmount : null} preview={amount ? formatCop(amount) : null} />
+      <AmountField label={t.fields.advanceAmount} value={amountText} onChange={setAmountText} required error={amountText && !amount ? dict.fin.common.invalidAmount : null} />
       <SelectField label={t.fields.advanceTo} value={target} onChange={setToAccount} options={targets.map((a) => ({ value: a.id, label: a.name }))} />
       <AmountField label={t.fields.fee} hint={t.fields.feeHint} value={feeText} onChange={setFeeText} error={feeText.trim() !== "" && !fee ? dict.fin.common.invalidAmount : null} />
       <TextField label={dict.fin.form.date} type="date" value={date} onChange={setDate} required />

@@ -7,6 +7,7 @@ import { PersonalTag } from "@/features/household/notices";
 import { fmsHref, PROFILE_ROUTE } from "@/nav/routes";
 import { searchScreens } from "@/nav/search";
 import { Icon } from "@/ui/icons";
+import { useScrollLock } from "@/ui/scroll-lock";
 
 /**
  * La hoja «Más» (diseño §1.2) y, en pantallas grandes, el buscador de pantallas (`Ctrl/⌘+K`): un <dialog> modal nativo,
@@ -17,6 +18,7 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
   const ref = useRef<HTMLDialogElement>(null);
   const [query, setQuery] = useState("");
 
+  useScrollLock(open);
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;

@@ -12,9 +12,10 @@ import { formatDate, todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import { fill } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
+import { useConventionLabel } from "../conventions";
 import { AmountField, Banner, ErrorState, FormActions, Loading, Money, ScreenHeader, SelectField, SpentFigure, TextField } from "../kit";
 import { warningText } from "../movements/movement-form";
-import { RATE_CONVENTIONS, type RateConventionCode } from "./cards-screen";
+import { ConventionSelect, type RateConventionCode } from "../conventions";
 
 /**
  * Simular y registrar una compra con tarjeta (diseño §3.7): valor, cuotas y tasa; el plan sale del servidor (capital e interés en
@@ -22,6 +23,7 @@ import { RATE_CONVENTIONS, type RateConventionCode } from "./cards-screen";
  */
 export function PurchasePanel({ card, simulator = false, onDone }: { card: Card; simulator?: boolean; onDone?: () => void }) {
   const { dict, locale } = useI18n();
+  const convName = useConventionLabel();
   const t = dict.fin.purchase;
   const submit = useSubmit();
   const categories = useAll<Category>(paths.categories({ archived: false, kind: "expense" }));
@@ -102,12 +104,12 @@ export function PurchasePanel({ card, simulator = false, onDone }: { card: Card;
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       {blocked && <Banner tone="warning">{t.blocked}</Banner>}
-      <AmountField label={t.amount} value={amountText} onChange={setAmountText} required error={touched && !amount ? dict.fin.common.invalidAmount : null} preview={amount ? formatCop(amount) : null} />
+      <AmountField label={t.amount} value={amountText} onChange={setAmountText} required error={touched && !amount ? dict.fin.common.invalidAmount : null} />
       <div className="fin-grid-2">
         <TextField label={t.installments} hint={t.installmentsHint} value={installmentsText} onChange={setInstallmentsText} inputMode="numeric" maxLength={2} required error={touched && !installments ? t.installmentsInvalid : null} />
-        <TextField label={t.rate} hint={`${t.rateHint} ${fractionToPercent(card.rate)} % ${card.rate_convention}`} value={rateText} onChange={setRateText} inputMode="decimal" error={rateInvalid ? t.rateInvalid : null} />
+        <TextField label={t.rate} help={dict.fin.help.texts.rate} hint={`${t.rateHint} ${fractionToPercent(card.rate)} % ${convName(card.rate_convention)}`} value={rateText} onChange={setRateText} inputMode="decimal" error={rateInvalid ? t.rateInvalid : null} />
       </div>
-      {rateText.trim() !== "" && <SelectField label={t.convention} value={convention} onChange={(v) => setConvention(v as RateConventionCode)} options={RATE_CONVENTIONS.map((c) => ({ value: c, label: c }))} />}
+      {rateText.trim() !== "" && <ConventionSelect label={t.convention} value={convention} onChange={setConvention} />}
 
       <div aria-live="polite" className="fin-sim">
         {previewLoading && <Loading />}

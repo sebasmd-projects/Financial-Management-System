@@ -24,7 +24,7 @@ const NOT_COP = new Set([
   "dict.fin.loans.fields.rate", "dict.fin.uvr.valueUvr", "t.percent", "t.rate", "t.fields.rate", "t.earlyPercent", "t.latePercent",
   "t.monthlyDelta", "t.returnPct", "t.withdrawal", "t.incomePct", "t.variablePct", "u.margin", "u.principalUnits", "u.insurance",
   "t.fields.insurance", "c.form.otherCharges", "c.form.lateRate", "fill(t.rate, { currency: code })", "fill(t.rate, { currency })",
-  "fill(t.amount, { currency: code })", "t.rate",
+  "fill(t.amount, { currency: code })", "t.rate", "promo ? dict.fin.cardForm.promoRate : t.rate",
 ]);
 
 /** Los elementos JSX de un tipo, con su texto (hasta el `/>` de cierre a profundidad 0 de llaves). */

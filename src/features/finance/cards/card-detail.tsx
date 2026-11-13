@@ -13,6 +13,7 @@ import { relativeDays, transferAccounts } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { useConventionLabel } from "../conventions";
 import { AmountField, Badge, Banner, DefinitionList, Empty, ErrorState, FormActions, Loading, Modal, Money, Progress, ScreenHeader, Section, SelectField, SpentFigure, TextField } from "../kit";
+import { FeesPanel } from "./card-rates";
 import { PurchasePanel } from "./card-purchase";
 
 /** Tarjeta de crédito (`/tarjetas/[id]`, diseño §3.7): cupo, fechas, extracto, acciones y compras a cuotas pendientes. */
@@ -102,8 +103,14 @@ export function CardDetail({ id }: { id: string }) {
         <Link className="button button--ghost" href={`${href("movimientos")}?cuenta=${encodeURIComponent(c.account_id)}`}>
           {t.viewMovements}
         </Link>
+        <Link className="button button--ghost" href={href("tarjeta-extractos", [c.id])}>
+          {dict.fin.stm.title}
+        </Link>
         <Link className="button button--ghost" href={href("tarjeta-extracto", [c.id, dict.fin.currentPeriodParam])}>
           {t.statements}
+        </Link>
+        <Link className="button button--ghost" href={href("tarjeta-tasas", [c.id])}>
+          {dict.fin.rates.title}
         </Link>
       </div>
 
@@ -137,6 +144,7 @@ export function CardDetail({ id }: { id: string }) {
       <Section title={t.data}>
         <DefinitionList
           rows={[
+            { label: dict.fin.cardForm.rateType, value: c.rate_type === "variable" ? dict.fin.cardForm.variable : dict.fin.cardForm.fixed },
             { label: t.fields.rate, value: `${c.rate} ${convName(c.rate_convention)}` },
             { label: t.fields.cutDay, value: String(c.cut_day) },
             { label: t.fields.payDay, value: String(c.pay_day) },
@@ -144,6 +152,15 @@ export function CardDetail({ id }: { id: string }) {
           ]}
         />
       </Section>
+
+      {c.rate_outdated && (
+        <Banner tone="warning">
+          <p>{dict.fin.rates.outdated}</p>
+          <Link href={href("tarjeta-tasas", [c.id])}>{dict.fin.stm.updateRates}</Link>
+        </Banner>
+      )}
+
+      <FeesPanel cardId={c.id} />
 
       <Modal open={action === "purchase"} title={t.purchase} onClose={() => setAction(null)}>
         <PurchasePanel card={c} onDone={done} />

@@ -23,6 +23,7 @@ export const paths = {
   households: "/households",
   accounts: `/accounts${query({ page_size: 100 })}`,
   categories: `/categories${query({ page_size: 200, archived: false })}`,
+  cardsTimeline: `/cards/statements/timeline${query({ months_back: 6 })}`,
   movements: "/movements",
   movementsSearch: "/movements/search",
   recentMovements: `/movements${query({ page_size: 30 })}`,

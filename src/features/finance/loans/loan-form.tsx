@@ -7,10 +7,9 @@ import { paths, roots } from "@/api/paths";
 import { normalizeAmountInput, percentToFraction } from "@/lib/amount-input";
 import { toInt } from "@/lib/ints";
 import { formatUnits } from "@/lib/decimal";
-import { formatCop } from "@/lib/money";
 import { todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
-import { RATE_CONVENTIONS, type RateConventionCode } from "../cards/cards-screen";
+import { ConventionSelect, type RateConventionCode } from "../conventions";
 import { transferAccounts } from "../helpers";
 import { useAll, useResource, useSubmit } from "../hooks";
 import { AmountField, Banner, FormActions, SelectField, TextArea, TextField } from "../kit";
@@ -110,35 +109,35 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
       <TextField label={t.fields.name} value={name} onChange={setName} maxLength={80} required error={touched && name.trim() === "" ? req : null} />
       <SelectField label={c.form.kind} value={kind} onChange={(v) => setKind(v as LoanKind)} options={LOAN_KINDS.map((k) => ({ value: k, label: c.kinds[k] }))} />
       <SelectField label={t.fields.institution} value={institution} onChange={setInstitution} placeholder={dict.fin.accounts.noInstitution} options={(institutions.data ?? []).map((i) => ({ value: String(i.id), label: i.name }))} />
-      <SelectField label={u.unit} hint={uvr ? u.unitUvrHint : u.unitCopHint} value={unit} onChange={(v) => setUnit(v as LoanUnit)} options={[{ value: "COP", label: u.units.COP }, { value: "UVR", label: u.units.UVR }]} />
+      <SelectField label={u.unit} help={dict.fin.help.texts.uvr} hint={uvr ? u.unitUvrHint : u.unitCopHint} value={unit} onChange={(v) => setUnit(v as LoanUnit)} options={[{ value: "COP", label: u.units.COP }, { value: "UVR", label: u.units.UVR }]} />
       {uvr ? (
         <TextField label={u.principalUnits} hint={u.unitsInputHint} value={principal} onChange={setPrincipal} inputMode="decimal" required error={touched && principalValue === null ? u.invalidUnits : null} />
       ) : (
-        <AmountField label={t.fields.principal} value={principal} onChange={setPrincipal} required error={touched && principalValue === null ? bad : null} preview={principalValue ? formatCop(principalValue) : null} />
+        <AmountField label={t.fields.principal} value={principal} onChange={setPrincipal} required error={touched && principalValue === null ? bad : null} />
       )}
       {uvr && principalValue && <p className="fin-amount-preview tabular" aria-live="polite">{formatUnits(principalValue, "UVR")}</p>}
       {uvr && <p className="hint">{u.needsUvr} <RegisterIndexLink /></p>}
-      <SelectField label={u.rateKind} value={variable ? "variable" : "fixed"} onChange={(v) => setVariable(v === "variable")} options={[{ value: "fixed", label: u.rateFixed }, { value: "variable", label: u.rateVariable }]} />
+      <SelectField label={u.rateKind} help={dict.fin.help.texts.indexMargin} value={variable ? "variable" : "fixed"} onChange={(v) => setVariable(v === "variable")} options={[{ value: "fixed", label: u.rateFixed }, { value: "variable", label: u.rateVariable }]} />
       {variable ? (
         <>
           <div className="fin-grid-2">
-            <SelectField label={u.index} value={indexKey} onChange={(v) => setIndexKey(v as LoanIndex)} options={INDEX_KEYS.map((k) => ({ value: k, label: u.indices[k] }))} />
-            <TextField label={u.margin} hint={u.marginHint} value={margin} onChange={setMargin} inputMode="decimal" required error={touched && variableRate.problem ? dict.fin.cards.rateInvalid : null} />
+            <SelectField label={u.index} help={dict.fin.help.texts.indexMargin} value={indexKey} onChange={(v) => setIndexKey(v as LoanIndex)} options={INDEX_KEYS.map((k) => ({ value: k, label: u.indices[k] }))} />
+            <TextField label={u.margin} help={dict.fin.help.texts.indexMargin} hint={u.marginHint} value={margin} onChange={setMargin} inputMode="decimal" required error={touched && variableRate.problem ? dict.fin.cards.rateInvalid : null} />
           </div>
           <p className="hint">{u.variableHint} <RegisterIndexLink indexKey={indexKey} /></p>
         </>
       ) : (
         <>
           <div className="fin-grid-2">
-            <TextField label={t.fields.rate} hint={dict.fin.cards.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" required error={touched && rateValue === null ? dict.fin.cards.rateInvalid : null} />
-            <SelectField label={t.fields.convention} value={convention} onChange={(v) => setConvention(v as RateConventionCode)} options={RATE_CONVENTIONS.map((x) => ({ value: x, label: x }))} />
+            <TextField label={t.fields.rate} help={dict.fin.help.texts.rate} hint={dict.fin.cards.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" required error={touched && rateValue === null ? dict.fin.cards.rateInvalid : null} />
+            <ConventionSelect label={t.fields.convention} value={convention} onChange={setConvention} />
           </div>
           <UsuryRateCheck rate={rateValue} convention={convention} on={disbursement} />
           <TextField label={c.form.rateSource} hint={c.form.rateSourceHint} value={rateSource} onChange={setRateSource} maxLength={120} />
         </>
       )}
-      <TextField label={t.fields.term} hint={t.fields.termHint} value={term} onChange={setTerm} inputMode="numeric" maxLength={3} required error={touched && termValue === null ? t.termInvalid : null} />
-      <SelectField label={t.fields.system} hint={c.form.systemHints[system]} value={system} onChange={(v) => setSystem(v as AmortizationSystem)} options={SYSTEMS.filter((s) => !(uvr && s === "custom")).map((s) => ({ value: s, label: dict.fin.systems[s] }))} />
+      <TextField label={t.fields.term} help={dict.fin.help.texts.term} hint={t.fields.termHint} value={term} onChange={setTerm} inputMode="numeric" maxLength={3} required error={touched && termValue === null ? t.termInvalid : null} />
+      <SelectField label={t.fields.system} help={dict.fin.help.texts.system} hint={c.form.systemHints[system]} value={system} onChange={(v) => setSystem(v as AmortizationSystem)} options={SYSTEMS.filter((s) => !(uvr && s === "custom")).map((s) => ({ value: s, label: dict.fin.systems[s] }))} />
       {system === "custom" && !uvr && (
         <TextArea
           label={c.form.customTitle}
@@ -152,13 +151,13 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
       <div className="fin-grid-2">
         {uvr ? (
           <>
-            <TextField label={t.fields.insurance} hint={u.insuranceUnitsHint} value={insurance} onChange={setInsurance} inputMode="decimal" error={touched && insuranceValue === null ? u.invalidUnits : null} />
-            <TextField label={c.form.otherCharges} hint={u.insuranceUnitsHint} value={otherCharges} onChange={setOtherCharges} inputMode="decimal" error={touched && chargesValue === null ? u.invalidUnits : null} />
+            <TextField label={t.fields.insurance} help={dict.fin.help.texts.insurance} hint={u.insuranceUnitsHint} value={insurance} onChange={setInsurance} inputMode="decimal" error={touched && insuranceValue === null ? u.invalidUnits : null} />
+            <TextField label={c.form.otherCharges} help={dict.fin.help.texts.handlingFee} hint={u.insuranceUnitsHint} value={otherCharges} onChange={setOtherCharges} inputMode="decimal" error={touched && chargesValue === null ? u.invalidUnits : null} />
           </>
         ) : (
           <>
-            <AmountField label={t.fields.insurance} hint={t.fields.insuranceHint} value={insurance} onChange={setInsurance} error={touched && insuranceValue === null ? bad : null} />
-            <AmountField label={c.form.otherCharges} hint={c.form.otherChargesHint} value={otherCharges} onChange={setOtherCharges} error={touched && chargesValue === null ? bad : null} />
+            <AmountField label={t.fields.insurance} help={dict.fin.help.texts.insurance} hint={t.fields.insuranceHint} value={insurance} onChange={setInsurance} error={touched && insuranceValue === null ? bad : null} />
+            <AmountField label={c.form.otherCharges} help={dict.fin.help.texts.handlingFee} hint={c.form.otherChargesHint} value={otherCharges} onChange={setOtherCharges} error={touched && chargesValue === null ? bad : null} />
           </>
         )}
       </div>
@@ -167,7 +166,7 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
         <p className="hint">{c.form.lateHint}</p>
         <div className="fin-grid-2">
           <TextField label={c.form.lateRate} value={lateRate} onChange={setLateRate} inputMode="decimal" error={touched && lateBad ? dict.fin.cards.rateInvalid : null} />
-          <SelectField label={t.fields.convention} value={lateConvention} onChange={(v) => setLateConvention(v as RateConventionCode)} options={RATE_CONVENTIONS.map((x) => ({ value: x, label: x }))} />
+          <ConventionSelect label={t.fields.convention} value={lateConvention} onChange={setLateConvention} />
         </div>
         <TextField label={c.form.lateSource} hint={c.form.lateSourceHint} value={lateSource} onChange={setLateSource} maxLength={120} error={touched && lateNeedsSource ? dict.fin.errors.late_rate_needs_source : null} />
       </fieldset>

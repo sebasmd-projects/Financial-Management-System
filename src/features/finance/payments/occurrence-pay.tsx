@@ -164,7 +164,7 @@ export function OccurrencePay({ id }: { id: string }) {
             value={how}
             onChange={(v) => setHow(v as How)}
           />
-          {how !== "remaining" && <AmountField label={t.otherAmount} hint={how === "partial" ? t.partialHint : t.finalHint} value={amountText} onChange={setAmountText} required error={amountText && !amount ? dict.fin.common.invalidAmount : null} preview={amount ? formatCop(amount) : null} />}
+          {how !== "remaining" && <AmountField label={t.otherAmount} hint={how === "partial" ? t.partialHint : t.finalHint} value={amountText} onChange={setAmountText} required error={amountText && !amount ? dict.fin.common.invalidAmount : null} />}
           <SelectField label={t.payFrom} value={from} onChange={setFromAccount} options={sources.map((a) => ({ value: a.id, label: a.name }))} />
           <TextField label={dict.fin.form.date} type="date" value={date} onChange={setDate} required />
           {lateRateMissing && <LateRateMissing />}

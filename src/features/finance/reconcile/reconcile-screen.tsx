@@ -234,7 +234,7 @@ function ReconcileFlow({ account, onReconciled }: { account: Account; onReconcil
       <form onSubmit={onReview} noValidate className="fin-form">
         <h2 className="title-s">{t.step1}</h2>
         <TextField label={t.cutoff} type="date" value={cutoff} onChange={setCutoff} required error={touched && cutoffProblem ? (cutoff > today ? t.cutoffFuture : dict.fin.common.requiredField) : null} />
-        <AmountField label={t.statementBalance} value={balanceText} onChange={setBalanceText} required error={touched && normalized === null ? t.invalidBalance : null} preview={normalized ? formatCop(statement ?? normalized) : null} />
+        <AmountField label={t.statementBalance} value={balanceText} onChange={setBalanceText} required error={touched && normalized === null ? t.invalidBalance : null} />
         <Checkbox label={t.negativeBalance} checked={negative} onChange={setNegative} />
         {review.error && (
           <Banner tone="negative" live="assertive">

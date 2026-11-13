@@ -9,9 +9,9 @@ import type { ExportFormat, RateConvention } from "@/api/models";
 import { paths } from "@/api/paths";
 import { todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
-import { RATE_CONVENTIONS } from "../cards/cards-screen";
+import { ConventionSelect } from "../conventions";
 import { useHref } from "../hooks";
-import { Banner, ErrorState, Loading, ScreenHeader, SelectField, TextField } from "../kit";
+import { Banner, ErrorState, Loading, ScreenHeader, TextField } from "../kit";
 import type { RouteId } from "@/nav/routes";
 
 const DEBOUNCE_MS = 350;
@@ -78,8 +78,8 @@ export function RateInput({ rate, onRate, convention, onConvention, error }: { r
   const { dict } = useI18n();
   return (
     <div className="fin-grid-2">
-      <TextField label={dict.fin.loans.fields.rate} hint={dict.fin.cards.fields.rateHint} value={rate} onChange={onRate} inputMode="decimal" error={error ?? null} />
-      <SelectField label={dict.fin.loans.fields.convention} value={convention} onChange={(v) => onConvention(v as RateConvention)} options={RATE_CONVENTIONS.map((c) => ({ value: c, label: dict.fin.sim.conventions[c] }))} />
+      <TextField label={dict.fin.loans.fields.rate} help={dict.fin.help.texts.rate} hint={dict.fin.cards.fields.rateHint} value={rate} onChange={onRate} inputMode="decimal" error={error ?? null} />
+      <ConventionSelect label={dict.fin.loans.fields.convention} value={convention} onChange={onConvention} />
     </div>
   );
 }

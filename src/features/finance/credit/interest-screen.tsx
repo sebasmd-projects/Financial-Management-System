@@ -9,6 +9,7 @@ import { formatUnits } from "@/lib/decimal";
 import { formatPercent } from "@/lib/percent";
 import { useI18n } from "@/i18n/provider";
 import { useResource } from "../hooks";
+import { useConventionLabel } from "../conventions";
 import { Badge, Empty, ErrorState, Loading, Money, ScreenHeader, Section, TextField } from "../kit";
 import { CreditTabs } from "./credit-tabs";
 import { AmountOrPending, IndexNoticeBanner } from "../uvr/pending";
@@ -17,6 +18,7 @@ import { UsuryNote } from "./notes";
 /** Intereses (`/creditos/intereses`, §3.8): corriente y de mora por mes y obligación, tasa vigente y comparación con la usura. */
 export function InterestScreen() {
   const { dict, locale } = useI18n();
+  const convName = useConventionLabel();
   const t = dict.fin.credit.interest;
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
@@ -52,7 +54,7 @@ export function InterestScreen() {
                   <span className="fin-row__main">
                     <span className="fin-row__title">{o.obligation_name}</span>
                     <span className="fin-row__sub muted">
-                      {formatPercent(fractionToPercent(o.rate, 4), locale, 4)} {o.convention} · {formatPercent(fractionToPercent(o.rate_ea, 4), locale, 2)} {dict.fin.credit.late.ea}
+                      {formatPercent(fractionToPercent(o.rate, 4), locale, 4)} {convName(o.convention)} · {formatPercent(fractionToPercent(o.rate_ea, 4), locale, 2)} {dict.fin.credit.late.ea}
                     </span>
                     <UsuryNote ea={o.usury_ea} exceeded={o.above_usury} />
                     {o.above_usury && <Badge tone="warning">{t.aboveUsury}</Badge>}

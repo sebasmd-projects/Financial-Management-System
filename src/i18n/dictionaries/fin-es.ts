@@ -3,10 +3,12 @@ import { finCEs } from "./fin-c-es";
 import { errorsDEs, finDEs } from "./fin-d-es";
 import { errorsEEs, finEEs } from "./fin-e-es";
 import { finBEs } from "./fin-b-es";
+import { finHelpEs } from "./fin-help-es";
 
 /** Textos de las pantallas financieras de FMS-1 (español, es-CO). `fin-en.ts` tiene que cumplir el mismo tipo. */
 export const finEs = {
   hh: finHEs,
+  help: finHelpEs,
   currentPeriodParam: "actual",
   errors: {
     ...errorsDEs,
@@ -431,10 +433,11 @@ export const finEs = {
     payment: "Cuota",
   },
   loans: {
-    add: "Agregar préstamo",
-    create: "Crear préstamo",
+    add: "Agregar crédito",
+    create: "Crear crédito",
+    fromAccounts: "¿Tienes un crédito de consumo, libre inversión, vehículo o vivienda? Se registra en Créditos, con sus cuotas e intereses.",
     emptyTitle: "No tienes créditos registrados",
-    emptyBody: "Registra un préstamo para ver su saldo, su próxima cuota y la tabla de amortización.",
+    emptyBody: "Registra un crédito (de consumo, libre inversión, vehículo, hipotecario, UVR…) para ver sus cuotas e intereses.",
     balance: "Saldo",
     of: "de",
     paidPercent: "Pagado",

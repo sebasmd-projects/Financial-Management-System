@@ -125,7 +125,7 @@ export function StatisticsScreen() {
             extra={{ threshold }}
             before={
               <div>
-                <SelectField label={rep.stats.threshold} hint={fill(rep.stats.thresholdHint, { amount: formatCop(DEFAULT_ANT_THRESHOLD) })} value={threshold} onChange={setThreshold} options={ANT_THRESHOLDS.map((value) => ({ value, label: formatCop(value) }))} />
+                <SelectField label={rep.stats.threshold} help={dict.fin.help.texts.antThreshold} hint={fill(rep.stats.thresholdHint, { amount: formatCop(DEFAULT_ANT_THRESHOLD) })} value={threshold} onChange={setThreshold} options={ANT_THRESHOLDS.map((value) => ({ value, label: formatCop(value) }))} />
                 <p className="hint">{rep.stats.antsRule}</p>
               </div>
             }

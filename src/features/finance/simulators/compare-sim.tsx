@@ -37,7 +37,7 @@ export function CompareSimulator() {
             <TextField label={t.label} value={offer.label} onChange={(v) => update(index, { label: v })} maxLength={40} />
             <AmountField label={dict.fin.loans.fields.principal} value={offer.principal} onChange={(v) => update(index, { principal: v })} />
             <RateInput rate={offer.rate} onRate={(v) => update(index, { rate: v })} convention={offer.convention} onConvention={(v: RateConvention) => update(index, { convention: v })} />
-            <TextField label={dict.fin.loans.fields.term} value={offer.term} onChange={(v) => update(index, { term: v })} inputMode="numeric" maxLength={4} />
+            <TextField label={dict.fin.loans.fields.term} help={dict.fin.help.texts.term} value={offer.term} onChange={(v) => update(index, { term: v })} inputMode="numeric" maxLength={4} />
             <SelectField
               label={dict.fin.loans.fields.system}
               value={offer.system}
@@ -45,7 +45,7 @@ export function CompareSimulator() {
               options={(["french", "constant_capital", "interest_only"] as const).map((s) => ({ value: s, label: dict.fin.systems[s] }))}
             />
             <div className="fin-grid-2">
-              <AmountField label={dict.fin.loans.fields.insurance} value={offer.insurance} onChange={(v) => update(index, { insurance: v })} />
+              <AmountField label={dict.fin.loans.fields.insurance} help={dict.fin.help.texts.insurance} value={offer.insurance} onChange={(v) => update(index, { insurance: v })} />
               <AmountField label={dict.fin.sim.installment.upfrontFees} value={offer.upfrontFees} onChange={(v) => update(index, { upfrontFees: v })} />
             </div>
             {offers.length > 2 && (

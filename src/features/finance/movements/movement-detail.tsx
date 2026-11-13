@@ -251,7 +251,7 @@ function ConfirmForm({ movement, onDone, onCancel }: { movement: Movement; onDon
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <p className="muted">{t.confirmIntro}</p>
-      <AmountField apiCode={submit.errorCode} label={dict.fin.form.amount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />
+      <AmountField apiCode={submit.errorCode} label={dict.fin.form.amount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} />
       <TextField label={dict.fin.form.date} type="date" value={date} onChange={setDate} required />
       <SelectField label={dict.fin.form.account} value={accountId} onChange={setAccountId} options={movementAccounts(accounts.items).map((a) => ({ value: a.id, label: a.name }))} />
       {submit.error && submit.errorCode !== "too_many_decimals" && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
@@ -281,7 +281,7 @@ function ReasonForm({ kind, movement, onDone, onCancel }: { kind: "annul" | "adj
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <p className="muted">{kind === "annul" ? (movement.status === "pendiente" ? t.discardIntro : t.annulIntro) : t.adjustIntro}</p>
-      {kind === "adjust" && <AmountField apiCode={submit.errorCode} label={t.newAmount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />}
+      {kind === "adjust" && <AmountField apiCode={submit.errorCode} label={t.newAmount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} />}
       <TextArea label={t.reason} value={reason} onChange={setReason} required maxLength={280} hint={t.reasonHint} />
       {submit.error && submit.errorCode !== "too_many_decimals" && (
         <Banner tone="negative" live="assertive">
@@ -365,7 +365,7 @@ function EditForm({ movement, onDone, onCancel }: { movement: Movement; onDone: 
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       {!pending && <p className="muted">{dict.fin.edit.moneyHint}</p>}
-      <AmountField apiCode={submit.errorCode} label={f.amount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} preview={amount ? formatCop(amount) : null} />
+      <AmountField apiCode={submit.errorCode} label={f.amount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} />
       <TextField label={f.date} type="date" value={date} onChange={setDate} required />
       <SelectField label={f.account} value={accountId} onChange={setAccountId} options={(isTransfer ? transferAccounts(accounts.items) : movementAccounts(accounts.items)).map((a) => ({ value: a.id, label: a.name }))} />
       {!isTransfer && <SelectField label={f.category} value={categoryId} onChange={setCategoryId} placeholder={f.noCategory} options={categories.items.filter((c) => c.kind === (movement.type === "income" ? "income" : "expense")).map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />}

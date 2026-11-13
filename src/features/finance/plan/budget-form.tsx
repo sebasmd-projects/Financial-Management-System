@@ -4,7 +4,6 @@ import { useState } from "react";
 import { api } from "@/api";
 import type { Budget, BudgetDimension, BudgetPatch, BudgetPeriod } from "@/api/models";
 import { paths, roots } from "@/api/paths";
-import { formatCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { useSubmit } from "../hooks";
 import { AmountField, Banner, FormActions, SelectField, TextField } from "../kit";
@@ -52,7 +51,7 @@ export function BudgetForm({ budget, onDone, onCancel }: { budget?: Budget; onDo
           {options.length === 0 && !lookups.loading && <p className="hint">{t.noTargets}</p>}
         </>
       )}
-      <AmountField label={t.limit} value={input.limit} onChange={set("limit")} required error={touched && built.problems.limit ? dict.fin.common.invalidAmount : null} preview={built.body ? formatCop(built.body.limit) : null} apiCode={submit.errorCode} />
+      <AmountField label={t.limit} value={input.limit} onChange={set("limit")} required error={touched && built.problems.limit ? dict.fin.common.invalidAmount : null} apiCode={submit.errorCode} />
       <SelectField label={t.period} value={input.period} onChange={(v) => set("period")(v as BudgetPeriod)} options={PERIODS.map((p) => ({ value: p, label: dict.fin.plan.periods[p] }))} />
       {input.period === "custom" && (
         <div className="fin-grid-2">

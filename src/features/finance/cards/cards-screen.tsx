@@ -7,16 +7,15 @@ import type { Card, Institution } from "@/api/models";
 import { paths, roots } from "@/api/paths";
 import { normalizeAmountInput, percentToFraction } from "@/lib/amount-input";
 import { toInt } from "@/lib/ints";
-import { formatCop } from "@/lib/money";
 import { formatDateShort, todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
+import { ConventionSelect, type RateConventionCode } from "../conventions";
 import { UsuryRateCheck } from "../credit/usury-check";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, Empty, ErrorState, FormActions, Loading, Modal, Money, Progress, Section, SelectField, TextField } from "../kit";
 
-export const RATE_CONVENTIONS = ["EA", "EM", "ET", "ED", "NMV", "NTV", "NAV"] as const;
-export type RateConventionCode = (typeof RATE_CONVENTIONS)[number];
+export { RATE_CONVENTIONS, type RateConventionCode } from "../conventions";
 
 /** Las tarjetas de crédito: cupo usado, disponible y fechas (todo derivado del libro). `embedded` = dentro de «Cuentas». */
 export function CardList({ embedded = false }: { embedded?: boolean }) {
@@ -174,14 +173,14 @@ function CardForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => vo
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <TextField label={t.fields.name} value={name} onChange={setName} maxLength={80} required error={touched && name.trim() === "" ? req : null} />
       <SelectField label={t.fields.issuer} value={issuer} onChange={setIssuer} placeholder={dict.fin.accounts.noInstitution} options={(institutions.data ?? []).map((i) => ({ value: String(i.id), label: i.name }))} />
-      <AmountField label={t.fields.limit} value={limit} onChange={setLimit} required error={touched && limitValue === null ? dict.fin.common.invalidAmount : null} preview={limitValue ? formatCop(limitValue) : null} />
+      <AmountField label={t.fields.limit} help={dict.fin.help.texts.limit} value={limit} onChange={setLimit} required error={touched && limitValue === null ? dict.fin.common.invalidAmount : null} />
       <div className="fin-grid-2">
-        <TextField label={t.fields.cutDay} value={cutDay} onChange={setCutDay} inputMode="numeric" maxLength={2} required error={touched && cut === null ? t.dayInvalid : null} />
-        <TextField label={t.fields.payDay} value={payDay} onChange={setPayDay} inputMode="numeric" maxLength={2} required error={touched && pay === null ? t.dayInvalid : null} />
+        <TextField label={t.fields.cutDay} help={dict.fin.help.texts.cutDay} value={cutDay} onChange={setCutDay} inputMode="numeric" maxLength={2} required error={touched && cut === null ? t.dayInvalid : null} />
+        <TextField label={t.fields.payDay} help={dict.fin.help.texts.payDay} value={payDay} onChange={setPayDay} inputMode="numeric" maxLength={2} required error={touched && pay === null ? t.dayInvalid : null} />
       </div>
       <div className="fin-grid-2">
-        <TextField label={t.fields.rate} hint={t.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" error={touched && rateValue === null ? t.rateInvalid : null} />
-        <SelectField label={t.fields.convention} value={convention} onChange={(v) => setConvention(v as RateConventionCode)} options={RATE_CONVENTIONS.map((c) => ({ value: c, label: c }))} />
+        <TextField label={t.fields.rate} help={dict.fin.help.texts.rate} hint={t.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" error={touched && rateValue === null ? t.rateInvalid : null} />
+        <ConventionSelect label={t.fields.convention} value={convention} onChange={setConvention} />
       </div>
       <UsuryRateCheck rate={rateValue} convention={convention} />
       <AmountField label={t.fields.owed} hint={t.fields.owedHint} value={owed} onChange={setOwed} error={touched && owedValue === null ? dict.fin.common.invalidAmount : null} />

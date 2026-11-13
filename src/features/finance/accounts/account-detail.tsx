@@ -111,7 +111,7 @@ export function AccountDetail({ id }: { id: string }) {
       </div>
 
       <Section title={t.settings}>
-        <Checkbox label={t.fields.exempt} hint={t.fields.exemptHint} checked={a.gmf_exempt} disabled={!canWrite} onChange={(v) => void setExempt(v)} />
+        <Checkbox label={t.fields.exempt} help={dict.fin.help.texts.gmfExempt} hint={t.fields.exemptHint} checked={a.gmf_exempt} disabled={!canWrite} onChange={(v) => void setExempt(v)} />
         {toggle.error && <Banner tone="negative" live="assertive">{toggle.error}</Banner>}
         <DefinitionList
           rows={[

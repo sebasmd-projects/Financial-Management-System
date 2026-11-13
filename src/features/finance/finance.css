@@ -225,3 +225,12 @@ a.fin-row:hover { background: var(--color-surface-2); }
 
 /* ---------- Hoja modal de formularios ---------- */
 .sheet__body { flex: 1; overflow-y: auto; padding: var(--space-8) var(--space-16) calc(var(--space-16) + env(safe-area-inset-bottom)); }
+
+/* «(?)» de ayuda junto a una etiqueta (HelpTip): objetivo táctil de 44 dp, círculo visible más pequeño; el texto baja a otra línea. */
+.field__labelrow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4); }
+.help-tip { display: contents; }
+.help-tip__button { display: inline-flex; align-items: center; justify-content: center; min-width: var(--target-min); min-height: var(--target-min); margin: calc(var(--space-8) * -1) 0; padding: 0; border: 0; background: none; color: var(--color-primary); cursor: pointer; font: var(--text-label); }
+.help-tip__button > span { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border: 1.5px solid currentColor; border-radius: 50%; line-height: 1; }
+.help-tip__button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -4px; border-radius: 50%; }
+.help-tip__button[aria-expanded="true"] > span { background: var(--color-primary-container); color: var(--color-on-primary-container); }
+.help-tip__text { flex-basis: 100%; padding: var(--space-8) var(--space-12); border-left: 3px solid var(--color-info); background: var(--color-info-container); color: var(--color-on-info-container); border-radius: var(--radius-xs); font: var(--text-body-s); }

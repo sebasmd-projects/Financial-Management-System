@@ -162,7 +162,6 @@ export const finCEn: typeof finCEs = {
   },
   sim: {
     neverWrites: "Simulators calculate and compare; they never save or change anything in your finances.",
-    conventions: { EA: "Effective annual (EA)", EM: "Effective monthly (EM)", ET: "Effective quarterly (EQ)", ED: "Daily (ED)", NMV: "Nominal monthly in arrears (NMA)", NTV: "Nominal quarterly in arrears (NQA)", NAV: "Nominal annual in arrears (NAA)" },
     termProblems: { invalid: "Enter a whole number of installments (1 to 600).", too_long: "The maximum term is 600 months." },
     export: {
       label: "Export the table",

@@ -6,7 +6,6 @@
  */
 import { useId } from "react";
 import { formatCop } from "@/lib/money";
-import { parsePositiveAmount } from "@/lib/amount-input";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
 import { fill } from "../helpers";
@@ -77,8 +76,6 @@ export function TermsFields({ value, onChange, problems, touched }: { value: Ter
   const { dict } = useI18n();
   const t = dict.fin.terms;
   const set = (patch: Partial<TermsState>) => onChange({ ...value, ...patch });
-  const earlyAmount = value.earlyKind === "fixed" ? parsePositiveAmount(value.earlyValue) : null;
-  const lateAmount = value.lateKind === "fixed" ? parsePositiveAmount(value.lateValue) : null;
   return (
     <div className="fin-form">
       <p className="muted">{t.windowsIntro}</p>
@@ -97,7 +94,7 @@ export function TermsFields({ value, onChange, problems, touched }: { value: Ter
         {value.earlyKind === "percent" ? (
           <TextField label={t.earlyPercent} value={value.earlyValue} onChange={(v) => set({ earlyValue: v })} inputMode="decimal" maxLength={8} error={touched && problems.earlyValue ? t.invalidPercent : null} />
         ) : (
-          <AmountField label={t.earlyFixed} value={value.earlyValue} onChange={(v) => set({ earlyValue: v })} error={touched && problems.earlyValue ? dict.fin.common.invalidAmount : null} preview={earlyAmount ? formatCop(earlyAmount) : null} />
+          <AmountField label={t.earlyFixed} value={value.earlyValue} onChange={(v) => set({ earlyValue: v })} error={touched && problems.earlyValue ? dict.fin.common.invalidAmount : null} />
         )}
         <p className="hint">{t.earlyOnlyFull}</p>
       </section>
@@ -114,7 +111,7 @@ export function TermsFields({ value, onChange, problems, touched }: { value: Ter
           {t.lateTitle}
         </h3>
         <Segmented legend={t.lateKind} options={(["none", "fixed", "percent", "daily"] as const).map((k) => ({ value: k, label: t.lateKinds[k] }))} value={value.lateKind} onChange={(v) => set({ lateKind: v as LateKind })} />
-        {value.lateKind === "fixed" && <AmountField label={t.lateFixed} hint={t.lateFixedHint} value={value.lateValue} onChange={(v) => set({ lateValue: v })} error={touched && problems.lateValue ? dict.fin.common.invalidAmount : null} preview={lateAmount ? formatCop(lateAmount) : null} />}
+        {value.lateKind === "fixed" && <AmountField label={t.lateFixed} hint={t.lateFixedHint} value={value.lateValue} onChange={(v) => set({ lateValue: v })} error={touched && problems.lateValue ? dict.fin.common.invalidAmount : null} />}
         {value.lateKind === "percent" && <TextField label={t.latePercent} hint={t.latePercentHint} value={value.lateValue} onChange={(v) => set({ lateValue: v })} inputMode="decimal" maxLength={8} error={touched && problems.lateValue ? t.invalidPercent : null} />}
         {value.lateKind === "daily" && <p className="hint">{t.lateDailyHint}</p>}
       </section>

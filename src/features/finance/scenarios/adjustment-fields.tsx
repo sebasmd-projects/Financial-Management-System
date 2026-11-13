@@ -4,7 +4,7 @@ import type { Recurrence } from "@/api/models";
 import { formatCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { AmountField, SelectField, TextField } from "../kit";
-import { RATE_CONVENTIONS } from "../cards/cards-screen";
+import { ConventionSelect } from "../conventions";
 import { ADJUSTMENT_KINDS, LOAN_SYSTEMS, parseSignedAmount, type AdjustmentDraft, type AdjustmentField, type AdjustmentKind } from "./logic";
 
 /** Los campos de UN ajuste según su tipo (lista cerrada): cada tipo pide solo los suyos. */
@@ -47,15 +47,15 @@ export function AdjustmentFields({ draft, onChange, recurrences, invalid, apiCod
         <>
           <AmountField label={t.principal} value={draft.principal} onChange={set("principal")} required error={err("principal", bad)} apiCode={apiCode} />
           <div className="fin-grid-2">
-            <TextField label={dict.fin.loans.fields.rate} hint={dict.fin.cards.fields.rateHint} value={draft.rate} onChange={set("rate")} inputMode="decimal" required error={err("rate", dict.fin.cards.rateInvalid)} />
-            <SelectField label={dict.fin.loans.fields.convention} value={draft.convention} onChange={set("convention")} options={RATE_CONVENTIONS.map((c) => ({ value: c, label: c }))} />
+            <TextField label={dict.fin.loans.fields.rate} help={dict.fin.help.texts.rate} hint={dict.fin.cards.fields.rateHint} value={draft.rate} onChange={set("rate")} inputMode="decimal" required error={err("rate", dict.fin.cards.rateInvalid)} />
+            <ConventionSelect label={dict.fin.loans.fields.convention} value={draft.convention} onChange={set("convention")} />
           </div>
           <div className="fin-grid-2">
-            <TextField label={dict.fin.loans.fields.term} hint={dict.fin.loans.fields.termHint} value={draft.term} onChange={set("term")} inputMode="numeric" maxLength={3} required error={err("term", dict.fin.loans.termInvalid)} />
-            <SelectField label={dict.fin.loans.fields.system} value={draft.system} onChange={set("system")} options={LOAN_SYSTEMS.map((s) => ({ value: s, label: dict.fin.systems[s] }))} />
+            <TextField label={dict.fin.loans.fields.term} help={dict.fin.help.texts.term} hint={dict.fin.loans.fields.termHint} value={draft.term} onChange={set("term")} inputMode="numeric" maxLength={3} required error={err("term", dict.fin.loans.termInvalid)} />
+            <SelectField label={dict.fin.loans.fields.system} help={dict.fin.help.texts.system} value={draft.system} onChange={set("system")} options={LOAN_SYSTEMS.map((s) => ({ value: s, label: dict.fin.systems[s] }))} />
           </div>
           <TextField label={t.firstPayment} type="date" value={draft.first_payment} onChange={set("first_payment")} required error={err("first_payment", dict.fin.common.requiredField)} />
-          <AmountField label={dict.fin.loans.fields.insurance} hint={dict.fin.loans.fields.insuranceHint} value={draft.insurance} onChange={set("insurance")} error={err("insurance", bad)} apiCode={apiCode} />
+          <AmountField label={dict.fin.loans.fields.insurance} help={dict.fin.help.texts.insurance} hint={dict.fin.loans.fields.insuranceHint} value={draft.insurance} onChange={set("insurance")} error={err("insurance", bad)} apiCode={apiCode} />
           <TextField label={t.disbursedOn} hint={t.disbursedHint} type="date" value={draft.disbursed_on} onChange={set("disbursed_on")} error={err("disbursed_on", dict.fin.common.requiredField)} />
         </>
       )}

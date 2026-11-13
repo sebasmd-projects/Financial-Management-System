@@ -7,7 +7,6 @@ import type { Account, Goal, GoalCreate, GoalKind } from "@/api/models";
 import { paths, roots } from "@/api/paths";
 import { parsePositiveAmount } from "@/lib/amount-input";
 import { formatDate, isBusinessDate, todayBogota } from "@/lib/dates";
-import { formatCop } from "@/lib/money";
 import { formatPercent, percentWidth } from "@/lib/percent";
 import { useI18n } from "@/i18n/provider";
 import { DrillLink } from "../drill-link";
@@ -87,7 +86,7 @@ export function ContributeForm({ goal, onDone, onCancel }: { goal: Goal; onDone:
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <p className="muted">{fill(t.contributeIntro, { goal: goal.name })}</p>
-      <AmountField label={t.contributeAmount} value={amount} onChange={setAmount} required error={touched && amountValue === null ? dict.fin.common.invalidAmount : null} preview={amountValue ? formatCop(amountValue) : null} apiCode={submit.errorCode} />
+      <AmountField label={t.contributeAmount} value={amount} onChange={setAmount} required error={touched && amountValue === null ? dict.fin.common.invalidAmount : null} apiCode={submit.errorCode} />
       <SelectField label={t.fromAccount} value={source} onChange={setFrom} options={sources.map((a) => ({ value: a.id, label: a.name }))} />
       <TextField label={dict.fin.form.date} type="date" value={date} onChange={setDate} required />
       <p className="hint">{t.gmfHint}</p>
@@ -130,7 +129,7 @@ export function GoalForm({ initialKind, onDone, onCancel }: { initialKind: GoalK
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <TextField label={t.name} value={input.name} onChange={set("name")} maxLength={80} required error={touched && built.problems.name ? req : null} />
       <SelectField label={t.kind} value={input.kind} onChange={(v) => set("kind")(v as GoalKind)} options={GOAL_KINDS.map((k) => ({ value: k, label: dict.fin.plan.goalKinds[k] }))} />
-      <AmountField label={t.target} value={input.target} onChange={set("target")} required error={touched && built.problems.target ? dict.fin.common.invalidAmount : null} preview={parsePositiveAmount(input.target) ? formatCop(parsePositiveAmount(input.target)!) : null} apiCode={submit.errorCode} />
+      <AmountField label={t.target} value={input.target} onChange={set("target")} required error={touched && built.problems.target ? dict.fin.common.invalidAmount : null} apiCode={submit.errorCode} />
       <TextField label={t.date} type="date" value={input.date} onChange={set("date")} />
       <AmountField label={t.plannedField} hint={t.plannedHint} value={input.planned} onChange={set("planned")} error={touched && built.problems.planned ? dict.fin.common.invalidAmount : null} />
       {input.kind === "pay_debt" ? (

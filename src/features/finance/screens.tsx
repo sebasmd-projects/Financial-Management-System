@@ -3,6 +3,8 @@
 import { Suspense, type ReactNode } from "react";
 import type { RouteId } from "@/nav/routes";
 import { Loading } from "./kit";
+import { CardStatementsScreen, StatementsScreen } from "./cards/statements-screen";
+import { CardRatesScreen } from "./cards/card-rates";
 import { AmortizationsScreen } from "./credit/amortizations-screen";
 import { DebtsScreen } from "./credit/debts-screen";
 import { InstallmentsScreen } from "./credit/installments-screen";
@@ -98,6 +100,12 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <CardDetail id={first} />;
     case "tarjeta-extracto":
       return <CardStatement id={first} period={second} />;
+    case "extractos":
+      return <StatementsScreen />;
+    case "tarjeta-extractos":
+      return <CardStatementsScreen id={first} />;
+    case "tarjeta-tasas":
+      return <CardRatesScreen id={first} />;
     case "tarjeta-pagar":
       return <CardPay id={first} />;
     case "tarjeta-simular":

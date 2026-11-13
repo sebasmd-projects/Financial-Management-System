@@ -239,3 +239,28 @@ a.fin-row:hover { background: var(--color-surface-2); }
 .help-tip__button:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -4px; border-radius: 50%; }
 .help-tip__button[aria-expanded="true"] > span { background: var(--color-primary-container); color: var(--color-on-primary-container); }
 .help-tip__text { flex-basis: 100%; min-width: 0; overflow-wrap: break-word; padding: var(--space-8) var(--space-12); border-left: 3px solid var(--color-info); background: var(--color-info-container); color: var(--color-on-info-container); border-radius: var(--radius-xs); font: var(--text-body-s); }
+
+/* ---------- Extractos (tarjetas): gráfica de barras desplazable, ficha del mes y confirmaciones ---------- */
+.stm { display: grid; gap: var(--space-16); min-width: 0; }
+.stm__controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
+.stm-chip { display: inline-flex; min-width: 0; max-width: 100%; }
+.stm-chip__select { min-height: var(--target-min); max-width: 100%; padding: var(--space-8) var(--space-16); border: 1px solid var(--color-border-strong); border-radius: var(--radius-full); background: var(--color-surface); color: var(--color-text-primary); font: var(--text-label); }
+.stm-toggle { min-height: var(--target-min); padding: var(--space-8) var(--space-16); border: 1px solid var(--color-border-strong); border-radius: var(--radius-full); background: var(--color-surface); color: var(--color-text-primary); font: var(--text-label); cursor: pointer; }
+.stm-toggle[aria-pressed="true"] { background: var(--color-primary-container); color: var(--color-on-primary-container); border-color: var(--color-primary); }
+.stm-chart { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; padding-bottom: var(--space-4); }
+.stm-chart__track { display: flex; gap: var(--space-8); width: max-content; min-width: 100%; }
+.stm-bar { flex: 0 0 56px; display: grid; grid-template-rows: auto 120px auto auto; justify-items: center; gap: var(--space-4); min-height: var(--target-min); padding: var(--space-4); border: 2px solid transparent; border-radius: var(--radius-md); background: transparent; color: var(--color-text-secondary); font: var(--text-caption); cursor: pointer; }
+.stm-bar:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
+.stm-bar__well { display: flex; align-items: flex-end; width: 100%; height: 120px; }
+.stm-bar__fill { display: block; width: 100%; border-radius: var(--radius-sm) var(--radius-sm) 0 0; background: var(--color-text-tertiary); }
+.stm-bar--estimated .stm-bar__fill { background: repeating-linear-gradient(45deg, var(--color-surface) 0 3px, var(--color-text-tertiary) 3px 6px); border: 2px dashed var(--color-text-tertiary); border-bottom: 0; }
+.stm-bar--selected { border-color: var(--color-primary); color: var(--color-text-primary); background: var(--color-primary-container); }
+.stm-bar--selected .stm-bar__fill { background: var(--color-primary); }
+.stm-bar--selected.stm-bar--estimated .stm-bar__fill { background: repeating-linear-gradient(45deg, var(--color-primary-container) 0 3px, var(--color-primary) 3px 6px); border-color: var(--color-primary); }
+.stm-bar__month { font-weight: 600; }
+.stm-bar__tag { font-style: italic; }
+.stm-summary__amount { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); }
+.stm-line__date { flex: 0 0 auto; min-width: 4ch; font: var(--text-label); color: var(--color-text-secondary); }
+.stm-link { justify-self: start; padding: var(--space-4) 0; border: 0; background: none; color: var(--color-primary); font: var(--text-label); text-decoration: underline; cursor: pointer; min-height: var(--target-min); }
+.stm-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-8); padding: var(--space-8); border: 1px dashed var(--color-border-strong); border-radius: var(--radius-sm); }
+.stm-pay { display: grid; gap: var(--space-8); }

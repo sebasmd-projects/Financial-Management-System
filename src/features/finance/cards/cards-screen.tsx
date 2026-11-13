@@ -23,9 +23,17 @@ export function CardList({ embedded = false }: { embedded?: boolean }) {
   const t = dict.fin.cards;
   const cards = useAll<Card>(paths.cards());
   const [creating, setCreating] = useState(false);
+  const href = useHref();
 
   const body = (
     <>
+      {cards.items.length > 0 && (
+        <div className="actions">
+          <Link className="button button--ghost" href={href("extractos")}>
+            {dict.fin.stm.title}
+          </Link>
+        </div>
+      )}
       {cards.loading && !cards.data && <Loading />}
       {cards.failure && <ErrorState message={dict.fin.errors.generic} onRetry={cards.reload} />}
       {cards.data && cards.items.length === 0 && (
@@ -137,6 +145,8 @@ function CardForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => vo
   const [payDay, setPayDay] = useState("");
   const [rate, setRate] = useState("");
   const [convention, setConvention] = useState<RateConventionCode>("EA");
+  const [rateType, setRateType] = useState<"fixed" | "variable">("fixed");
+  const [reminderText, setReminderText] = useState("3");
   const [last4, setLast4] = useState("");
   const [owed, setOwed] = useState("");
   const [touched, setTouched] = useState(false);
@@ -146,8 +156,9 @@ function CardForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => vo
   const pay = toInt(payDay, 1, 31);
   const rateValue = rate.trim() === "" ? "0" : percentToFraction(rate);
   const owedValue = owed.trim() === "" ? "0" : normalizeAmountInput(owed);
+  const reminder = toInt(reminderText, 0, 30);
   const last4Bad = last4 !== "" && !/^\d{4}$/.test(last4);
-  const valid = name.trim() !== "" && limitValue !== null && cut !== null && pay !== null && rateValue !== null && owedValue !== null && !last4Bad;
+  const valid = name.trim() !== "" && limitValue !== null && cut !== null && pay !== null && rateValue !== null && owedValue !== null && !last4Bad && (rateType === "fixed" || reminder !== null);
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -160,6 +171,8 @@ function CardForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => vo
       pay_day: pay!,
       rate: rateValue!,
       rate_convention: convention,
+      rate_type: rateType,
+      ...(rateType === "variable" ? { rate_reminder_days: reminder! } : {}),
       opening_balance: owedValue!,
       opening_date: todayBogota(),
       ...(issuer ? { issuer_id: toInt(issuer) } : {}),
@@ -178,11 +191,13 @@ function CardForm({ onDone, onCancel }: { onDone: () => void; onCancel: () => vo
         <TextField label={t.fields.cutDay} help={dict.fin.help.texts.cutDay} value={cutDay} onChange={setCutDay} inputMode="numeric" maxLength={2} required error={touched && cut === null ? t.dayInvalid : null} />
         <TextField label={t.fields.payDay} help={dict.fin.help.texts.payDay} value={payDay} onChange={setPayDay} inputMode="numeric" maxLength={2} required error={touched && pay === null ? t.dayInvalid : null} />
       </div>
+      <SelectField label={dict.fin.cardForm.rateType} required help={dict.fin.cardForm.rateTypeHelp} value={rateType} onChange={(v) => setRateType(v as "fixed" | "variable")} options={[{ value: "fixed", label: dict.fin.cardForm.fixed }, { value: "variable", label: dict.fin.cardForm.variable }]} />
       <div className="fin-grid-2">
         <TextField label={t.fields.rate} help={dict.fin.help.texts.rate} hint={t.fields.rateHint} value={rate} onChange={setRate} inputMode="decimal" error={touched && rateValue === null ? t.rateInvalid : null} />
         <ConventionSelect label={t.fields.convention} value={convention} onChange={setConvention} />
       </div>
       <UsuryRateCheck rate={rateValue} convention={convention} />
+      {rateType === "variable" && <TextField label={dict.fin.cardForm.reminderDays} hint={dict.fin.cardForm.reminderHint} value={reminderText} onChange={setReminderText} inputMode="numeric" maxLength={2} error={touched && reminder === null ? dict.fin.cardForm.reminderInvalid : null} />}
       <AmountField label={t.fields.owed} hint={t.fields.owedHint} value={owed} onChange={setOwed} error={touched && owedValue === null ? dict.fin.common.invalidAmount : null} />
       <TextField label={dict.fin.accounts.fields.last4} value={last4} onChange={setLast4} inputMode="numeric" maxLength={4} error={last4Bad ? dict.fin.accounts.last4Invalid : null} />
       {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}

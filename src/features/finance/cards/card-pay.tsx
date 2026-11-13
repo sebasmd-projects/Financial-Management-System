@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/api";
 import type { Account, Card, Movement, Statements } from "@/api/models";
 import { paths } from "@/api/paths";
@@ -13,6 +13,7 @@ import { fill, transferAccounts } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Banner, ErrorState, FormActions, Loading, Money, ScreenHeader, Segmented, SelectField, TextField } from "../kit";
 import { warningText } from "../movements/movement-form";
+import { clearPayPrefill, peekPayPrefill } from "./pay-prefill";
 
 type PayKind = "total" | "minimum" | "amount";
 
@@ -25,8 +26,10 @@ export function CardPay({ id }: { id: string }) {
   const card = useResource<Card>(paths.card(id));
   const statements = useResource<Statements>(paths.cardStatements(id));
   const accounts = useAll<Account>(paths.accounts());
-  const [kind, setKind] = useState<PayKind>("total");
-  const [amountText, setAmountText] = useState("");
+  const [prefill] = useState(() => peekPayPrefill(id));
+  useEffect(() => clearPayPrefill(), []);
+  const [kind, setKind] = useState<PayKind>(prefill?.kind ?? "total");
+  const [amountText, setAmountText] = useState(prefill?.amount ?? "");
   const [fromAccount, setFromAccount] = useState("");
   const [date, setDate] = useState(todayBogota());
   const [saved, setSaved] = useState<Movement | null>(null);
@@ -72,6 +75,11 @@ export function CardPay({ id }: { id: string }) {
         card.data && (
           <form onSubmit={onSubmit} className="fin-form" noValidate>
             <p className="fin-phrase">{fill(t.payPhrase, { card: card.data.name })}</p>
+            {prefill && (
+              <p className="hint" data-testid="pay-prefill-note">
+                {prefill.kind === "amount" ? dict.fin.stm.payFutureNote : dict.fin.stm.payClosedNote}
+              </p>
+            )}
             {statement && (
               <p className="muted">
                 {t.dueOn} {formatDate(statement.due_date)}

@@ -635,6 +635,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/cards/{id}/fees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * La cuota de manejo y el seguro de la tarjeta con su vigencia
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsCardFees"];
+        put?: never;
+        /**
+         * Un monto de cuota de manejo o seguro desde una fecha (se carga solo en cada corte; 0 lo termina)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsCardFeeSet"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/cards/{id}/fees/{fee_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Borrar un monto del historial de cuota de manejo o seguro
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsCardFeeDelete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/cards/{id}/interest": {
         parameters: {
             query?: never;
@@ -719,6 +766,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/cards/{id}/rates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * El historial de tasas de la tarjeta con su vigencia, la marca de «quizá desactualizada» y los ajustes sugeridos
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsCardRates"];
+        put?: never;
+        /**
+         * Una tasa nueva con vigencia (solo tarjeta variable): re-tarifa las cuotas pendientes; lo ya facturado no se reescribe y la diferencia sale como ajuste sugerido
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsCardRateCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/cards/{id}/rates/{rate_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Borrar una tasa del historial (la última no se puede borrar)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsCardRateDelete"];
+        options?: never;
+        head?: never;
+        /**
+         * Corregir una tasa del historial (tasa, convención, fecha o fuente)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        patch: operations["fmsCardRatePatch"];
+        trace?: never;
+    };
     "/api/fms/v1/cards/{id}/simulate": {
         parameters: {
             query?: never;
@@ -753,6 +852,48 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         get: operations["fmsCardStatements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/cards/{id}/statements/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Extractos mes a mes de una tarjeta, cerrados y proyectados (vista; no escribe)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsCardStatementsTimeline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/cards/statements/timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Extractos mes a mes de todas tus tarjetas, cerrados y proyectados (vista; no escribe)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsCardsStatementsTimeline"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5613,11 +5754,72 @@ export interface components {
             rate: string;
             rate_convention: components["schemas"]["RateConventionEnum"];
             installment_system: components["schemas"]["AmortizationSystemEnum"];
-            /** @example 180000 */
+            /**
+             * @description La cuota de manejo que rige hoy (historial en `cards/{id}/fees`).
+             * @example 180000
+             */
             handling_fee: string;
-            /** @example 0.24 */
+            /**
+             * @description El seguro que rige hoy (historial en `cards/{id}/fees`).
+             * @example 180000
+             */
+            insurance: string;
+            /**
+             * @description Fracción del saldo revolvente (compras a una cuota, avances y lo arrastrado no vencido) que entra al pago mínimo.
+             * @example 0.24
+             */
             min_payment_rate: string;
+            /**
+             * @description `fixed`: una tasa (`rate`). `variable`: la tasa es el historial con vigencia de `cards/{id}/rates`.
+             *
+             *     * `fixed` - fixed
+             *     * `variable` - variable
+             */
+            rate_type: components["schemas"]["RateTypeEnum"];
+            /** @description Días antes de cada corte en que se recuerda actualizar una tasa variable (0 a 30). */
+            rate_reminder_days: number;
+            /**
+             * Format: date
+             * @description Desde cuándo rige la tasa de hoy (`null` en una fija).
+             */
+            rate_valid_from: string | null;
+            /** @description Variable cuya última tasa tiene más de 35 días: quizá está desactualizada. */
+            rate_outdated: boolean;
         };
+        CardAdjustment: {
+            kind: components["schemas"]["CardAdjustmentKindEnum"];
+            /** Format: uuid */
+            purchase_id: string | null;
+            installment_number: number | null;
+            /** Format: date */
+            cutoff: string;
+            /**
+             * @description El saldo sobre el que se calculó el periodo.
+             * @example 180000
+             */
+            base: string;
+            /**
+             * @description Lo facturado (inmutable).
+             * @example 180000
+             */
+            billed_interest: string;
+            /**
+             * @description Lo que daría la tasa que rige en el corte.
+             * @example 180000
+             */
+            expected_interest: string;
+            /**
+             * @description Positiva: falta cargar; negativa: se cobró de más. Sugerencia: no se escribe sola (se carga con `charges`).
+             * @example 180000
+             */
+            difference: string;
+        };
+        /**
+         * @description * `installment` - installment
+         *     * `revolving_interest` - revolving_interest
+         * @enum {string}
+         */
+        CardAdjustmentKindEnum: "installment" | "revolving_interest";
         CardCreate: {
             name: string;
             /** @example 180000 */
@@ -5625,6 +5827,13 @@ export interface components {
             cut_day: number;
             pay_day: number;
             issuer_id?: number | null;
+            /**
+             * @description Obligatorio. `variable`: la `rate` es la primera del historial (desde la apertura o hoy).
+             *
+             *     * `fixed` - fixed
+             *     * `variable` - variable
+             */
+            rate_type: components["schemas"]["RateTypeEnum"];
             /**
              * @default 0
              * @example 0.24
@@ -5644,6 +5853,8 @@ export interface components {
              * @example 0.24
              */
             min_payment_rate: string;
+            /** @default 3 */
+            rate_reminder_days: number;
             last4?: string | null;
             /**
              * @description Lo que ya debes: un asiento contra «Patrimonio inicial».
@@ -5653,6 +5864,33 @@ export interface components {
             opening_balance: string;
             /** Format: date */
             opening_date?: string;
+        };
+        CardFee: {
+            /** Format: uuid */
+            id: string;
+            kind: components["schemas"]["Kind9ffEnum"];
+            /** @example 180000 */
+            amount: string;
+            /** Format: date */
+            valid_from: string;
+        };
+        CardFeeCreate: {
+            kind: components["schemas"]["Kind9ffEnum"];
+            /**
+             * @description Mensual, se carga en cada corte. 0 la termina.
+             * @example 180000
+             */
+            amount: string;
+            /**
+             * Format: date
+             * @description Desde cuándo rige; una fecha ya usada la cambia.
+             */
+            valid_from: string;
+        };
+        CardFees: {
+            /** Format: uuid */
+            card_id: string;
+            fees: components["schemas"]["CardFee"][];
         };
         CardPage: {
             count: number;
@@ -5687,6 +5925,44 @@ export interface components {
          * @enum {string}
          */
         CardPayKindEnum: "total" | "minimum" | "amount";
+        CardRate: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Fracción (`0.2678` = 26,78 %) en su convención.
+             * @example 0.24
+             */
+            rate: string;
+            convention: components["schemas"]["RateConventionEnum"];
+            /** Format: date */
+            valid_from: string;
+            source: string | null;
+        };
+        CardRateCreate: {
+            /**
+             * @description Fracción en su convención; fuera de 0 a 100 % EA se rechaza.
+             * @example 0.24
+             */
+            rate: string;
+            /** @default EA */
+            rate_convention: components["schemas"]["RateConventionEnum"];
+            /**
+             * Format: date
+             * @description Desde cuándo rige; una fecha ya usada da 409.
+             */
+            valid_from: string;
+            source?: string | null;
+        };
+        CardRates: {
+            /** Format: uuid */
+            card_id: string;
+            rate_type: components["schemas"]["RateTypeEnum"];
+            rates: components["schemas"]["CardRate"][];
+            rate_outdated: boolean;
+            /** @description Ajustes **sugeridos** por periodos ya facturados que una tasa retroactiva habría cambiado. */
+            adjustments: components["schemas"]["CardAdjustment"][];
+            warnings?: components["schemas"]["Warning"][];
+        };
         Catalog: {
             triggers: components["schemas"]["CatalogTrigger"][];
             actions: string[];
@@ -7497,6 +7773,12 @@ export interface components {
             /** @description Siempre `sent`: no se confirma qué correos tienen cuenta ni si cumple los requisitos. */
             status: string;
         };
+        /**
+         * @description * `handling_fee` - handling_fee
+         *     * `insurance` - insurance
+         * @enum {string}
+         */
+        Kind9ffEnum: "handling_fee" | "insurance";
         Kpi: {
             /**
              * @description «Te queda»: ingresos - gastado - abonos a capital - compromisos pendientes del periodo - aportes planeados a metas.
@@ -8250,6 +8532,7 @@ export interface components {
          *     * `card_advance` - Cash advance
          *     * `card_interest` - Card interest
          *     * `card_fee` - Card fee
+         *     * `card_insurance` - Card insurance
          *     * `loan_payment` - Loan installment
          *     * `loan_disbursement` - Loan disbursement
          *     * `recurrence` - Recurrence
@@ -8260,7 +8543,7 @@ export interface components {
          *     * `household_transfer` - Transfer between personal and household
          * @enum {string}
          */
-        MovementOriginEnum: "manual" | "transfer" | "card_purchase" | "card_payment" | "card_advance" | "card_interest" | "card_fee" | "loan_payment" | "loan_disbursement" | "recurrence" | "debt_payment" | "debt_opening" | "goal_contribution" | "import" | "household_transfer";
+        MovementOriginEnum: "manual" | "transfer" | "card_purchase" | "card_payment" | "card_advance" | "card_interest" | "card_fee" | "card_insurance" | "loan_payment" | "loan_disbursement" | "recurrence" | "debt_payment" | "debt_opening" | "goal_contribution" | "import" | "household_transfer";
         MovementPage: {
             count: number;
             page: number;
@@ -8406,9 +8689,10 @@ export interface components {
          *     * `debt_reminder` - debt_reminder
          *     * `vehicle_due` - vehicle_due
          *     * `maintenance_due` - maintenance_due
+         *     * `card_rate_update` - card_rate_update
          * @enum {string}
          */
-        NotificationRuleKeyEnum: "card_payment" | "card_cut" | "fixed_due" | "overdue" | "loan_due" | "subscription_confirm" | "low_balance" | "renewal" | "period_start" | "budget_warning" | "budget_exceeded" | "debt_reminder" | "vehicle_due" | "maintenance_due";
+        NotificationRuleKeyEnum: "card_payment" | "card_cut" | "fixed_due" | "overdue" | "loan_due" | "subscription_confirm" | "low_balance" | "renewal" | "period_start" | "budget_warning" | "budget_exceeded" | "debt_reminder" | "vehicle_due" | "maintenance_due" | "card_rate_update";
         NotificationsRead: {
             /** @description Sin `ids`, todas. */
             ids?: string[];
@@ -8688,6 +8972,8 @@ export interface components {
             handling_fee?: string;
             /** @example 0.24 */
             min_payment_rate?: string;
+            rate_type?: components["schemas"]["RateTypeEnum"];
+            rate_reminder_days?: number;
             last4?: string | null;
             /**
              * @description Bloqueada o cancelada: no acepta compras, sí pagos.
@@ -8697,6 +8983,14 @@ export interface components {
              *     * `closed` - Closed
              */
             status?: components["schemas"]["AccountStatusEnum"];
+        };
+        PatchedCardRatePatch: {
+            /** @example 0.24 */
+            rate?: string;
+            convention?: components["schemas"]["RateConventionEnum"];
+            /** Format: date */
+            valid_from?: string;
+            source?: string | null;
         };
         PatchedCategoryPatch: {
             name?: string;
@@ -8984,6 +9278,8 @@ export interface components {
              */
             monthly_rate: string;
             system: string;
+            /** @description `true`: en una tarjeta variable cada cuota sigue la tasa vigente en su corte; `false`: plan fijo (0 %, promoción). */
+            follows_card_rate: boolean | null;
             rows: components["schemas"]["PlanRow"][];
         };
         PlanRow: {
@@ -9007,6 +9303,8 @@ export interface components {
             installments: number;
             /** @description Cuántas cuotas ya llegaron a su corte. */
             billed: number;
+            /** @description `false`: plan fijo (0 %, promoción); `null`: aún sin decidir (plan anterior). */
+            follows_card_rate: boolean | null;
             /** @example 180000 */
             purchase_value: string;
             /** @example 180000 */
@@ -9112,6 +9410,8 @@ export interface components {
              * @example 0.24
              */
             rate?: string | null;
+            /** @description Por defecto `true`: en una tarjeta variable cada cuota sigue la tasa vigente en su corte. `false`, o una `rate` propia (promoción), fija el plan. */
+            follows_card_rate?: boolean;
             rate_convention?: components["schemas"]["RateConventionEnum"] | components["schemas"]["NullEnum"];
             /** @default confirmed */
             status: components["schemas"]["WriteStatusEnum"];
@@ -9225,6 +9525,12 @@ export interface components {
             /** @description Solo la diaria: la base de días. */
             days_in_year: number | null;
         };
+        /**
+         * @description * `fixed` - fixed
+         *     * `variable` - variable
+         * @enum {string}
+         */
+        RateTypeEnum: "fixed" | "variable";
         ReconcileInput: {
             /** Format: uuid */
             account_id: string;
@@ -10195,6 +10501,139 @@ export interface components {
          * @enum {string}
          */
         ThousandsSepEnum: "." | "," | " ";
+        Timeline: {
+            months: components["schemas"]["TimelineMonth"][];
+        };
+        TimelineCard: {
+            /** Format: uuid */
+            card_id: string;
+            card_label: string;
+            /** Format: date */
+            cutoff: string;
+            /** Format: date */
+            due_date: string;
+            estimated: boolean;
+            /**
+             * @description Lo que arrastra del extracto anterior, menos los pagos desde ese corte.
+             * @example 180000
+             */
+            carried: string;
+            /**
+             * @description Deuda total al corte.
+             * @example 180000
+             */
+            total_due: string;
+            /**
+             * @description Pago mínimo estimado (la regla del extracto real).
+             * @example 180000
+             */
+            minimum_due: string;
+            /**
+             * @description Pagado de verdad, hasta hoy, que aplica a este extracto.
+             * @example 180000
+             */
+            paid_so_far: string;
+            /** @description Extracto futuro cuyo interés usa una tasa variable más vieja que su periodo (nadie la ha actualizado). */
+            rate_assumed: boolean;
+            /**
+             * Format: date
+             * @description Desde cuándo rige la tasa usada en un extracto futuro.
+             */
+            rate_valid_from: string | null;
+            /** @description Tarjeta variable cuya última tasa tiene más de 35 días. */
+            rate_outdated: boolean;
+        };
+        TimelineLine: {
+            /**
+             * Format: date
+             * @description Fecha de la línea; en una cuota, el corte en que se factura (`purchase_date` es la de la compra).
+             */
+            date: string;
+            description: string | null;
+            /** Format: uuid */
+            card_id: string;
+            card_label: string;
+            /**
+             * @description `insurance` es el seguro de la tarjeta. `payment` incluye devoluciones.
+             *
+             *     * `installment` - installment
+             *     * `purchase` - purchase
+             *     * `interest` - interest
+             *     * `fee` - fee
+             *     * `insurance` - insurance
+             *     * `advance` - advance
+             *     * `payment` - payment
+             */
+            kind: components["schemas"]["TimelineLineKindEnum"];
+            installment_number: number | null;
+            installment_total: number | null;
+            /**
+             * @description Siempre positivo; el tipo dice si sube o baja la deuda. En una cuota, capital + interés.
+             * @example 180000
+             */
+            amount: string;
+            /**
+             * @description Solo en una cuota.
+             * @example 180000
+             */
+            capital: string | null;
+            /**
+             * @description Solo en una cuota.
+             * @example 180000
+             */
+            interest: string | null;
+            /** Format: date */
+            purchase_date: string | null;
+            /** @description Proyectada: cuota futura, interés aún sin cargar o pago supuesto del mínimo. */
+            estimated: boolean;
+            /** @description Cuota o interés de un extracto futuro calculado con una tasa más vieja que su periodo. */
+            rate_assumed: boolean;
+        };
+        /**
+         * @description * `installment` - installment
+         *     * `purchase` - purchase
+         *     * `interest` - interest
+         *     * `fee` - fee
+         *     * `insurance` - insurance
+         *     * `advance` - advance
+         *     * `payment` - payment
+         * @enum {string}
+         */
+        TimelineLineKindEnum: "installment" | "purchase" | "interest" | "fee" | "insurance" | "advance" | "payment";
+        TimelineMonth: {
+            /** @description `YYYY-MM` del corte. */
+            month: string;
+            /**
+             * Format: date
+             * @description `null` si las tarjetas del mes cortan en días distintos.
+             */
+            cutoff: string | null;
+            /**
+             * Format: date
+             * @description `null` si vencen en días distintos.
+             */
+            due_date: string | null;
+            estimated: boolean;
+            rate_assumed: boolean;
+            rate_outdated: boolean;
+            /**
+             * @description Suma de las tarjetas.
+             * @example 180000
+             */
+            total_due: string;
+            /**
+             * @description Suma de las tarjetas.
+             * @example 180000
+             */
+            minimum_due: string;
+            /**
+             * @description Suma de las tarjetas.
+             * @example 180000
+             */
+            paid_so_far: string;
+            cards: components["schemas"]["TimelineCard"][];
+            lines: components["schemas"]["TimelineLine"][];
+        };
         TransferCreate: {
             /** Format: uuid */
             from_account_id: string;
@@ -12975,6 +13414,173 @@ export interface operations {
             };
         };
     };
+    fmsCardFees: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardFees"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCardFeeSet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CardFeeCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardFees"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCardFeeDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                fee_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardFees"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsCardInterest: {
         parameters: {
             query?: never;
@@ -13255,6 +13861,282 @@ export interface operations {
             };
         };
     };
+    fmsCardRates: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardRates"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCardRateCreate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CardRateCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardRates"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardRates"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCardRateDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                rate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardRates"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCardRatePatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                rate_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedCardRatePatch"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CardRates"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsCardSimulate: {
         parameters: {
             query?: never;
@@ -13376,6 +14258,119 @@ export interface operations {
             };
             /** @description No existe (o es de otro usuario). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCardStatementsTimeline: {
+        parameters: {
+            query?: {
+                /** @description Meses adelante, 0 a 36 (por defecto 12, o hasta la última cuota). */
+                months_ahead?: number;
+                /** @description Meses atrás, 0 a 36 (por defecto 6). */
+                months_back?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timeline"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCardsStatementsTimeline: {
+        parameters: {
+            query?: {
+                /** @description Meses adelante, 0 a 36 (por defecto 12, o hasta la última cuota). */
+                months_ahead?: number;
+                /** @description Meses atrás, 0 a 36 (por defecto 6). */
+                months_back?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timeline"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

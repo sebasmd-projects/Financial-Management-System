@@ -13,7 +13,7 @@ import { useI18n } from "@/i18n/provider";
 import { fill } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { useConventionLabel } from "../conventions";
-import { AmountField, Banner, ErrorState, FormActions, Loading, Money, ScreenHeader, SelectField, SpentFigure, TextField } from "../kit";
+import { AmountField, Banner, Checkbox, ErrorState, FormActions, Loading, Money, ScreenHeader, SelectField, SpentFigure, TextField } from "../kit";
 import { warningText } from "../movements/movement-form";
 import { ConventionSelect, type RateConventionCode } from "../conventions";
 
@@ -30,6 +30,7 @@ export function PurchasePanel({ card, simulator = false, onDone }: { card: Card;
   const accounts = useAll<Account>(paths.accounts());
   const [amountText, setAmountText] = useState("");
   const [installmentsText, setInstallmentsText] = useState("1");
+  const [promo, setPromo] = useState(false);
   const [rateText, setRateText] = useState("");
   const [convention, setConvention] = useState<RateConventionCode>(card.rate_convention);
   const [date, setDate] = useState(todayBogota());
@@ -40,12 +41,12 @@ export function PurchasePanel({ card, simulator = false, onDone }: { card: Card;
 
   const amount = parsePositiveAmount(amountText);
   const installments = toInt(installmentsText, 1, 48);
-  const rateFraction = rateText.trim() === "" ? null : percentToFraction(rateText);
+  const rateFraction = promo && rateText.trim() !== "" ? percentToFraction(rateText) : promo ? "0" : rateText.trim() === "" ? null : percentToFraction(rateText);
   const rateInvalid = rateText.trim() !== "" && rateFraction === null;
   const blocked = card.status !== "active";
 
   // La vista previa del plan: el servidor calcula; aquí solo se pide, con una espera de 350 ms al teclear.
-  const simKey = amount && installments && !rateInvalid ? JSON.stringify({ amount, installments, date, ...(rateFraction !== null ? { rate: rateFraction, rate_convention: convention } : {}) }) : null;
+  const simKey = amount && installments && !rateInvalid ? JSON.stringify({ amount, installments, date, ...(rateFraction !== null ? { rate: rateFraction, rate_convention: convention } : {}), ...(promo ? { follows_card_rate: false } : {}) }) : null;
   const [sim, setSim] = useState<{ key: string; result: ApiResult<Simulation> } | null>(null);
   useEffect(() => {
     if (simKey === null) return;
@@ -72,6 +73,7 @@ export function PurchasePanel({ card, simulator = false, onDone }: { card: Card;
       date,
       installments,
       ...(rateFraction !== null ? { rate: rateFraction, rate_convention: convention } : {}),
+      ...(promo ? { follows_card_rate: false } : {}),
       ...(category ? { category_id: category } : {}),
       ...(description.trim() ? { description: description.trim() } : {}),
     };
@@ -105,9 +107,10 @@ export function PurchasePanel({ card, simulator = false, onDone }: { card: Card;
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       {blocked && <Banner tone="warning">{t.blocked}</Banner>}
       <AmountField label={t.amount} value={amountText} onChange={setAmountText} required error={touched && !amount ? dict.fin.common.invalidAmount : null} />
+      <Checkbox label={dict.fin.cardForm.promo} help={dict.fin.cardForm.promoHelp} checked={promo} onChange={setPromo} />
       <div className="fin-grid-2">
         <TextField label={t.installments} hint={t.installmentsHint} value={installmentsText} onChange={setInstallmentsText} inputMode="numeric" maxLength={2} required error={touched && !installments ? t.installmentsInvalid : null} />
-        <TextField label={t.rate} help={dict.fin.help.texts.rate} hint={`${t.rateHint} ${fractionToPercent(card.rate)} % ${convName(card.rate_convention)}`} value={rateText} onChange={setRateText} inputMode="decimal" error={rateInvalid ? t.rateInvalid : null} />
+        <TextField label={promo ? dict.fin.cardForm.promoRate : t.rate} help={dict.fin.help.texts.rate} hint={promo ? dict.fin.cardForm.promoRateHint : `${t.rateHint} ${fractionToPercent(card.rate)} % ${convName(card.rate_convention)}`} value={rateText} onChange={setRateText} inputMode="decimal" error={rateInvalid ? t.rateInvalid : null} />
       </div>
       {rateText.trim() !== "" && <ConventionSelect label={t.convention} value={convention} onChange={setConvention} />}
 

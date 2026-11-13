@@ -2389,6 +2389,165 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/cards/{id}/fees:
+    get:
+      operationId: fmsCardFees
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: La cuota de manejo y el seguro de la tarjeta con su vigencia
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardFees'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    post:
+      operationId: fmsCardFeeSet
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Un monto de cuota de manejo o seguro desde una fecha (se carga solo
+        en cada corte; 0 lo termina)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardFeeCreate'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardFees'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/cards/{id}/fees/{fee_id}:
+    delete:
+      operationId: fmsCardFeeDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Borrar un monto del historial de cuota de manejo o seguro
+      parameters:
+      - in: path
+        name: fee_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardFees'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
   /api/fms/v1/cards/{id}/interest:
     post:
       operationId: fmsCardInterest
@@ -2653,6 +2812,265 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/cards/{id}/rates:
+    get:
+      operationId: fmsCardRates
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: El historial de tasas de la tarjeta con su vigencia, la marca de «quizá
+        desactualizada» y los ajustes sugeridos
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardRates'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    post:
+      operationId: fmsCardRateCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Una tasa nueva con vigencia (solo tarjeta variable): re-tarifa las
+        cuotas pendientes; lo ya facturado no se reescribe y la diferencia sale como
+        ajuste sugerido'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardRateCreate'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardRates'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardRates'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/cards/{id}/rates/{rate_id}:
+    patch:
+      operationId: fmsCardRatePatch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Corregir una tasa del historial (tasa, convención, fecha o fuente)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: rate_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCardRatePatch'
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardRates'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsCardRateDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Borrar una tasa del historial (la última no se puede borrar)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: rate_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardRates'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
   /api/fms/v1/cards/{id}/simulate:
     post:
       operationId: fmsCardSimulate
@@ -2773,6 +3191,118 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
+  /api/fms/v1/cards/{id}/statements/timeline:
+    get:
+      operationId: fmsCardStatementsTimeline
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Extractos mes a mes de una tarjeta, cerrados y proyectados (vista;
+        no escribe)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: months_ahead
+        schema:
+          type: integer
+        description: Meses adelante, 0 a 36 (por defecto 12, o hasta la última cuota).
+      - in: query
+        name: months_back
+        schema:
+          type: integer
+        description: Meses atrás, 0 a 36 (por defecto 6).
+      tags:
+      - cards
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timeline'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/cards/statements/timeline:
+    get:
+      operationId: fmsCardsStatementsTimeline
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Extractos mes a mes de todas tus tarjetas, cerrados y proyectados (vista;
+        no escribe)
+      parameters:
+      - in: query
+        name: months_ahead
+        schema:
+          type: integer
+        description: Meses adelante, 0 a 36 (por defecto 12, o hasta la última cuota).
+      - in: query
+        name: months_back
+        schema:
+          type: integer
+        description: Meses atrás, 0 a 36 (por defecto 6).
+      tags:
+      - cards
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timeline'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/categories:
     get:
       operationId: fmsCategories
@@ -17657,10 +18187,40 @@ components:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '180000'
+          description: La cuota de manejo que rige hoy (historial en `cards/{id}/fees`).
+        insurance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El seguro que rige hoy (historial en `cards/{id}/fees`).
         min_payment_rate:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '0.24'
+          description: Fracción del saldo revolvente (compras a una cuota, avances
+            y lo arrastrado no vencido) que entra al pago mínimo.
+        rate_type:
+          allOf:
+          - $ref: '#/components/schemas/RateTypeEnum'
+          description: |-
+            `fixed`: una tasa (`rate`). `variable`: la tasa es el historial con vigencia de `cards/{id}/rates`.
+
+            * `fixed` - fixed
+            * `variable` - variable
+        rate_reminder_days:
+          type: integer
+          description: Días antes de cada corte en que se recuerda actualizar una
+            tasa variable (0 a 30).
+        rate_valid_from:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: Desde cuándo rige la tasa de hoy (`null` en una fija).
+        rate_outdated:
+          type: boolean
+          description: 'Variable cuya última tasa tiene más de 35 días: quizá está
+            desactualizada.'
       required:
       - account_id
       - available
@@ -17668,6 +18228,7 @@ components:
       - handling_fee
       - id
       - installment_system
+      - insurance
       - issuer
       - last4
       - limit
@@ -17678,9 +18239,68 @@ components:
       - pay_day
       - rate
       - rate_convention
+      - rate_outdated
+      - rate_reminder_days
+      - rate_type
+      - rate_valid_from
       - status
       - used
       - utilization_percent
+    CardAdjustment:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/CardAdjustmentKindEnum'
+        purchase_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        installment_number:
+          type:
+          - integer
+          - 'null'
+        cutoff:
+          type: string
+          format: date
+        base:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El saldo sobre el que se calculó el periodo.
+        billed_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo facturado (inmutable).
+        expected_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que daría la tasa que rige en el corte.
+        difference:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'Positiva: falta cargar; negativa: se cobró de más. Sugerencia:
+            no se escribe sola (se carga con `charges`).'
+      required:
+      - base
+      - billed_interest
+      - cutoff
+      - difference
+      - expected_interest
+      - installment_number
+      - kind
+      - purchase_id
+    CardAdjustmentKindEnum:
+      enum:
+      - installment
+      - revolving_interest
+      type: string
+      description: |-
+        * `installment` - installment
+        * `revolving_interest` - revolving_interest
     CardCreate:
       type: object
       properties:
@@ -17703,6 +18323,14 @@ components:
           type:
           - integer
           - 'null'
+        rate_type:
+          allOf:
+          - $ref: '#/components/schemas/RateTypeEnum'
+          description: |-
+            Obligatorio. `variable`: la `rate` es la primera del historial (desde la apertura o hoy).
+
+            * `fixed` - fixed
+            * `variable` - variable
         rate:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
@@ -17726,6 +18354,11 @@ components:
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '0.24'
           default: '0.05'
+        rate_reminder_days:
+          type: integer
+          maximum: 30
+          minimum: 0
+          default: 3
         last4:
           type:
           - string
@@ -17745,6 +18378,58 @@ components:
       - limit
       - name
       - pay_day
+      - rate_type
+    CardFee:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          $ref: '#/components/schemas/Kind9ffEnum'
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        valid_from:
+          type: string
+          format: date
+      required:
+      - amount
+      - id
+      - kind
+      - valid_from
+    CardFeeCreate:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/Kind9ffEnum'
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Mensual, se carga en cada corte. 0 la termina.
+        valid_from:
+          type: string
+          format: date
+          description: Desde cuándo rige; una fecha ya usada la cambia.
+      required:
+      - amount
+      - kind
+      - valid_from
+    CardFees:
+      type: object
+      properties:
+        card_id:
+          type: string
+          format: uuid
+        fees:
+          type: array
+          items:
+            $ref: '#/components/schemas/CardFee'
+      required:
+      - card_id
+      - fees
     CardPage:
       type: object
       properties:
@@ -17804,6 +18489,86 @@ components:
         * `total` - total
         * `minimum` - minimum
         * `amount` - amount
+    CardRate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: Fracción (`0.2678` = 26,78 %) en su convención.
+        convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        valid_from:
+          type: string
+          format: date
+        source:
+          type:
+          - string
+          - 'null'
+      required:
+      - convention
+      - id
+      - rate
+      - source
+      - valid_from
+    CardRateCreate:
+      type: object
+      properties:
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: Fracción en su convención; fuera de 0 a 100 % EA se rechaza.
+        rate_convention:
+          allOf:
+          - $ref: '#/components/schemas/RateConventionEnum'
+          default: EA
+        valid_from:
+          type: string
+          format: date
+          description: Desde cuándo rige; una fecha ya usada da 409.
+        source:
+          type:
+          - string
+          - 'null'
+          maxLength: 200
+      required:
+      - rate
+      - valid_from
+    CardRates:
+      type: object
+      properties:
+        card_id:
+          type: string
+          format: uuid
+        rate_type:
+          $ref: '#/components/schemas/RateTypeEnum'
+        rates:
+          type: array
+          items:
+            $ref: '#/components/schemas/CardRate'
+        rate_outdated:
+          type: boolean
+        adjustments:
+          type: array
+          items:
+            $ref: '#/components/schemas/CardAdjustment'
+          description: Ajustes **sugeridos** por periodos ya facturados que una tasa
+            retroactiva habría cambiado.
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+      required:
+      - adjustments
+      - card_id
+      - rate_outdated
+      - rate_type
+      - rates
     Catalog:
       type: object
       properties:
@@ -21596,6 +22361,14 @@ components:
             si cumple los requisitos.'
       required:
       - status
+    Kind9ffEnum:
+      enum:
+      - handling_fee
+      - insurance
+      type: string
+      description: |-
+        * `handling_fee` - handling_fee
+        * `insurance` - insurance
     Kpi:
       type: object
       properties:
@@ -23098,6 +23871,7 @@ components:
       - card_advance
       - card_interest
       - card_fee
+      - card_insurance
       - loan_payment
       - loan_disbursement
       - recurrence
@@ -23115,6 +23889,7 @@ components:
         * `card_advance` - Cash advance
         * `card_interest` - Card interest
         * `card_fee` - Card fee
+        * `card_insurance` - Card insurance
         * `loan_payment` - Loan installment
         * `loan_disbursement` - Loan disbursement
         * `recurrence` - Recurrence
@@ -23408,6 +24183,7 @@ components:
       - debt_reminder
       - vehicle_due
       - maintenance_due
+      - card_rate_update
       type: string
       description: |-
         * `card_payment` - card_payment
@@ -23424,6 +24200,7 @@ components:
         * `debt_reminder` - debt_reminder
         * `vehicle_due` - vehicle_due
         * `maintenance_due` - maintenance_due
+        * `card_rate_update` - card_rate_update
     NotificationsRead:
       type: object
       properties:
@@ -23989,6 +24766,12 @@ components:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '0.24'
+        rate_type:
+          $ref: '#/components/schemas/RateTypeEnum'
+        rate_reminder_days:
+          type: integer
+          maximum: 30
+          minimum: 0
         last4:
           type:
           - string
@@ -24003,6 +24786,23 @@ components:
             * `active` - Active
             * `blocked` - Blocked
             * `closed` - Closed
+    PatchedCardRatePatch:
+      type: object
+      properties:
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        valid_from:
+          type: string
+          format: date
+        source:
+          type:
+          - string
+          - 'null'
+          maxLength: 200
     PatchedCategoryPatch:
       type: object
       properties:
@@ -24656,11 +25456,18 @@ components:
             decimales).
         system:
           type: string
+        follows_card_rate:
+          type:
+          - boolean
+          - 'null'
+          description: '`true`: en una tarjeta variable cada cuota sigue la tasa vigente
+            en su corte; `false`: plan fijo (0 %, promoción).'
         rows:
           type: array
           items:
             $ref: '#/components/schemas/PlanRow'
       required:
+      - follows_card_rate
       - installments
       - monthly_rate
       - purchase_value
@@ -24712,6 +25519,12 @@ components:
         billed:
           type: integer
           description: Cuántas cuotas ya llegaron a su corte.
+        follows_card_rate:
+          type:
+          - boolean
+          - 'null'
+          description: '`false`: plan fijo (0 %, promoción); `null`: aún sin decidir
+            (plan anterior).'
         purchase_value:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
@@ -24733,6 +25546,7 @@ components:
       required:
       - billed
       - date
+      - follows_card_rate
       - installments
       - movement_id
       - next_payment
@@ -24954,6 +25768,11 @@ components:
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
           example: '0.24'
           description: Por defecto, la de la tarjeta.
+        follows_card_rate:
+          type: boolean
+          description: 'Por defecto `true`: en una tarjeta variable cada cuota sigue
+            la tasa vigente en su corte. `false`, o una `rate` propia (promoción),
+            fija el plan.'
         rate_convention:
           oneOf:
           - $ref: '#/components/schemas/RateConventionEnum'
@@ -25205,6 +26024,14 @@ components:
       - days_in_year
       - percent
       - rate
+    RateTypeEnum:
+      enum:
+      - fixed
+      - variable
+      type: string
+      description: |-
+        * `fixed` - fixed
+        * `variable` - variable
     ReconcileInput:
       type: object
       properties:
@@ -27178,6 +28005,240 @@ components:
       - ' '
       type: string
       description: "* `` - \n* `.` - .\n* `,` - ,\n* ` ` -  "
+    Timeline:
+      type: object
+      properties:
+        months:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineMonth'
+      required:
+      - months
+    TimelineCard:
+      type: object
+      properties:
+        card_id:
+          type: string
+          format: uuid
+        card_label:
+          type: string
+        cutoff:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        estimated:
+          type: boolean
+        carried:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que arrastra del extracto anterior, menos los pagos desde
+            ese corte.
+        total_due:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Deuda total al corte.
+        minimum_due:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Pago mínimo estimado (la regla del extracto real).
+        paid_so_far:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Pagado de verdad, hasta hoy, que aplica a este extracto.
+        rate_assumed:
+          type: boolean
+          description: Extracto futuro cuyo interés usa una tasa variable más vieja
+            que su periodo (nadie la ha actualizado).
+        rate_valid_from:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: Desde cuándo rige la tasa usada en un extracto futuro.
+        rate_outdated:
+          type: boolean
+          description: Tarjeta variable cuya última tasa tiene más de 35 días.
+      required:
+      - card_id
+      - card_label
+      - carried
+      - cutoff
+      - due_date
+      - estimated
+      - minimum_due
+      - paid_so_far
+      - rate_assumed
+      - rate_outdated
+      - rate_valid_from
+      - total_due
+    TimelineLine:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Fecha de la línea; en una cuota, el corte en que se factura
+            (`purchase_date` es la de la compra).
+        description:
+          type:
+          - string
+          - 'null'
+        card_id:
+          type: string
+          format: uuid
+        card_label:
+          type: string
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/TimelineLineKindEnum'
+          description: |-
+            `insurance` es el seguro de la tarjeta. `payment` incluye devoluciones.
+
+            * `installment` - installment
+            * `purchase` - purchase
+            * `interest` - interest
+            * `fee` - fee
+            * `insurance` - insurance
+            * `advance` - advance
+            * `payment` - payment
+        installment_number:
+          type:
+          - integer
+          - 'null'
+        installment_total:
+          type:
+          - integer
+          - 'null'
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Siempre positivo; el tipo dice si sube o baja la deuda. En
+            una cuota, capital + interés.
+        capital:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Solo en una cuota.
+        interest:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Solo en una cuota.
+        purchase_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        estimated:
+          type: boolean
+          description: 'Proyectada: cuota futura, interés aún sin cargar o pago supuesto
+            del mínimo.'
+        rate_assumed:
+          type: boolean
+          description: Cuota o interés de un extracto futuro calculado con una tasa
+            más vieja que su periodo.
+      required:
+      - amount
+      - capital
+      - card_id
+      - card_label
+      - date
+      - description
+      - estimated
+      - installment_number
+      - installment_total
+      - interest
+      - kind
+      - purchase_date
+      - rate_assumed
+    TimelineLineKindEnum:
+      enum:
+      - installment
+      - purchase
+      - interest
+      - fee
+      - insurance
+      - advance
+      - payment
+      type: string
+      description: |-
+        * `installment` - installment
+        * `purchase` - purchase
+        * `interest` - interest
+        * `fee` - fee
+        * `insurance` - insurance
+        * `advance` - advance
+        * `payment` - payment
+    TimelineMonth:
+      type: object
+      properties:
+        month:
+          type: string
+          description: '`YYYY-MM` del corte.'
+        cutoff:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: '`null` si las tarjetas del mes cortan en días distintos.'
+        due_date:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: '`null` si vencen en días distintos.'
+        estimated:
+          type: boolean
+        rate_assumed:
+          type: boolean
+        rate_outdated:
+          type: boolean
+        total_due:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Suma de las tarjetas.
+        minimum_due:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Suma de las tarjetas.
+        paid_so_far:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Suma de las tarjetas.
+        cards:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineCard'
+        lines:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimelineLine'
+      required:
+      - cards
+      - cutoff
+      - due_date
+      - estimated
+      - lines
+      - minimum_due
+      - month
+      - paid_so_far
+      - rate_assumed
+      - rate_outdated
+      - total_due
     TransferCreate:
       type: object
       properties:

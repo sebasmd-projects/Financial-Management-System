@@ -47,6 +47,7 @@ tarjetas, pagos, créditos, presupuestos, informes, configuración) dice «Dispo
 | **+ Nuevo movimiento** (`(app)/quick-add.tsx`) | Hoja con el **teclado numérico propio** (nunca el del sistema): el monto es una cadena decimal (`features/quick-add/keypad-logic.ts`). Un atajo del Resumen la abre con monto, descripción y categoría **desde memoria**: atajo → «Guardar» son dos toques. Una `Idempotency-Key` por intención: «Reintentar» reenvía **la misma** clave mientras no cambie lo enviado. Egreso e ingreso; la transferencia se hace en la web |
 | **Movimientos** (`(app)/(tabs)/movements.tsx`) | Historial agrupado por día con neto, filtros (tipo, estado, periodo, cuenta, monto mínimo y máximo con el mismo teclado) por `POST movements/search`, «Cargar más» |
 | **Avisos** (`(app)/(tabs)/notifications.tsx`) | Centro de avisos: Hoy / Esta semana / Anteriores, leído, «Marcar todo», **Posponer** y **Marcar pagado** (gasto fijo: paga lo que falta con confirmación y clave de idempotencia; tarjeta y cuota de préstamo dicen «Pagar en la web») |
+| **Extractos** (`(app)/statements.tsx`, desde «Más») | Meses cerrados y proyectados de tus tarjetas (`GET cards/statements/timeline`): selector de mes, barras desplazables (la proyectada con borde discontinuo y «estimado»), «Gráfica» a tabla, Todos / Por tarjeta, líneas con detalle. «Abonar» dice «Disponible en la web». La lógica es `core/statements.ts` (compartida con la web) |
 | **Más** | «Disponible en la web» para lo que falta, seguridad, dispositivos y cerrar sesión |
 
 ## Avisos push (FCM directo)

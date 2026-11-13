@@ -22,6 +22,8 @@ export function generateMetadata(): Metadata {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  // Con el teclado abierto el área visible se encoge de verdad: `dvh` y los pies fijos de las hojas lo siguen sin JavaScript.
+  interactiveWidget: "resizes-content",
   colorScheme: "light dark",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#F6F5F1" },

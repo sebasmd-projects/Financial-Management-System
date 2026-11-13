@@ -10,6 +10,7 @@ import { amountInputProblem, normalizeAmountInput } from "@/lib/amount-input";
 import { formatCop, formatCopCompact, HIDDEN_AMOUNT, spokenCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { Icon, type IconName } from "@/ui/icons";
+import { useScrollLock } from "@/ui/scroll-lock";
 
 export function ScreenHeader({ title, eyebrow, back, actions }: { title: string; eyebrow?: string; back?: { href: string; label: string }; actions?: ReactNode }) {
   return (
@@ -370,6 +371,7 @@ export function Modal({ open, title, onClose, children }: { open: boolean; title
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
+  useScrollLock(open);
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;

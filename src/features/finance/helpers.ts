@@ -23,9 +23,33 @@ export function accountGroup(account: Pick<Account, "kind">): AccountGroup {
   return "otro";
 }
 
-/** Cuentas de las que puede salir o entrar plata en un movimiento: las de activo y las tarjetas de crédito, sin cerrar. */
+let kindShort: Record<string, string> = {};
+/** El proveedor de idioma registra aquí los nombres cortos de los tipos de cuenta («Ahorros», «Tarjeta») para desambiguar nombres repetidos. */
+export function setAccountKindLabels(labels: Record<string, string>): void {
+  kindShort = labels;
+}
+
+/**
+ * Nombres repetidos (la cuenta de ahorros «Nu» y la tarjeta «Nu»): en selectores y chips se muestran con su tipo y sus últimos dígitos
+ * («Nu · Ahorros ••2395», «Nu · Tarjeta ••7048») sin pedir que renombres nada. Los nombres únicos quedan tal cual (cortos). No toca los datos.
+ */
+export function disambiguate<T extends Pick<Account, "name" | "kind" | "last4">>(accounts: readonly T[]): T[] {
+  const counts = new Map<string, number>();
+  for (const a of accounts) {
+    const key = (a.name ?? "").trim().toLowerCase();
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return accounts.map((a) => ((counts.get((a.name ?? "").trim().toLowerCase()) ?? 0) > 1 ? { ...a, name: `${a.name} · ${kindShort[a.kind] ?? a.kind}${a.last4 ? ` ••${a.last4}` : ""}` } : a));
+}
+
+/** La cuenta predeterminada primero (el resto en su orden): así `lista[0]` es la que viene preseleccionada. */
+export function defaultFirst<T extends Pick<Account, "is_default">>(accounts: readonly T[]): T[] {
+  return [...accounts.filter((a) => a.is_default), ...accounts.filter((a) => !a.is_default)];
+}
+
+/** Cuentas de las que puede salir o entrar plata en un movimiento: las de activo y las tarjetas de crédito, sin cerrar; la predeterminada primero. */
 export function movementAccounts(accounts: readonly Account[]): Account[] {
-  return accounts.filter((a) => a.status !== "closed" && (accountGroup(a) === "bancos" || accountGroup(a) === "efectivo" || a.kind === "credit_card"));
+  return disambiguate(defaultFirst(accounts.filter((a) => a.status !== "closed" && (accountGroup(a) === "bancos" || accountGroup(a) === "efectivo" || a.kind === "credit_card"))));
 }
 
 /** Cuentas propias que sirven de origen o destino de una transferencia (sin préstamos). */

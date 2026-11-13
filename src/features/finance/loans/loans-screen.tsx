@@ -8,6 +8,8 @@ import { formatDate } from "@/lib/dates";
 import { formatUnits } from "@/lib/decimal";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
+import { RemoveDialog, RowMenu } from "../shared/remove";
+import { useCanWrite } from "../../household/scope-store";
 import { CreditTabs } from "../credit/credit-tabs";
 import { useAll, useHref } from "../hooks";
 import { Badge, Banner, Empty, ErrorState, Loading, Modal, Money, Progress, ScreenHeader } from "../kit";
@@ -22,6 +24,11 @@ export function LoansScreen() {
   const loans = useAll<Loan>(paths.loans());
   const [creating, setCreating] = useState(false);
   const [aboveUsury, setAboveUsury] = useState(false);
+  const [removing, setRemoving] = useState<Loan | null>(null);
+  const [showClosed, setShowClosed] = useState(false);
+  const canWrite = useCanWrite();
+  const shown = loans.items.filter((loan) => showClosed || loan.status !== "closed");
+  const hasClosed = loans.items.some((loan) => loan.status === "closed");
   return (
     <div className="screen">
       <ScreenHeader
@@ -38,7 +45,7 @@ export function LoansScreen() {
       {aboveUsury && <Banner tone="warning">{dict.fin.usury.created}</Banner>}
       {loans.loading && !loans.data && <Loading />}
       {loans.failure && <ErrorState message={dict.fin.errors.generic} onRetry={loans.reload} />}
-      {loans.data && loans.items.length === 0 && (
+      {loans.data && shown.length === 0 && (
         <Empty
           icon="loan"
           title={t.emptyTitle}
@@ -50,10 +57,15 @@ export function LoansScreen() {
           }
         />
       )}
-      {loans.items.length > 0 && (
+      {hasClosed && (
+        <label className="check">
+          <input type="checkbox" checked={showClosed} onChange={(event) => setShowClosed(event.target.checked)} /> {dict.fin.own.showClosed}
+        </label>
+      )}
+      {shown.length > 0 && (
         <ul className="fin-list">
-          {loans.items.map((loan) => (
-            <li key={loan.id}>
+          {shown.map((loan) => (
+            <li key={loan.id} className={canWrite ? "has-menu" : undefined}>
               <Link href={href("credito", [loan.id])} className="fin-row fin-row--loan">
                 <span className="fin-row__main">
                   <span className="fin-row__title">{loan.name}</span>
@@ -85,6 +97,7 @@ export function LoansScreen() {
                 </span>
                 <Icon name="chevron-right" size={20} />
               </Link>
+              {canWrite && <RowMenu name={loan.name} editHref={`${href("credito", [loan.id])}?editar=1`} onDelete={() => setRemoving(loan)} />}
             </li>
           ))}
         </ul>
@@ -99,6 +112,17 @@ export function LoansScreen() {
           }}
         />
       </Modal>
+      <RemoveDialog
+        open={removing !== null}
+        name={removing?.name ?? ""}
+        deletePath={removing ? paths.loan(removing.id) : ""}
+        closePath={removing ? paths.loan(removing.id) : undefined}
+        onClose={() => setRemoving(null)}
+        onDone={() => {
+          setRemoving(null);
+          loans.reload();
+        }}
+      />
     </div>
   );
 }

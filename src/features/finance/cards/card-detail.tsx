@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/api";
 import type { Account, AdvanceResult, Card, PlanSummary, Statements } from "@/api/models";
@@ -15,6 +16,10 @@ import { useConventionLabel } from "../conventions";
 import { AmountField, Badge, Banner, DefinitionList, Empty, ErrorState, FormActions, Loading, Modal, Money, Progress, ScreenHeader, Section, SelectField, SpentFigure, TextField } from "../kit";
 import { FeesPanel } from "./card-rates";
 import { PurchasePanel } from "./card-purchase";
+import { CardEditForm } from "./card-edit";
+import { RemoveDialog } from "../shared/remove";
+import { Icon } from "@/ui/icons";
+import { useCanWrite } from "../../household/scope-store";
 
 /** Tarjeta de crédito (`/tarjetas/[id]`, diseño §3.7): cupo, fechas, extracto, acciones y compras a cuotas pendientes. */
 export function CardDetail({ id }: { id: string }) {
@@ -26,6 +31,10 @@ export function CardDetail({ id }: { id: string }) {
   const statements = useResource<Statements>(paths.cardStatements(id));
   const plans = useResource<PlanSummary[]>(paths.cardPlans(id));
   const [action, setAction] = useState<"purchase" | "advance" | null>(null);
+  const [editing, setEditing] = useState(useSearchParams().get("editar") === "1");
+  const [removing, setRemoving] = useState(false);
+  const router = useRouter();
+  const canWrite = useCanWrite();
   const back = { href: href("cuentas-credito"), label: dict.screens["cuentas-credito"] };
 
   if (card.loading && !card.data) return <div className="screen"><ScreenHeader title={dict.screens.tarjeta} back={back} /><Loading /></div>;
@@ -51,7 +60,31 @@ export function CardDetail({ id }: { id: string }) {
 
   return (
     <div className="screen">
-      <ScreenHeader title={c.name} eyebrow={c.last4 ? `•••• ${c.last4}` : dict.screens.tarjeta} back={back} actions={!active ? <Badge tone="warning">{dict.fin.accounts.status[c.status]}</Badge> : undefined} />
+      <ScreenHeader title={c.name} eyebrow={c.last4 ? `•••• ${c.last4}` : dict.screens.tarjeta} back={back} actions={
+          <>
+            {c.is_default && (
+              <Badge tone="info">
+                <Icon name="star" size={14} /> {dict.fin.own.default.badge}
+              </Badge>
+            )}
+            {!active && <Badge tone="warning">{dict.fin.accounts.status[c.status]}</Badge>}
+            {canWrite && (
+              <>
+                <button type="button" className="button button--ghost" onClick={() => setEditing(true)}>
+                  {dict.fin.own.edit}
+                </button>
+                <button type="button" className="button button--ghost" onClick={() => setRemoving(true)}>
+                  {dict.fin.own.delete}
+                </button>
+              </>
+            )}
+          </>
+        }
+      />
+      <Modal open={editing} title={dict.fin.own.card.editTitle} onClose={() => setEditing(false)}>
+        <CardEditForm card={c} onCancel={() => setEditing(false)} onDone={() => { setEditing(false); card.reload(); }} />
+      </Modal>
+      <RemoveDialog open={removing} name={c.name} deletePath={paths.card(c.id)} closePath={paths.card(c.id)} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(back.href); }} />
 
       <section className="fin-card" aria-label={t.limitSection}>
         <p className="muted">

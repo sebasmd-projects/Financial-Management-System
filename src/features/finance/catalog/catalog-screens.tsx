@@ -21,6 +21,12 @@ export function CategoriesScreen() {
   const [archived, setArchived] = useState(false);
   const categories = useAll<Category>(paths.categories({ archived }));
   const [editing, setEditing] = useState<Category | "new" | null>(null);
+  const archiving = useSubmit();
+  async function toggleArchive(category: Category) {
+    const body = { archived: !category.archived };
+    const result = await archiving.run({ id: category.id, ...body }, (key) => api.patch(paths.category(category.id), body, { idempotencyKey: key }));
+    if (result.ok) categories.reload();
+  }
   const items = [...categories.items].sort((a, b) => a.path.join("\u0000").localeCompare(b.path.join("\u0000")));
 
   return (
@@ -55,10 +61,16 @@ export function CategoriesScreen() {
                     {category.archived && <Badge>{t.archived}</Badge>}
                   </span>
                   {canWrite && (
-                    <button type="button" className="button button--ghost" onClick={() => setEditing(category)}>
-                      {t.edit}
-                      <span className="visually-hidden"> {category.name}</span>
-                    </button>
+                    <>
+                      <button type="button" className="button button--ghost" onClick={() => setEditing(category)}>
+                        {t.edit}
+                        <span className="visually-hidden"> {category.name}</span>
+                      </button>
+                      <button type="button" className="button button--ghost" disabled={archiving.pending} onClick={() => void toggleArchive(category)}>
+                        {category.archived ? dict.fin.own.unarchive : dict.fin.own.archive}
+                        <span className="visually-hidden"> {category.name}</span>
+                      </button>
+                    </>
                   )}
                 </li>
               ))}

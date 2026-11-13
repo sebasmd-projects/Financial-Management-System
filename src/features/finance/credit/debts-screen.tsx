@@ -9,6 +9,7 @@ import { fill } from "../helpers";
 import { useResource } from "../hooks";
 import { Badge, Empty, ErrorState, Loading, Modal, Money, Progress, ScreenHeader, Segmented } from "../kit";
 import { CreditTabs } from "./credit-tabs";
+import { RemoveDialog } from "../shared/remove";
 import { DebtEditForm, DebtForm, DebtPayForm, DebtReminderView } from "./debt-dialogs";
 
 type Direction = "owed" | "owe";
@@ -21,6 +22,7 @@ export function DebtsScreen() {
   const [direction, setDirection] = useState<Direction>("owed");
   const [settled, setSettled] = useState(false);
   const [dialog, setDialog] = useState<Dialog>(null);
+  const [removing, setRemoving] = useState<Debt | null>(null);
   const summary = useResource<DebtSummary>(paths.debtsSummary());
   const list = useResource<Page<Debt>>(paths.debts({ direction, status: settled ? "settled" : "open" }));
   const close = () => setDialog(null);
@@ -74,10 +76,20 @@ export function DebtsScreen() {
       <ul className="fin-list">
         {list.data?.results.map((debt) => (
           <li key={debt.id}>
-            <DebtCard debt={debt} onPay={() => setDialog({ kind: "pay", debt })} onEdit={() => setDialog({ kind: "edit", debt })} onRemind={() => setDialog({ kind: "remind", debt })} />
+            <DebtCard debt={debt} onRemove={() => setRemoving(debt)} onPay={() => setDialog({ kind: "pay", debt })} onEdit={() => setDialog({ kind: "edit", debt })} onRemind={() => setDialog({ kind: "remind", debt })} />
           </li>
         ))}
       </ul>
+      <RemoveDialog
+        open={removing !== null}
+        name={removing?.person ?? ""}
+        deletePath={removing ? paths.debt(removing.id) : ""}
+        onClose={() => setRemoving(null)}
+        onDone={() => {
+          setRemoving(null);
+          refresh();
+        }}
+      />
       <Modal open={dialog?.kind === "new"} title={t.add} onClose={close}>
         {dialog?.kind === "new" && <DebtForm initialDirection={direction} onCancel={close} onDone={refresh} />}
       </Modal>
@@ -94,7 +106,7 @@ export function DebtsScreen() {
   );
 }
 
-function DebtCard({ debt, onPay, onEdit, onRemind }: { debt: Debt; onPay: () => void; onEdit: () => void; onRemind: () => void }) {
+function DebtCard({ debt, onPay, onEdit, onRemind, onRemove }: { debt: Debt; onPay: () => void; onEdit: () => void; onRemind: () => void; onRemove: () => void }) {
   const { dict } = useI18n();
   const t = dict.fin.credit.debts;
   const [showPayments, setShowPayments] = useState(false);
@@ -129,9 +141,12 @@ function DebtCard({ debt, onPay, onEdit, onRemind }: { debt: Debt; onPay: () => 
         )}
         {open && (
           <button type="button" className="button button--ghost" onClick={onEdit}>
-            {t.editReminder}
+            {dict.fin.own.edit}
           </button>
         )}
+        <button type="button" className="button button--ghost" aria-label={`${dict.fin.own.delete}: ${debt.person}`} onClick={onRemove}>
+          {dict.fin.own.delete}
+        </button>
         <button type="button" className="button button--ghost" aria-expanded={showPayments} onClick={() => setShowPayments((v) => !v)}>
           {t.payments}
         </button>

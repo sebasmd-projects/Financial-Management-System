@@ -1,0 +1,19 @@
+/* Comentarios del propietario: menú «⋮» de las filas, acción de eliminar y estrella de «predeterminada». */
+.fin-list > li.has-menu { position: relative; }
+.fin-list > li.has-menu > .fin-row { padding-right: 56px; }
+.row-menu { position: absolute; top: 50%; right: var(--space-8); transform: translateY(-50%); }
+.row-menu__list {
+  position: absolute; right: 0; top: 100%; z-index: 20; min-width: 160px; margin: var(--space-4) 0 0; padding: var(--space-4);
+  list-style: none; display: grid; background: var(--color-surface); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.18);
+}
+.row-menu__list a, .row-menu__list button {
+  display: block; width: 100%; min-height: 44px; padding: var(--space-8) var(--space-12); text-align: left; background: transparent; border: 0;
+  border-radius: var(--radius-sm); color: var(--color-text-primary); font: inherit; text-decoration: none; cursor: pointer;
+}
+.row-menu__list a:hover, .row-menu__list button:hover { background: var(--color-surface-2); }
+.row-menu__danger { color: var(--color-negative) !important; }
+.button--danger { background: var(--color-negative); color: #fff; border-color: var(--color-negative); }
+.fin-star { display: inline-flex; align-items: center; gap: var(--space-4); }
+.fin-star .icon { color: var(--color-accent, currentColor); fill: currentColor; }
+.fin-actions-end { display: flex; flex-wrap: wrap; gap: var(--space-8); }

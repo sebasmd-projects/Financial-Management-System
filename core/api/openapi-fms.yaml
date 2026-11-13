@@ -244,6 +244,53 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: El estado actual no lo permite.
+    delete:
+      operationId: fmsAccountDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Eliminar una cuenta sin historia (anula su saldo inicial con reverso
+        y la cierra); con movimientos, 409 `has_history`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - accounts
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
   /api/fms/v1/accounts/{id}/share:
     post:
       operationId: fmsAccountShare
@@ -2235,6 +2282,53 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsCardDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Eliminar una tarjeta sin historia (anula su saldo inicial con reverso
+        y la cierra); con movimientos, 409 `has_history`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
   /api/fms/v1/cards/{id}/advances:
     post:
       operationId: fmsCardAdvance
@@ -4675,6 +4769,53 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsDebtDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Eliminar una deuda sin abonos (anula su asiento con reverso y la cierra);
+        con abonos, 409 `has_history`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - debts
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
   /api/fms/v1/debts/{id}/payments:
     get:
       operationId: fmsDebtPayments
@@ -6495,6 +6636,59 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+    delete:
+      operationId: fmsAccountDelete_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Eliminar una cuenta sin historia (anula su saldo inicial con reverso
+        y la cierra); con movimientos, 409 `has_history`
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
         '401':
           content:
             application/json:
@@ -11114,6 +11308,121 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
+    patch:
+      operationId: fmsLoanPatch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Editar el préstamo: nombre, tipo, seguro y otros cargos, día de pago,
+        plazo, tasa o cerrarlo. Solo se recalculan las cuotas pendientes'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - loans
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedLoanPatch'
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Loan'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsLoanDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Eliminar un préstamo sin cuotas pagadas (anula su desembolso con reverso
+        y lo cierra); con pagos, 409 `has_history`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - loans
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
   /api/fms/v1/loans/{id}/installments/{number}/pay:
     post:
       operationId: fmsLoanPay
@@ -11196,6 +11505,128 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/loans/{id}/interest-payments:
+    get:
+      operationId: fmsLoanInterestPayments
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Los pagos solo de intereses del préstamo (p. ej. los del periodo inicial)
+        y su total
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - loans
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanInterestPayments'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    post:
+      operationId: fmsLoanInterestPay
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Registrar un pago solo de intereses: gasto «Intereses» desde la cuenta
+        que paga; no baja el capital ni toca la tabla'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - loans
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanInterestPaymentCreate'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanInterestPayments'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanInterestPayments'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
         '422':
           content:
             application/json:
@@ -14896,6 +15327,47 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsRecurrenceDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Eliminar una recurrencia: se cancela: deja de generar. Lo ya generado
+        y pagado queda en el libro (nada se borra del libro)'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - recurrences
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
   /api/fms/v1/recurrences/generate:
     post:
       operationId: fmsRecurrenceGenerate
@@ -15960,6 +16432,69 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/simulators/bank-installment:
+    post:
+      operationId: fmsBankQuote
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Compara la cuota que te cobra el banco con capital + interés: el extra
+        mensual implícito (no escribe nada)'
+      tags:
+      - simulators
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BankQuote'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankQuoteResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/simulators/compare:
     post:
       operationId: fmsSimCompare
@@ -16863,6 +17398,10 @@ components:
           type: boolean
         status:
           $ref: '#/components/schemas/AccountStatusEnum'
+        is_default:
+          type: boolean
+          description: 'La cuenta predeterminada del usuario (a lo sumo una): viene
+            preseleccionada al registrar, transferir y pagar.'
         posted_balance:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
@@ -16880,6 +17419,7 @@ components:
       - gmf_exempt
       - id
       - institution
+      - is_default
       - kind
       - last4
       - liquid
@@ -17609,6 +18149,55 @@ components:
       - i_owe
       - owed_to_me
       - people
+    BankQuote:
+      type: object
+      properties:
+        bank_installment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: La cuota que te cobra el banco.
+        loan_id:
+          type: string
+          format: uuid
+          description: 'Un préstamo tuyo: se compara con su próxima cuota.'
+        principal:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        rate_convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        term:
+          type: integer
+          maximum: 600
+          minimum: 1
+        system:
+          allOf:
+          - $ref: '#/components/schemas/AmortizationSystemEnum'
+          default: french
+      required:
+      - bank_installment
+    BankQuoteResult:
+      type: object
+      properties:
+        principal_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Capital + interés de la cuota (sin seguro ni cargos).
+        implied_extra:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'Cuota del banco menos capital e interés: lo que se guarda
+            como «Seguro y otros cargos mensuales».'
+      required:
+      - implied_extra
+      - principal_interest
     Bar:
       type: object
       properties:
@@ -18147,6 +18736,10 @@ components:
           description: Código de la institución emisora.
         status:
           $ref: '#/components/schemas/AccountStatusEnum'
+        is_default:
+          type: boolean
+          description: 'La tarjeta predeterminada (comparte la marca con las cuentas:
+            a lo sumo una).'
         limit:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
@@ -18229,6 +18822,7 @@ components:
       - id
       - installment_system
       - insurance
+      - is_default
       - issuer
       - last4
       - limit
@@ -22662,13 +23256,49 @@ components:
           - string
           - 'null'
           format: date
+        interest_start:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: 'Desde cuándo corren los intereses de la cuota 1 (null: el
+            desembolso).'
+        interest_prepaid:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Intereses del periodo inicial pagados aparte (`interest-payments`),
+            sin los anulados.
+        interest_paid_total:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'Intereses pagados en total: los de las cuotas pagadas más
+            los pagos solo de intereses.'
+        first_period_may_vary:
+          type: boolean
+          description: 'Del desembolso a la primera cuota pasa más de un mes: el banco
+            cobra el interés de esos días y la primera cuota puede variar (el motor
+            amortiza por meses completos).'
+        disbursement_date:
+          type: string
+          format: date
+        first_due_date:
+          type: string
+          format: date
       required:
       - account_id
       - balance
+      - disbursement_date
+      - first_due_date
+      - first_period_may_vary
       - id
       - index_key
       - installments_paid
       - insurance
+      - interest_paid_total
+      - interest_prepaid
+      - interest_start
       - kind
       - margin
       - name
@@ -22768,6 +23398,23 @@ components:
           allOf:
           - $ref: '#/components/schemas/LoanKindEnum'
           default: personal
+        bank_installment:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: 'Opcional: la cuota que te cobra el banco. Si se envía, el
+            seguro y otros cargos mensuales se ajustan a la diferencia con capital
+            + interés (sustituye a `insurance` y `other_charges`).'
+        interest_start:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: Desde cuándo corren los intereses de la cuota 1 (por defecto,
+            el desembolso). Si el banco ya cobró aparte los del periodo inicial, el
+            día siguiente.
         other_charges:
           type: string
           pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
@@ -22898,6 +23545,85 @@ components:
       - paid_on
       - payment
       - status
+    LoanInterestPayment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        movement_id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        covers_from:
+          type: string
+          format: date
+        covers_to:
+          type: string
+          format: date
+      required:
+      - amount
+      - covers_from
+      - covers_to
+      - date
+      - id
+      - movement_id
+    LoanInterestPaymentCreate:
+      type: object
+      properties:
+        from_account_id:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Un débito del banco; si fueron varios, se registra cada uno.
+        covers_from:
+          type: string
+          format: date
+          description: Primer día que cubre.
+        covers_to:
+          type: string
+          format: date
+          description: Último día que cubre.
+        apply_gmf:
+          type: boolean
+          default: false
+      required:
+      - amount
+      - covers_from
+      - covers_to
+      - date
+      - from_account_id
+    LoanInterestPayments:
+      type: object
+      properties:
+        loan_id:
+          type: string
+          format: uuid
+        total:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Suma de los pagos solo de intereses vigentes.
+        payments:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoanInterestPayment'
+      required:
+      - loan_id
+      - payments
+      - total
     LoanKindEnum:
       enum:
       - personal
@@ -22930,6 +23656,14 @@ components:
       - page
       - page_size
       - results
+    LoanPatchStatusEnum:
+      enum:
+      - active
+      - closed
+      type: string
+      description: |-
+        * `active` - active
+        * `closed` - closed
     LoanPay:
       type: object
       properties:
@@ -23020,13 +23754,14 @@ components:
           description: Desde cuándo rige; cierra la vigente el día antes.
         source:
           type: string
-          description: De dónde sale (obligatoria).
+          default: ''
+          description: De dónde sale (el contrato, el extracto...). Obligatoria en
+            la tasa corriente; en la de mora es opcional pero recomendada.
           maxLength: 200
       required:
       - kind
       - rate
       - rate_convention
-      - source
       - valid_from
     LoanRateKindEnum:
       enum:
@@ -23090,10 +23825,12 @@ components:
       enum:
       - active
       - paid
+      - closed
       type: string
       description: |-
         * `active` - Active
         * `paid` - Paid off
+        * `closed` - Closed
     LoanUnitEnum:
       enum:
       - COP
@@ -23874,6 +24611,7 @@ components:
       - card_insurance
       - loan_payment
       - loan_disbursement
+      - loan_interest
       - recurrence
       - debt_payment
       - debt_opening
@@ -23892,6 +24630,7 @@ components:
         * `card_insurance` - Card insurance
         * `loan_payment` - Loan installment
         * `loan_disbursement` - Loan disbursement
+        * `loan_interest` - Loan interest-only payment
         * `recurrence` - Recurrence
         * `debt_payment` - Personal debt payment
         * `debt_opening` - Personal debt lent or received
@@ -24685,6 +25424,10 @@ components:
           type: boolean
         status:
           $ref: '#/components/schemas/AccountStatusEnum'
+        is_default:
+          type: boolean
+          description: Marcarla quita la marca a la anterior; solo cuentas de activo
+            y tarjetas abiertas.
     PatchedAssetPatch:
       type: object
       properties:
@@ -24777,6 +25520,8 @@ components:
           - string
           - 'null'
           maxLength: 4
+        is_default:
+          type: boolean
         status:
           allOf:
           - $ref: '#/components/schemas/AccountStatusEnum'
@@ -24934,6 +25679,53 @@ components:
         name:
           type: string
           maxLength: 80
+    PatchedLoanPatch:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        kind:
+          $ref: '#/components/schemas/LoanKindEnum'
+        insurance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: 'Seguro mensual: pasa a las cuotas pendientes.'
+        other_charges:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: 'Otros cargos mensuales: pasan a las cuotas pendientes.'
+        payment_day:
+          type: integer
+          maximum: 31
+          minimum: 1
+        term:
+          type: integer
+          maximum: 600
+          minimum: 1
+          description: Plazo total en cuotas (pagadas + pendientes).
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        rate_convention:
+          $ref: '#/components/schemas/RateConventionEnum'
+        rate_source:
+          type: string
+          maxLength: 200
+        rate_from:
+          type: string
+          format: date
+          description: Desde cuándo rige la tasa nueva (hoy por defecto).
+        status:
+          $ref: '#/components/schemas/LoanPatchStatusEnum'
+        interest_start:
+          type:
+          - string
+          - 'null'
+          format: date
     PatchedMaintenancePatch:
       type: object
       properties:

@@ -10,6 +10,8 @@ import { toInt } from "@/lib/ints";
 import { formatDateShort, todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
+import { RemoveDialog, RowMenu } from "../shared/remove";
+import { useCanWrite } from "../../household/scope-store";
 import { ConventionSelect, type RateConventionCode } from "../conventions";
 import { UsuryRateCheck } from "../credit/usury-check";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
@@ -23,7 +25,10 @@ export function CardList({ embedded = false }: { embedded?: boolean }) {
   const t = dict.fin.cards;
   const cards = useAll<Card>(paths.cards());
   const [creating, setCreating] = useState(false);
+  const [removing, setRemoving] = useState<Card | null>(null);
   const href = useHref();
+  const canWrite = useCanWrite();
+  const shown = cards.items.filter((card) => card.status !== "closed");
 
   const body = (
     <>
@@ -36,7 +41,7 @@ export function CardList({ embedded = false }: { embedded?: boolean }) {
       )}
       {cards.loading && !cards.data && <Loading />}
       {cards.failure && <ErrorState message={dict.fin.errors.generic} onRetry={cards.reload} />}
-      {cards.data && cards.items.length === 0 && (
+      {cards.data && shown.length === 0 && (
         <Empty
           icon="card"
           title={t.emptyTitle}
@@ -48,15 +53,27 @@ export function CardList({ embedded = false }: { embedded?: boolean }) {
           }
         />
       )}
-      {cards.items.length > 0 && (
+      {shown.length > 0 && (
         <ul className="fin-list">
-          {cards.items.map((card) => (
-            <li key={card.id}>
+          {shown.map((card) => (
+            <li key={card.id} className={canWrite ? "has-menu" : undefined}>
               <CardTile card={card} />
+              {canWrite && <RowMenu name={card.name} editHref={`${href("tarjeta", [card.id])}?editar=1`} onDelete={() => setRemoving(card)} />}
             </li>
           ))}
         </ul>
       )}
+      <RemoveDialog
+        open={removing !== null}
+        name={removing?.name ?? ""}
+        deletePath={removing ? paths.card(removing.id) : ""}
+        closePath={removing ? paths.card(removing.id) : undefined}
+        onClose={() => setRemoving(null)}
+        onDone={() => {
+          setRemoving(null);
+          cards.reload();
+        }}
+      />
       <Modal open={creating} title={t.add} onClose={() => setCreating(false)}>
         <CardForm
           onCancel={() => setCreating(false)}
@@ -110,6 +127,12 @@ function CardTile({ card }: { card: Card }) {
         <span className="fin-row__title">
           {card.name}
           {card.last4 ? ` · •••• ${card.last4}` : ""}
+          {card.is_default && (
+            <span className="fin-star" title={dict.fin.own.default.badge}>
+              <Icon name="star" size={16} />
+              <span className="visually-hidden">{dict.fin.own.default.badge}</span>
+            </span>
+          )}
         </span>
         <span className="fin-row__sub muted">
           {t.used} <Money value={card.used} /> {t.of} <Money value={card.limit} />

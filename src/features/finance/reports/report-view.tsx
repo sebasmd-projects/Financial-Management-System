@@ -11,6 +11,7 @@ import { paths } from "@/api/paths";
 import { formatDate, formatPeriod, periodOf, shiftPeriod, todayBogota } from "@/lib/dates";
 import { formatPercent } from "@/lib/percent";
 import { useI18n } from "@/i18n/provider";
+import { disambiguate } from "../helpers";
 import { Icon } from "@/ui/icons";
 import type { Dictionary } from "@/i18n/dictionaries/es";
 import { BarChart } from "../charts";
@@ -294,7 +295,7 @@ export function FilterBar({ filters, onChange }: { filters: ReportFilters; onCha
       {open && (
         <div id="report-filters" className="fin-filters">
           <SelectField label={rep.category} value={filters.category} onChange={(v) => set({ category: v })} placeholder={rep.all} options={categories.items.map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />
-          <SelectField label={rep.account} value={filters.account} onChange={(v) => set({ account: v })} placeholder={rep.all} options={accounts.items.map((a) => ({ value: a.id, label: a.name }))} />
+          <SelectField label={rep.account} value={filters.account} onChange={(v) => set({ account: v })} placeholder={rep.all} options={disambiguate(accounts.items).map((a) => ({ value: a.id, label: a.name }))} />
           {!inHousehold && <SelectField label={rep.card} value={filters.card} onChange={(v) => set({ card: v })} placeholder={rep.all} options={cards.items.map((c) => ({ value: c.id, label: c.name }))} />}
           <SelectField label={rep.tag} value={filters.tag} onChange={(v) => set({ tag: v })} placeholder={rep.all} options={tags.items.map((t) => ({ value: t.id, label: t.name }))} />
           <SelectField label={rep.type} value={filters.type} onChange={(v) => set({ type: v as ReportFilters["type"] })} placeholder={rep.all} options={(["income", "expense", "transfer"] as const).map((k) => ({ value: k, label: dict.fin.form.types[k] }))} />

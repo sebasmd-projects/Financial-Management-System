@@ -16,6 +16,7 @@ import { AmountField, Banner, FormActions, SelectField, TextArea, TextField } fr
 import { INDEX_KEYS, parseUnits, variableRateBody } from "../uvr/logic";
 import { RegisterIndexLink } from "../uvr/pending";
 import { UsuryRateCheck } from "../credit/usury-check";
+import { BankQuoteResult, useBankQuote, type QuoteSource } from "./bank-quote";
 import { parseCustomCapitals } from "./loan-logic";
 
 export const LOAN_KINDS: readonly LoanKind[] = ["personal", "free_investment", "mortgage", "educational", "vehicle"];
@@ -54,6 +55,8 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
   const [variable, setVariable] = useState(false);
   const [indexKey, setIndexKey] = useState<LoanIndex>("DTF_EA");
   const [margin, setMargin] = useState("");
+  const [bank, setBank] = useState("");
+  const [interestStart, setInterestStart] = useState("");
   const [touched, setTouched] = useState(false);
 
   // En UVR el capital, el seguro y los otros cargos son UNIDADES (hasta 4 decimales), no pesos: otro lector de texto.
@@ -67,12 +70,17 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
   const insuranceValue = insurance.trim() === "" ? "0" : amount(insurance);
   const chargesValue = otherCharges.trim() === "" ? "0" : amount(otherCharges);
   const paidValue = paidInstallments.trim() === "" ? 0 : toInt(paidInstallments, 0, 599);
+  const bankValue = bank.trim() === "" ? null : normalizeAmountInput(bank);
+  const bankBad = bank.trim() !== "" && bankValue === null;
+  const startBad = interestStart !== "" && (interestStart < disbursement || (firstDue !== "" && interestStart >= firstDue));
+  const quoteSource: QuoteSource | null =
+    bankValue !== null && !uvr && principalValue !== null && rateValue !== null && !variable && termValue !== null && system !== "custom" ? { principal: principalValue, rate: rateValue, rate_convention: convention, term: termValue, system } : null;
+  const bankQuote = useBankQuote(quoteSource ? bankValue : null, quoteSource);
   const lateValue = lateRate.trim() === "" ? null : percentToFraction(lateRate);
   const lateBad = lateRate.trim() !== "" && lateValue === null;
-  const lateNeedsSource = lateValue !== null && lateSource.trim() === "";
   const customParsed = system === "custom" && !uvr ? parseCustomCapitals(custom, termValue, principalValue) : null;
   const valid =
-    name.trim() !== "" && principalValue !== null && rateValue !== null && termValue !== null && insuranceValue !== null && chargesValue !== null && paidValue !== null && firstDue !== "" && !lateBad && !lateNeedsSource && (customParsed === null || customParsed.problem === null);
+    name.trim() !== "" && principalValue !== null && rateValue !== null && termValue !== null && insuranceValue !== null && chargesValue !== null && paidValue !== null && firstDue !== "" && !lateBad && !bankBad && !startBad && (customParsed === null || customParsed.problem === null);
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -94,7 +102,9 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
       first_due_date: firstDue,
       ...(system === "custom" && customParsed?.capitals ? { custom_capitals: customParsed.capitals } : {}),
       ...(rateSource.trim() && !variable ? { rate_source: rateSource.trim() } : {}),
-      ...(lateValue !== null ? { late_rate: lateValue, late_rate_convention: lateConvention, late_rate_source: lateSource.trim() } : {}),
+      ...(lateValue !== null ? { late_rate: lateValue, late_rate_convention: lateConvention, ...(lateSource.trim() ? { late_rate_source: lateSource.trim() } : {}) } : {}),
+      ...(bankValue !== null && !uvr ? { bank_installment: bankValue } : {}),
+      ...(interestStart ? { interest_start: interestStart } : {}),
       ...(paidValue ? { paid_installments: paidValue } : {}),
       ...(account ? { disbursement_account_id: account } : {}),
       ...(institution ? { institution_id: toInt(institution) } : {}),
@@ -168,12 +178,21 @@ export function LoanForm({ onDone, onCancel }: { onDone: (loan?: Loan) => void; 
           <TextField label={c.form.lateRate} value={lateRate} onChange={setLateRate} inputMode="decimal" error={touched && lateBad ? dict.fin.cards.rateInvalid : null} />
           <ConventionSelect label={t.fields.convention} value={lateConvention} onChange={setLateConvention} />
         </div>
-        <TextField label={c.form.lateSource} hint={c.form.lateSourceHint} value={lateSource} onChange={setLateSource} maxLength={120} error={touched && lateNeedsSource ? dict.fin.errors.late_rate_needs_source : null} />
+        <TextField label={c.form.lateSource} hint={c.form.lateSourceHint} value={lateSource} onChange={setLateSource} maxLength={120} />
       </fieldset>
       <div className="fin-grid-2">
         <TextField label={t.fields.disbursementDate} type="date" value={disbursement} onChange={setDisbursement} required />
         <TextField label={t.fields.firstDue} type="date" value={firstDue} onChange={setFirstDue} required error={touched && firstDue === "" ? req : null} />
       </div>
+      <TextField label={dict.fin.own.firstPeriod.interestStart} hint={dict.fin.own.firstPeriod.interestStartHint} type="date" value={interestStart} onChange={setInterestStart} error={touched && startBad ? dict.fin.own.firstPeriod.invalid : null} />
+      {!uvr && (
+        <>
+          <AmountField label={dict.fin.own.bank.label} hint={dict.fin.own.bank.hint} value={bank} onChange={setBank} error={touched && bankBad ? bad : null} />
+          {bankValue !== null && <BankQuoteResult quote={bankQuote.quote} pending={bankQuote.pending} />}
+          {bankValue !== null && bankQuote.quote && <p className="hint">{dict.fin.own.bank.createNote}</p>}
+          {bankQuote.error && <Banner tone="negative">{(dict.fin.errors as Record<string, string>)[bankQuote.error] ?? dict.fin.errors.invalid}</Banner>}
+        </>
+      )}
       <TextField label={t.fields.paidInstallments} hint={t.fields.paidHint} value={paidInstallments} onChange={setPaidInstallments} inputMode="numeric" maxLength={3} error={touched && paidValue === null ? t.termInvalid : null} />
       <SelectField label={t.fields.disbursementAccount} hint={t.fields.disbursementAccountHint} value={account} onChange={setAccount} placeholder={t.noAccount} options={transferAccounts(accounts.items).filter((a) => a.kind !== "credit_card").map((a) => ({ value: a.id, label: a.name }))} />
       {submit.error && (

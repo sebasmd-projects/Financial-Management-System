@@ -13,10 +13,10 @@ describe("Money", () => {
   it("muestra el formato único y da al lector de pantalla el valor completo en palabras", () => {
     const html = wrap("es", <Money value="-1200000.00" />);
     expect(html).toContain('<span aria-hidden="true">−$1.200.000</span>');
-    expect(html).toContain("menos 1200000 pesos");
+    expect(html).toContain("menos 1.200.000 pesos");
   });
   it("en inglés el lector dice pesos colombianos", () => {
-    expect(wrap("en", <Money value="450.50" kind="egreso" />)).toContain("expense of 450.50 Colombian pesos");
+    expect(wrap("en", <Money value="450.50" kind="egreso" />)).toContain("expense of 450 Colombian pesos and 50 cents");
   });
   it("el signo siempre va escrito (el color no es la única señal)", () => {
     expect(wrap("es", <Money value="5200000" sign="always" tone="positive" />)).toContain("+$5.200.000");

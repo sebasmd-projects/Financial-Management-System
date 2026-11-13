@@ -4,6 +4,7 @@
 @import "../features/finance/fms2.css";
 @import "../features/finance/fms3.css";
 @import "../features/finance/fms4.css";
+@import "../features/finance/fms5.css";
 @import "../features/household/household.css";
 
 /* ---------- Base ---------- */
@@ -81,6 +82,7 @@ kbd {
   padding: 0;
   overflow: hidden;
   clip: rect(0 0 0 0);
+  clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
 }

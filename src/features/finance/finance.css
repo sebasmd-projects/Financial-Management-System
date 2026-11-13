@@ -31,7 +31,7 @@
 }
 
 /* ---------- Dinero ---------- */
-.money { white-space: nowrap; }
+.money { white-space: nowrap; position: relative; }
 .money--positive { color: var(--color-positive); }
 .money--negative { color: var(--color-negative); }
 .money--warning { color: var(--color-warning); }

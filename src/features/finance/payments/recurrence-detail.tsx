@@ -11,6 +11,7 @@ import { Badge, Banner, DefinitionList, ErrorState, Loading, Modal, Money, Scree
 import { ConditionsEditor } from "./conditions-editor";
 import { termsSummary } from "./conditions-fields";
 import { OccurrenceList } from "./fixed-expenses";
+import { RemoveDialog } from "../shared/remove";
 
 type Status = "active" | "paused" | "cancelled";
 
@@ -28,6 +29,7 @@ export function RecurrenceDetail({ id }: { id: string }) {
   const recurrence = useResource<Recurrence>(paths.recurrence(id));
   const occurrences = useResource<Page<Occurrence>>(paths.occurrences({ recurrence: id }));
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [saved, setSaved] = useState(false);
   const back = { href: href("pagos-fijos"), label: dict.screens["pagos-fijos"] };
@@ -79,6 +81,9 @@ export function RecurrenceDetail({ id }: { id: string }) {
               {t.resume}
             </button>
           )}
+          <button type="button" className="button button--ghost" onClick={() => setRemoving(true)}>
+            {dict.fin.own.delete}
+          </button>
           {!confirmCancel ? (
             <button type="button" className="button button--ghost" onClick={() => setConfirmCancel(true)}>
               {t.cancel}
@@ -96,6 +101,7 @@ export function RecurrenceDetail({ id }: { id: string }) {
         </div>
       )}
       {confirmCancel && <p className="hint">{t.cancelHint}</p>}
+      <RemoveDialog open={removing} name={r.name} deletePath={paths.recurrence(r.id)} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); recurrence.reload(); }} />
 
       <Section title={t.nextDates}>
         {r.next_dates.length === 0 ? (

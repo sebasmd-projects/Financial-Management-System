@@ -96,7 +96,9 @@ export function MovementForm() {
   const usable = movementAccounts(accounts.items);
   const recentItems = (recents.data?.results ?? []).filter((m) => !m.voided && m.type !== "transfer");
   const lastAccountId = recentItems[0]?.account.id ?? "";
-  const accountId = state.accountId || (usable.some((a) => a.id === lastAccountId) ? lastAccountId : (usable[0]?.id ?? ""));
+  // La predeterminada (si hay) viene primero en `usable`; si no, la última usada.
+  const defaultId = usable.find((a) => a.is_default)?.id ?? "";
+  const accountId = state.accountId || defaultId || (usable.some((a) => a.id === lastAccountId) ? lastAccountId : (usable[0]?.id ?? ""));
   const account = usable.find((a) => a.id === accountId) ?? null;
   const toAccount = usable.find((a) => a.id === state.toAccountId) ?? null;
 

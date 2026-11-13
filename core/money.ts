@@ -98,22 +98,30 @@ export function formatCopCompact(value: string, options: FormatOptions = {}): st
   return decorate(`${group(millions.toString())},${(tenthsOfMillion % 10n).toString()} M`, negative, false, options);
 }
 
-/** Lo que dice un lector de pantalla (diseño §6): el valor completo, sin separadores y nunca la abreviatura. */
+/** Agrupa miles con coma (inglés). */
+function groupEn(digits: string): string {
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+/**
+ * Lo que dice un lector de pantalla (diseño §6): el valor completo y natural, sin abreviaturas ni decimales sueltos:
+ * `7493754,86` → «7.493.754 pesos con 86 centavos» (en inglés, «7,493,754 Colombian pesos and 86 cents»).
+ */
 export function spokenCop(value: string, kind?: "egreso" | "ingreso" | "transferencia", locale: "es" | "en" = "es"): string {
   const { negative, cents } = parse(value);
   const pesos = cents / 100n;
   const rest = cents % 100n;
   if (locale === "en") {
-    const amount = rest === 0n ? pesos.toString() : `${pesos.toString()}.${rest.toString().padStart(2, "0")}`;
-    const unit = `${amount} Colombian ${cents === 100n ? "peso" : "pesos"}`;
+    const unit = `${groupEn(pesos.toString())} Colombian ${pesos === 1n && rest === 0n ? "peso" : "pesos"}`;
+    const full = rest === 0n ? unit : `${unit} and ${rest.toString()} ${rest === 1n ? "cent" : "cents"}`;
     const label = kind === "egreso" ? "expense" : kind === "ingreso" ? "income" : kind === "transferencia" ? "transfer" : null;
-    if (label) return `${label} of ${unit}`;
-    return negative ? `minus ${unit}` : unit;
+    if (label) return `${label} of ${full}`;
+    return negative ? `minus ${full}` : full;
   }
-  const amount = rest === 0n ? pesos.toString() : `${pesos.toString()},${rest.toString().padStart(2, "0")}`;
-  const unit = `${amount} ${cents === 100n ? "peso" : "pesos"}`;
-  if (kind) return `${kind} de ${unit}`;
-  return negative ? `menos ${unit}` : unit;
+  const unit = `${group(pesos.toString())} ${pesos === 1n ? "peso" : "pesos"}`;
+  const full = rest === 0n ? unit : `${unit} con ${rest.toString()} ${rest === 1n ? "centavo" : "centavos"}`;
+  if (kind) return `${kind} de ${full}`;
+  return negative ? `menos ${full}` : full;
 }
 
 /** Quita el signo: el valor absoluto de un monto, como cadena con la escala original. */

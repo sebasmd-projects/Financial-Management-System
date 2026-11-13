@@ -11,9 +11,18 @@ export type Warning = S["Warning"];
 
 const SPENDABLE = new Set(["savings", "checking", "cash", "wallet", "pocket", "fund", "credit_card"]);
 
-/** Las cuentas donde se puede registrar un gasto o un ingreso: bancos, efectivo, billeteras y tarjetas, sin las cerradas. */
+const KIND_SHORT: Record<string, string> = { savings: "Ahorros", checking: "Corriente", cash: "Efectivo", wallet: "Billetera", pocket: "Bolsillo", fund: "Fondo", credit_card: "Tarjeta" };
+
+/**
+ * Las cuentas donde se puede registrar un gasto o un ingreso: bancos, efectivo, billeteras y tarjetas, sin las cerradas. La predeterminada va
+ * primero y los nombres repetidos se distinguen con el tipo y los últimos dígitos («Nu · Ahorros ••2395», «Nu · Tarjeta ••7048»).
+ */
 export function movementAccounts(accounts: readonly Account[]): Account[] {
-  return accounts.filter((account) => account.status !== "closed" && SPENDABLE.has(account.kind));
+  const open = accounts.filter((account) => account.status !== "closed" && SPENDABLE.has(account.kind));
+  const ordered = [...open.filter((a) => a.is_default), ...open.filter((a) => !a.is_default)];
+  const counts = new Map<string, number>();
+  for (const a of ordered) counts.set(a.name.trim().toLowerCase(), (counts.get(a.name.trim().toLowerCase()) ?? 0) + 1);
+  return ordered.map((a) => ((counts.get(a.name.trim().toLowerCase()) ?? 0) > 1 ? { ...a, name: `${a.name} · ${KIND_SHORT[a.kind] ?? a.kind}${a.last4 ? ` ••${a.last4}` : ""}` } : a));
 }
 
 /** Los valores que más se repiten (empate: el más reciente, porque la lista llega ordenada del más nuevo al más viejo). */
@@ -29,8 +38,10 @@ export function topByFrequency<T>(items: readonly T[], pick: (item: T) => string
     .map(([key]) => key);
 }
 
-/** La cuenta por defecto: la del último movimiento si sirve; si no, la primera. */
+/** La cuenta por defecto: la que marcaste «predeterminada»; si no, la del último movimiento si sirve; si no, la primera. */
 export function defaultAccount(usable: readonly Account[], recent: readonly Movement[]): string | null {
+  const marked = usable.find((account) => account.is_default)?.id;
+  if (marked) return marked;
   const last = recent.find((m) => !m.voided && m.type !== "transfer")?.account.id;
   return usable.find((account) => account.id === last)?.id ?? usable[0]?.id ?? null;
 }

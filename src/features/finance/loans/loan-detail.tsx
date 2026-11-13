@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/api";
 import type { Account, LateQuote, Loan, LoanInstallment, Movement } from "@/api/models";
@@ -12,9 +13,12 @@ import { daysBetween, formatDate, todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import { amountToInput } from "../movements/movement-form";
 import { fill, relativeDays, transferAccounts } from "../helpers";
-import { LatePanel } from "../credit/late-panel";
-import { RateMissingNotice } from "../credit/notes";
+import { LatePanel, LateRateMissing } from "../credit/late-panel";
 import { RatesPanel } from "./rates-panel";
+import { LoanEditForm } from "./loan-edit";
+import { PrepaidInterestPanel } from "./interest-panel";
+import { RemoveDialog } from "../shared/remove";
+import { useCanWrite } from "../../household/scope-store";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { useConventionLabel } from "../conventions";
 import { AmountField, Badge, Banner, DefinitionList, ErrorState, FormActions, Loading, Modal, Money, Progress, ScreenHeader, Section, SelectField, TextField } from "../kit";
@@ -30,6 +34,10 @@ export function LoanDetail({ id }: { id: string }) {
   const href = useHref();
   const loan = useResource<Loan>(paths.loan(id));
   const [paying, setPaying] = useState(false);
+  const [editing, setEditing] = useState(useSearchParams().get("editar") === "1");
+  const [removing, setRemoving] = useState(false);
+  const router = useRouter();
+  const canWrite = useCanWrite();
   // UVR: el saldo en pesos y la estimación de la cuota salen de la UVR de la fecha consultada (hoy por defecto).
   const [valuationOn, setValuationOn] = useState(todayBogota());
   const uvrLoan = loan.data ? isUvr(loan.data) : false;
@@ -53,7 +61,24 @@ export function LoanDetail({ id }: { id: string }) {
   const uvrNow = valuation.data?.uvr_value ?? null;
   return (
     <div className="screen">
-      <ScreenHeader title={l.name} eyebrow={dict.screens.credito} back={back} actions={l.status === "paid" ? <Badge tone="positive">{t.paidOff}</Badge> : undefined} />
+      <ScreenHeader title={l.name} eyebrow={dict.screens.credito} back={back} actions={
+          <>
+            {l.status === "paid" && <Badge tone="positive">{t.paidOff}</Badge>}
+            {l.status === "closed" && <Badge tone="warning">{dict.fin.own.closedBadge}</Badge>}
+            {canWrite && (
+              <>
+                <button type="button" className="button button--ghost" onClick={() => setEditing(true)}>
+                  {dict.fin.own.edit}
+                </button>
+                <button type="button" className="button button--ghost" onClick={() => setRemoving(true)}>
+                  {dict.fin.own.delete}
+                </button>
+              </>
+            )}
+          </>
+        }
+      />
+      {l.first_period_may_vary && l.status === "active" && l.installments_paid === 0 && <Banner tone="warning">{dict.fin.own.firstPeriod.mayVary}</Banner>}
       {(uvr || index) && (
         <p className="fin-row__badges">
           {uvr && <Badge tone="info">{dict.fin.uvr.units.UVR}</Badge>}
@@ -138,8 +163,20 @@ export function LoanDetail({ id }: { id: string }) {
       </Section>
       {uvr && <ValuationPanel loan={l} on={valuationOn} onOn={setValuationOn} valuation={valuation} onChanged={loan.reload} />}
       {index && <VariableRatePanel loan={l} onChanged={loan.reload} />}
+      <PrepaidInterestPanel loan={l} canWrite={canWrite} onChanged={loan.reload} />
       <RatesPanel loanId={l.id} canRecalculate={l.system !== "custom"} onChanged={loan.reload} />
       <LatePanel loanId={l.id} />
+      <Modal open={editing} title={dict.fin.own.loan.editTitle} onClose={() => setEditing(false)}>
+        <LoanEditForm
+          loan={l}
+          onCancel={() => setEditing(false)}
+          onDone={() => {
+            setEditing(false);
+            loan.reload();
+          }}
+        />
+      </Modal>
+      <RemoveDialog open={removing} name={l.name} deletePath={paths.loan(l.id)} closePath={paths.loan(l.id)} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(href("creditos")); }} />
       {next && (
         <Modal open={paying} title={t.payInstallment} onClose={() => setPaying(false)}>
           <PayForm
@@ -229,7 +266,7 @@ function PayForm({ loanId, uvr, installment, onDone, onCancel }: { loanId: strin
         </>
       )}
       <AmountField label={dict.fin.credit.late.lateInterest} hint={dict.fin.credit.late.payHint} value={lateText} onChange={setLate} error={parts.late === null ? bad : null} />
-      {quote.data?.rate_missing && <RateMissingNotice />}
+      {quote.data?.rate_missing && <LateRateMissing loanId={loanId} readOnly />}
       {total && (
         <p className="fin-phrase">
           {t.total} <Money value={total} />

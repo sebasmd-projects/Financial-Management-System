@@ -102,7 +102,7 @@ describe("mora", () => {
     mounted = await mountScreen(<LatePanel loanId="loan-1" />, {
       [`GET /api/fms/v1/loans/loan-1/late?on=${today}`]: { status: 200, json: { on: today, rate_missing: true, rate_ea: null, source: null, rows: [{ number: 3, due_date: "2026-09-20", days_late: 52, capital: "460000.00", late_interest: null }], total: null } },
     });
-    expect(mounted.text()).toContain("Falta la tasa de mora");
+    expect(mounted.text()).toContain("Sin tasa de mora registrada");
     expect(mounted.host.querySelector("a")?.getAttribute("href")).toBe("/es/finanzas/configuracion/parametros?clave=LATE_INTEREST_EA");
     expect(mounted.host.querySelector("table")).toBeNull();
   });

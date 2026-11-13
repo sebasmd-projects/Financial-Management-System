@@ -11,7 +11,7 @@ describe("Resumen: se pinta desde el tablero del servidor", () => {
   it("Te queda, gastado, disponible hoy y liquidez a 30 días con el formato de core/money", async () => {
     await render(<SummaryView data={dashboard} past={false} scoped={false} actions={actions()} />);
     expect(screen.getByText("Te queda este mes")).toBeTruthy();
-    expect(screen.getByLabelText("1840000 pesos")).toBeTruthy();
+    expect(screen.getByLabelText("1.840.000 pesos")).toBeTruthy();
     expect(screen.getByText("$1.840.000")).toBeTruthy();
     expect(screen.getByText("$2.310.000")).toBeTruthy();
     expect(screen.getByText("$3.420.000")).toBeTruthy();
@@ -72,7 +72,7 @@ describe("Resumen: se pinta desde el tablero del servidor", () => {
     expect(screen.queryByText("$3.420.000")).toBeNull();
     expect(screen.getAllByText("•••••").length).toBeGreaterThan(5);
     expect(screen.getAllByLabelText("monto oculto").length).toBeGreaterThan(5);
-    expect(screen.queryByLabelText("1840000 pesos")).toBeNull();
+    expect(screen.queryByLabelText("1.840.000 pesos")).toBeNull();
   });
   it("Te queda negativo se marca y la liquidez muestra cuándo baja de cero", async () => {
     const negative = { ...dashboard, kpi: { ...dashboard.kpi, remaining: "-120000.00" } };

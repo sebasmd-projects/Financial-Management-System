@@ -119,12 +119,15 @@ describe("formatCopCompact (solo fichas, riel y KPI estrechos)", () => {
 
 describe("spokenCop (lector de pantalla, diseño §6)", () => {
   it("valor completo, nunca la abreviatura", () => {
-    expect(spokenCop("-180000.00", "egreso")).toBe("egreso de 180000 pesos");
-    expect(spokenCop("5200000", "ingreso")).toBe("ingreso de 5200000 pesos");
-    expect(spokenCop("1200000")).toBe("1200000 pesos");
-    expect(spokenCop("-1200000")).toBe("menos 1200000 pesos");
+    expect(spokenCop("-180000.00", "egreso")).toBe("egreso de 180.000 pesos");
+    expect(spokenCop("5200000", "ingreso")).toBe("ingreso de 5.200.000 pesos");
+    expect(spokenCop("1200000")).toBe("1.200.000 pesos");
+    expect(spokenCop("-1200000")).toBe("menos 1.200.000 pesos");
     expect(spokenCop("1")).toBe("1 peso");
-    expect(spokenCop("21704.98")).toBe("21704,98 pesos");
+    expect(spokenCop("21704.98")).toBe("21.704 pesos con 98 centavos");
+    expect(spokenCop("7493754.86")).toBe("7.493.754 pesos con 86 centavos");
+    expect(spokenCop("0.01")).toBe("0 pesos con 1 centavo");
+    expect(spokenCop("7493754.86", undefined, "en")).toBe("7,493,754 Colombian pesos and 86 cents");
   });
 });
 

@@ -12,6 +12,8 @@ import { useI18n } from "@/i18n/provider";
 import type { RouteId } from "@/nav/routes";
 import { Icon } from "@/ui/icons";
 import { CardList } from "../cards/cards-screen";
+import { LoansSection } from "../loans/loans-section";
+import { RemoveDialog, RowMenu } from "../shared/remove";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { accountGroup, SPENDABLE_KINDS } from "../helpers";
 import { AmountField, Badge, Banner, Checkbox, Empty, ErrorState, FormActions, LinkTabs, Loading, Modal, Money, ScreenHeader, SelectField, TextField } from "../kit";
@@ -39,8 +41,10 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
   const householdAccounts = useAll<Account>(both ? paths.householdAccounts(both.id) : null);
   const bothName = useHouseholdName(both?.id);
   const [creating, setCreating] = useState(false);
+  const [removing, setRemoving] = useState<Account | null>(null);
 
   const visible = accounts.items.filter((a) => {
+    if (a.status === "closed") return false;
     const group = accountGroup(a);
     if (tab === "bancos") return group === "bancos";
     if (tab === "efectivo") return group === "efectivo";
@@ -106,8 +110,9 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
           {visible.length > 0 && (
             <ul className="fin-list" aria-label={dict.screens[TAB_ROUTE[tab]]}>
               {visible.map((account) => (
-                <li key={account.id}>
+                <li key={account.id} className={canWrite ? "has-menu" : undefined}>
                   <AccountRow account={account} />
+                  {canWrite && <RowMenu name={account.name} editHref={`${href("cuenta", [account.id])}?editar=1`} onDelete={() => setRemoving(account)} />}
                 </li>
               ))}
             </ul>
@@ -128,6 +133,7 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
         </section>
       )}
       {tab === "todas" && !inHousehold && <CardList embedded />}
+      {tab === "todas" && !inHousehold && <LoansSection onChanged={summary.reload} />}
       {tab === "todas" && inHousehold && household && <p className="muted">{dict.fin.hh.accounts.cardsPersonal}</p>}
       {tab === "credito" && !inHousehold && (
         <div className="fin-phrase">
@@ -139,8 +145,21 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
         </div>
       )}
       {tab === "credito" && <CardList />}
+      {tab === "credito" && !inHousehold && <LoansSection onChanged={summary.reload} />}
       {tab === "debito" && <DebitMethods />}
 
+      <RemoveDialog
+        open={removing !== null}
+        name={removing?.name ?? ""}
+        deletePath={removing ? paths.account(removing.id) : ""}
+        closePath={removing ? paths.account(removing.id) : undefined}
+        onClose={() => setRemoving(null)}
+        onDone={() => {
+          setRemoving(null);
+          accounts.reload();
+          summary.reload();
+        }}
+      />
       <Modal open={creating} title={t.add} onClose={() => setCreating(false)}>
         <AccountForm
           onDone={() => {
@@ -179,7 +198,15 @@ export function AccountRow({ account, householdId }: { account: Account; househo
   return (
     <Link href={href("cuenta", [account.id])} className="fin-row" onClick={householdId ? () => setScope({ kind: "household", id: householdId }) : undefined}>
       <span className="fin-row__main">
-        <span className="fin-row__title">{account.name}</span>
+        <span className="fin-row__title">
+          {account.name}
+          {account.is_default && (
+            <span className="fin-star" title={dict.fin.own.default.badge}>
+              <Icon name="star" size={16} />
+              <span className="visually-hidden">{dict.fin.own.default.badge}</span>
+            </span>
+          )}
+        </span>
         <span className="fin-row__sub muted">
           {dict.fin.accountKinds[account.kind] ?? account.kind}
           {account.last4 ? ` · •••• ${account.last4}` : ""}

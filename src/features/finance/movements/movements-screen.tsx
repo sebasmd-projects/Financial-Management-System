@@ -9,7 +9,7 @@ import { formatDate, formatPeriod, periodOf, periodRange, shiftPeriod, todayBogo
 import { useI18n } from "@/i18n/provider";
 import type { RouteId } from "@/nav/routes";
 import { Icon } from "@/ui/icons";
-import { dayNet, groupByDate, signedAmount } from "../helpers";
+import { dayNet, groupByDate, signedAmount, disambiguate } from "../helpers";
 import { clearDrill as clearStagedDrill, peekDrill, type Drill } from "../drill";
 import { useAll, useHref, useQuery } from "../hooks";
 import { AuthorLine, BothNotice, ReadOnlyBanner } from "../../household/notices";
@@ -131,7 +131,7 @@ export function MovementsScreen({ preset, routeId }: { preset: MovementsPreset; 
 
       {filtersOpen && (
         <div id="movement-filters" className="fin-filters">
-          <SelectField label={t.filterAccount} value={account} onChange={reset(setAccount)} placeholder={t.all} options={accounts.items.map((a) => ({ value: a.id, label: a.name }))} />
+          <SelectField label={t.filterAccount} value={account} onChange={reset(setAccount)} placeholder={t.all} options={disambiguate(accounts.items).map((a) => ({ value: a.id, label: a.name }))} />
           <SelectField label={t.filterCategory} value={category} onChange={reset(setCategory)} placeholder={t.all} options={categories.items.map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />
           <SelectField label={t.filterStatus} value={status} onChange={reset(setStatus)} placeholder={t.all} options={(["pendiente", "confirmado", "conciliado", "anulado"] as const).map((s) => ({ value: s, label: dict.fin.entryStatus[s] }))} />
           <Checkbox label={t.showAnnulled} checked={showAnnulled} onChange={reset(setShowAnnulled)} />

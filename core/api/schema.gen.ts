@@ -45,7 +45,12 @@ export interface paths {
         get: operations["fmsAccount"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Eliminar una cuenta sin historia (anula su saldo inicial con reverso y la cierra); con movimientos, 409 `has_history`
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsAccountDelete"];
         options?: never;
         head?: never;
         /**
@@ -582,7 +587,12 @@ export interface paths {
         get: operations["fmsCard"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Eliminar una tarjeta sin historia (anula su saldo inicial con reverso y la cierra); con movimientos, 409 `has_history`
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsCardDelete"];
         options?: never;
         head?: never;
         /**
@@ -1288,7 +1298,12 @@ export interface paths {
         get: operations["fmsDebt"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Eliminar una deuda sin abonos (anula su asiento con reverso y la cierra); con abonos, 409 `has_history`
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsDebtDelete"];
         options?: never;
         head?: never;
         /**
@@ -1869,7 +1884,12 @@ export interface paths {
         get: operations["fmsAccount_2"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Eliminar una cuenta sin historia (anula su saldo inicial con reverso y la cierra); con movimientos, 409 `has_history`
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsAccountDelete_2"];
         options?: never;
         head?: never;
         /**
@@ -3225,10 +3245,20 @@ export interface paths {
         get: operations["fmsLoan"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Eliminar un préstamo sin cuotas pagadas (anula su desembolso con reverso y lo cierra); con pagos, 409 `has_history`
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsLoanDelete"];
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Editar el préstamo: nombre, tipo, seguro y otros cargos, día de pago, plazo, tasa o cerrarlo. Solo se recalculan las cuotas pendientes
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        patch: operations["fmsLoanPatch"];
         trace?: never;
     };
     "/api/fms/v1/loans/{id}/installments/{number}/pay": {
@@ -3246,6 +3276,32 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         post: operations["fmsLoanPay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/loans/{id}/interest-payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Los pagos solo de intereses del préstamo (p. ej. los del periodo inicial) y su total
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsLoanInterestPayments"];
+        put?: never;
+        /**
+         * Registrar un pago solo de intereses: gasto «Intereses» desde la cuenta que paga; no baja el capital ni toca la tabla
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsLoanInterestPay"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4435,7 +4491,12 @@ export interface paths {
         get: operations["fmsRecurrence"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Eliminar una recurrencia: se cancela: deja de generar. Lo ya generado y pagado queda en el libro (nada se borra del libro)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsRecurrenceDelete"];
         options?: never;
         head?: never;
         /**
@@ -4778,6 +4839,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/simulators/bank-installment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Compara la cuota que te cobra el banco con capital + interés: el extra mensual implícito (no escribe nada)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsBankQuote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/simulators/compare": {
         parameters: {
             query?: never;
@@ -5086,6 +5168,8 @@ export interface components {
             liquid: boolean;
             enforce_funds: boolean;
             status: components["schemas"]["AccountStatusEnum"];
+            /** @description La cuenta predeterminada del usuario (a lo sumo una): viene preseleccionada al registrar, transferir y pagar. */
+            is_default: boolean;
             /**
              * @description Confirmado, conciliado y anulado con su reverso. Derivado de las líneas (caché cifrado).
              * @example 180000
@@ -5455,6 +5539,38 @@ export interface components {
             /** @example 180000 */
             i_owe: string;
         };
+        BankQuote: {
+            /**
+             * @description La cuota que te cobra el banco.
+             * @example 0.24
+             */
+            bank_installment: string;
+            /**
+             * Format: uuid
+             * @description Un préstamo tuyo: se compara con su próxima cuota.
+             */
+            loan_id?: string;
+            /** @example 0.24 */
+            principal?: string;
+            /** @example 0.24 */
+            rate?: string;
+            rate_convention?: components["schemas"]["RateConventionEnum"];
+            term?: number;
+            /** @default french */
+            system: components["schemas"]["AmortizationSystemEnum"];
+        };
+        BankQuoteResult: {
+            /**
+             * @description Capital + interés de la cuota (sin seguro ni cargos).
+             * @example 180000
+             */
+            principal_interest: string;
+            /**
+             * @description Cuota del banco menos capital e interés: lo que se guarda como «Seguro y otros cargos mensuales».
+             * @example 180000
+             */
+            implied_extra: string;
+        };
         Bar: {
             /** @example 180000 */
             spent: string;
@@ -5725,6 +5841,8 @@ export interface components {
             /** @description Código de la institución emisora. */
             issuer: string | null;
             status: components["schemas"]["AccountStatusEnum"];
+            /** @description La tarjeta predeterminada (comparte la marca con las cuentas: a lo sumo una). */
+            is_default: boolean;
             /**
              * @description Cupo total.
              * @example 180000
@@ -7937,6 +8055,27 @@ export interface components {
             next_installment: components["schemas"]["LoanInstallment"] | null;
             /** Format: date */
             next_due_date: string | null;
+            /**
+             * Format: date
+             * @description Desde cuándo corren los intereses de la cuota 1 (null: el desembolso).
+             */
+            interest_start: string | null;
+            /**
+             * @description Intereses del periodo inicial pagados aparte (`interest-payments`), sin los anulados.
+             * @example 180000
+             */
+            interest_prepaid: string;
+            /**
+             * @description Intereses pagados en total: los de las cuotas pagadas más los pagos solo de intereses.
+             * @example 180000
+             */
+            interest_paid_total: string;
+            /** @description Del desembolso a la primera cuota pasa más de un mes: el banco cobra el interés de esos días y la primera cuota puede variar (el motor amortiza por meses completos). */
+            first_period_may_vary: boolean;
+            /** Format: date */
+            disbursement_date: string;
+            /** Format: date */
+            first_due_date: string;
         };
         LoanCreate: {
             name: string;
@@ -7992,6 +8131,16 @@ export interface components {
             holiday_rule: components["schemas"]["HolidayRuleEnum"];
             /** @default personal */
             kind: components["schemas"]["LoanKindEnum"];
+            /**
+             * @description Opcional: la cuota que te cobra el banco. Si se envía, el seguro y otros cargos mensuales se ajustan a la diferencia con capital + interés (sustituye a `insurance` y `other_charges`).
+             * @example 0.24
+             */
+            bank_installment?: string | null;
+            /**
+             * Format: date
+             * @description Desde cuándo corren los intereses de la cuota 1 (por defecto, el desembolso). Si el banco ya cobró aparte los del periodo inicial, el día siguiente.
+             */
+            interest_start?: string | null;
             /**
              * @description Otros cargos por cuota (en UVR si `unit = UVR`).
              * @default 0
@@ -8066,6 +8215,53 @@ export interface components {
              */
             paid_late_interest: string | null;
         };
+        LoanInterestPayment: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            movement_id: string;
+            /** Format: date */
+            date: string;
+            /** @example 180000 */
+            amount: string;
+            /** Format: date */
+            covers_from: string;
+            /** Format: date */
+            covers_to: string;
+        };
+        LoanInterestPaymentCreate: {
+            /** Format: uuid */
+            from_account_id: string;
+            /** Format: date */
+            date: string;
+            /**
+             * @description Un débito del banco; si fueron varios, se registra cada uno.
+             * @example 180000
+             */
+            amount: string;
+            /**
+             * Format: date
+             * @description Primer día que cubre.
+             */
+            covers_from: string;
+            /**
+             * Format: date
+             * @description Último día que cubre.
+             */
+            covers_to: string;
+            /** @default false */
+            apply_gmf: boolean;
+        };
+        LoanInterestPayments: {
+            /** Format: uuid */
+            loan_id: string;
+            /**
+             * @description Suma de los pagos solo de intereses vigentes.
+             * @example 180000
+             */
+            total: string;
+            payments: components["schemas"]["LoanInterestPayment"][];
+        };
         /**
          * @description * `personal` - personal
          *     * `free_investment` - free_investment
@@ -8081,6 +8277,12 @@ export interface components {
             page_size: number;
             results: components["schemas"]["Loan"][];
         };
+        /**
+         * @description * `active` - active
+         *     * `closed` - closed
+         * @enum {string}
+         */
+        LoanPatchStatusEnum: "active" | "closed";
         LoanPay: {
             /** Format: uuid */
             from_account_id: string;
@@ -8135,7 +8337,10 @@ export interface components {
              * @description Desde cuándo rige; cierra la vigente el día antes.
              */
             valid_from: string;
-            /** @description De dónde sale (obligatoria). */
+            /**
+             * @description De dónde sale (el contrato, el extracto...). Obligatoria en la tasa corriente; en la de mora es opcional pero recomendada.
+             * @default
+             */
             source: string;
         };
         /**
@@ -8173,9 +8378,10 @@ export interface components {
         /**
          * @description * `active` - Active
          *     * `paid` - Paid off
+         *     * `closed` - Closed
          * @enum {string}
          */
-        LoanStatusEnum: "active" | "paid";
+        LoanStatusEnum: "active" | "paid" | "closed";
         /**
          * @description * `COP` - COP
          *     * `UVR` - UVR
@@ -8535,6 +8741,7 @@ export interface components {
          *     * `card_insurance` - Card insurance
          *     * `loan_payment` - Loan installment
          *     * `loan_disbursement` - Loan disbursement
+         *     * `loan_interest` - Loan interest-only payment
          *     * `recurrence` - Recurrence
          *     * `debt_payment` - Personal debt payment
          *     * `debt_opening` - Personal debt lent or received
@@ -8543,7 +8750,7 @@ export interface components {
          *     * `household_transfer` - Transfer between personal and household
          * @enum {string}
          */
-        MovementOriginEnum: "manual" | "transfer" | "card_purchase" | "card_payment" | "card_advance" | "card_interest" | "card_fee" | "card_insurance" | "loan_payment" | "loan_disbursement" | "recurrence" | "debt_payment" | "debt_opening" | "goal_contribution" | "import" | "household_transfer";
+        MovementOriginEnum: "manual" | "transfer" | "card_purchase" | "card_payment" | "card_advance" | "card_interest" | "card_fee" | "card_insurance" | "loan_payment" | "loan_disbursement" | "loan_interest" | "recurrence" | "debt_payment" | "debt_opening" | "goal_contribution" | "import" | "household_transfer";
         MovementPage: {
             count: number;
             page: number;
@@ -8939,6 +9146,8 @@ export interface components {
             liquid?: boolean;
             enforce_funds?: boolean;
             status?: components["schemas"]["AccountStatusEnum"];
+            /** @description Marcarla quita la marca a la anterior; solo cuentas de activo y tarjetas abiertas. */
+            is_default?: boolean;
         };
         PatchedAssetPatch: {
             name?: string;
@@ -8975,6 +9184,7 @@ export interface components {
             rate_type?: components["schemas"]["RateTypeEnum"];
             rate_reminder_days?: number;
             last4?: string | null;
+            is_default?: boolean;
             /**
              * @description Bloqueada o cancelada: no acepta compras, sí pagos.
              *
@@ -9043,6 +9253,35 @@ export interface components {
         };
         PatchedHouseholdRename: {
             name?: string;
+        };
+        PatchedLoanPatch: {
+            name?: string;
+            kind?: components["schemas"]["LoanKindEnum"];
+            /**
+             * @description Seguro mensual: pasa a las cuotas pendientes.
+             * @example 0.24
+             */
+            insurance?: string;
+            /**
+             * @description Otros cargos mensuales: pasan a las cuotas pendientes.
+             * @example 0.24
+             */
+            other_charges?: string;
+            payment_day?: number;
+            /** @description Plazo total en cuotas (pagadas + pendientes). */
+            term?: number;
+            /** @example 0.24 */
+            rate?: string;
+            rate_convention?: components["schemas"]["RateConventionEnum"];
+            rate_source?: string;
+            /**
+             * Format: date
+             * @description Desde cuándo rige la tasa nueva (hoy por defecto).
+             */
+            rate_from?: string;
+            status?: components["schemas"]["LoanPatchStatusEnum"];
+            /** Format: date */
+            interest_start?: string | null;
         };
         PatchedMaintenancePatch: {
             name?: string;
@@ -11028,6 +11267,62 @@ export interface operations {
             };
             /** @description No existe (o es de otro usuario). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsAccountDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -13173,6 +13468,62 @@ export interface operations {
             };
             /** @description No existe (o es de otro usuario). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCardDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -15782,6 +16133,62 @@ export interface operations {
             };
         };
     };
+    fmsDebtDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsDebtPatch: {
         parameters: {
             query?: never;
@@ -17751,6 +18158,63 @@ export interface operations {
             };
             /** @description No existe (o es de otro usuario). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsAccountDelete_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -22454,6 +22918,141 @@ export interface operations {
             };
         };
     };
+    fmsLoanDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsLoanPatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedLoanPatch"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Loan"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsLoanPay: {
         parameters: {
             query?: never;
@@ -22527,6 +23126,135 @@ export interface operations {
             };
             /** @description El estado actual no lo permite. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsLoanInterestPayments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanInterestPayments"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsLoanInterestPay: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanInterestPaymentCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanInterestPayments"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanInterestPayments"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -26448,6 +27176,53 @@ export interface operations {
             };
         };
     };
+    fmsRecurrenceDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsRecurrencePatch: {
         parameters: {
             query?: never;
@@ -27586,6 +28361,83 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SharedPurchase"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsBankQuote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BankQuote"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BankQuoteResult"];
                 };
             };
             /** @description Cuerpo inválido o falta `Idempotency-Key`. */

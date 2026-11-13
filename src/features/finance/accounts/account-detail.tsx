@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/api";
 import type { Account, Entry, Page } from "@/api/models";
@@ -12,6 +12,8 @@ import { EntryTable } from "../movements/entry-table";
 import { useHref, useResource, useSubmit } from "../hooks";
 import { Badge, Banner, Checkbox, DefinitionList, ErrorState, FormActions, Loading, Modal, Money, Pager, ScreenHeader, Section, TextField } from "../kit";
 import { accountGroup } from "../helpers";
+import { RemoveDialog } from "../shared/remove";
+import { Icon } from "@/ui/icons";
 import { shareable } from "../../household/blockers";
 import { ReadOnlyBanner } from "../../household/notices";
 import { setScope, useCanWrite, useScope } from "../../household/scope-store";
@@ -23,7 +25,8 @@ export function AccountDetail({ id }: { id: string }) {
   const t = dict.fin.accounts;
   const href = useHref();
   const account = useResource<Account>(paths.account(id));
-  const [renaming, setRenaming] = useState(false);
+  const [renaming, setRenaming] = useState(useSearchParams().get("editar") === "1");
+  const [removing, setRemoving] = useState(false);
   const [showEntries, setShowEntries] = useState(false);
   const toggle = useSubmit();
   const router = useRouter();
@@ -58,9 +61,14 @@ export function AccountDetail({ id }: { id: string }) {
         back={back}
         actions={
           canWrite ? (
-            <button type="button" className="button button--ghost" onClick={() => setRenaming(true)}>
-              {t.rename}
-            </button>
+            <>
+              <button type="button" className="button button--ghost" onClick={() => setRenaming(true)}>
+                {dict.fin.own.edit}
+              </button>
+              <button type="button" className="button button--ghost" onClick={() => setRemoving(true)}>
+                {dict.fin.own.delete}
+              </button>
+            </>
           ) : undefined
         }
       />
@@ -76,6 +84,11 @@ export function AccountDetail({ id }: { id: string }) {
           </p>
         )}
         <p className="fin-row__badges">
+          {a.is_default && (
+            <Badge tone="info">
+              <Icon name="star" size={14} /> {dict.fin.own.default.badge}
+            </Badge>
+          )}
           {a.gmf_exempt && <Badge tone="info">{t.exemptGmf}</Badge>}
           {a.status !== "active" && <Badge tone="warning">{t.status[a.status]}</Badge>}
         </p>
@@ -149,15 +162,15 @@ export function AccountDetail({ id }: { id: string }) {
         />
       )}
 
-      <Modal open={renaming} title={t.rename} onClose={() => setRenaming(false)}>
+      <RemoveDialog open={removing} name={a.name} deletePath={paths.account(a.id)} closePath={paths.account(a.id)} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(href("cuentas")); }} />
+      <Modal open={renaming} title={dict.fin.own.account.editTitle} onClose={() => setRenaming(false)}>
         <RenameForm
-          current={a.name}
+          account={a}
           onCancel={() => setRenaming(false)}
           onDone={() => {
             setRenaming(false);
             account.reload();
           }}
-          accountId={a.id}
         />
       </Modal>
     </div>
@@ -181,23 +194,36 @@ function AccountEntries({ accountId }: { accountId: string }) {
   );
 }
 
-function RenameForm({ accountId, current, onDone, onCancel }: { accountId: string; current: string; onDone: () => void; onCancel: () => void }) {
-  const { dict } = useI18n();
+function RenameForm({ account, onDone, onCancel }: { account: Account; onDone: () => void; onCancel: () => void }) {
+  const { dict, locale } = useI18n();
+  const o = dict.fin.own;
   const submit = useSubmit();
-  const [name, setName] = useState(current);
+  const [name, setName] = useState(account.name);
+  const [last4, setLast4] = useState(account.last4 ?? "");
+  const [isDefault, setDefault] = useState(account.is_default);
+  const last4Bad = last4 !== "" && !/^\d{4}$/.test(last4);
+  // La predeterminada es de una cuenta de activo o tarjeta abierta.
+  const canDefault = account.status === "active" && accountGroup(account) !== "prestamo" && accountGroup(account) !== "otro";
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (name.trim() === "") return;
-    const result = await submit.run({ name }, (key) => api.patch(paths.account(accountId), { name: name.trim() }, { idempotencyKey: key }));
+    if (name.trim() === "" || last4Bad) return;
+    const body: Record<string, unknown> = {};
+    if (name.trim() !== account.name) body.name = name.trim();
+    if ((last4 || null) !== account.last4) body.last4 = last4 || null;
+    if (isDefault !== account.is_default) body.is_default = isDefault;
+    if (Object.keys(body).length === 0) return onDone();
+    const result = await submit.run(body, (key) => api.patch(paths.account(account.id), body, { idempotencyKey: key, locale }));
     if (result.ok) onDone();
   }
   return (
     <form onSubmit={onSubmit} className="fin-form" noValidate>
       <TextField label={dict.fin.accounts.fields.name} value={name} onChange={setName} maxLength={80} required />
+      <TextField label={o.account.last4} value={last4} onChange={setLast4} inputMode="numeric" maxLength={4} error={last4Bad ? dict.fin.accounts.last4Invalid : null} />
+      {canDefault && <Checkbox label={o.default.toggle} hint={o.default.hint} checked={isDefault} onChange={setDefault} />}
       {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
       <FormActions>
-        <button type="submit" className="button button--primary" disabled={submit.pending || name.trim() === ""}>
-          {dict.fin.common.save}
+        <button type="submit" className="button button--primary" disabled={submit.pending || name.trim() === "" || last4Bad}>
+          {o.save}
         </button>
         <button type="button" className="button button--ghost" onClick={onCancel}>
           {dict.common.cancel}

@@ -3104,6 +3104,230 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/households/{household_id}/sync/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tus conexiones (o las del hogar). Nunca la dirección: esa sale solo al crear y al rotar
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncConnections"];
+        put?: never;
+        /**
+         * Conectar un banco: crea la dirección única de reenvío (128 bits) y la devuelve **una sola vez**
+         * @description Exige reautenticación reciente (403 `reauthentication_required`). Nequi y Nu solo desde la app (403 `activate_from_app`). Repetir la `Idempotency-Key` devuelve la conexión (200) **sin** la dirección.
+         */
+        post: operations["fmsSyncConnectionCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/sync/connections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Una conexión (sin la dirección)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncConnection"];
+        put?: never;
+        post?: never;
+        /**
+         * Borrar la conexión: la dirección deja de valer; las propuestas sin decidir se descartan (reautenticación)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsSyncConnectionDelete"];
+        options?: never;
+        head?: never;
+        /**
+         * Cambiar el nombre, el proveedor, si incluye extractos, o pausarla y reanudarla
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        patch: operations["fmsSyncConnectionPatch"];
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/sync/connections/{id}/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotar la dirección: la anterior deja de valer en el acto y la nueva sale **una sola vez** (reautenticación)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncConnectionRotate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/sync/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lo que llegó de los bancos: por defecto, las propuestas por revisar
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/sync/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Un evento: los campos extraídos y «Ir al correo». Nunca el correo
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncEvent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/sync/events/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aprobar: confirma el movimiento propuesto (o el pendiente con el que cruzó)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncEventApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/sync/events/{id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Descartar la propuesta (anula el pendiente que creó; el evento se borra a los 30 días)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncEventDiscard"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/sync/events/{id}/modify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Modificar y aprobar: cualquier campo, el monto incluido (queda auditado antes y después)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncEventModify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/sync/events/{id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deshacer una aprobación o una autoconfirmación: anula con reverso (lo conciliado no: 409 `immutable_entry`)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncEventUndo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/sync/events/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cuántas propuestas esperan (el contador del Resumen)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncEventsSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/households/{household_id}/tags": {
         parameters: {
             query?: never;
@@ -5247,6 +5471,360 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/sync/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Qué se puede conectar: instituciones con analizador, proveedores de correo y subdominios de ingesta
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tus conexiones (o las del hogar). Nunca la dirección: esa sale solo al crear y al rotar
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncConnections_2"];
+        put?: never;
+        /**
+         * Conectar un banco: crea la dirección única de reenvío (128 bits) y la devuelve **una sola vez**
+         * @description Exige reautenticación reciente (403 `reauthentication_required`). Nequi y Nu solo desde la app (403 `activate_from_app`). Repetir la `Idempotency-Key` devuelve la conexión (200) **sin** la dirección.
+         */
+        post: operations["fmsSyncConnectionCreate_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/connections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Una conexión (sin la dirección)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncConnection_2"];
+        put?: never;
+        post?: never;
+        /**
+         * Borrar la conexión: la dirección deja de valer; las propuestas sin decidir se descartan (reautenticación)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsSyncConnectionDelete_2"];
+        options?: never;
+        head?: never;
+        /**
+         * Cambiar el nombre, el proveedor, si incluye extractos, o pausarla y reanudarla
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        patch: operations["fmsSyncConnectionPatch_2"];
+        trace?: never;
+    };
+    "/api/fms/v1/sync/connections/{id}/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotar la dirección: la anterior deja de valer en el acto y la nueva sale **una sola vez** (reautenticación)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncConnectionRotate_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lo que llegó de los bancos: por defecto, las propuestas por revisar
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncEvents_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Un evento: los campos extraídos y «Ir al correo». Nunca el correo
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncEvent_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/events/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aprobar: confirma el movimiento propuesto (o el pendiente con el que cruzó)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncEventApprove_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/events/{id}/discard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Descartar la propuesta (anula el pendiente que creó; el evento se borra a los 30 días)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncEventDiscard_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/events/{id}/modify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Modificar y aprobar: cualquier campo, el monto incluido (queda auditado antes y después)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncEventModify_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/events/{id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deshacer una aprobación o una autoconfirmación: anula con reverso (lo conciliado no: 409 `immutable_entry`)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncEventUndo_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/events/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cuántas propuestas esperan (el contador del Resumen)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncEventsSummary_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/rule-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reglas de autoconfirmación sugeridas por tus aprobaciones (3 o más parecidas)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncRuleSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/rule-suggestions/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Descartar una sugerencia: no se vuelve a sugerir
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncRuleSuggestionDismiss"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tus preferencias de la sincronización (si guardaste tu cédula; nunca su valor)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/settings/document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Guardar (o cambiar) tu cédula para abrir solos los extractos en PDF con contraseña (reautenticación)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        put: operations["fmsSyncDocumentSave"];
+        post?: never;
+        /**
+         * Olvidar tu cédula: los PDF con contraseña la vuelven a pedir cada vez (reautenticación)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsSyncDocumentClear"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/sync/settings/document/reveal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ver tu cédula guardada (reautenticación; queda en tu auditoría)
+         * @description `POST` para que nada viaje en la URL ni quede en una caché.
+         */
+        post: operations["fmsSyncDocumentReveal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/tags": {
         parameters: {
             query?: never;
@@ -5744,6 +6322,13 @@ export interface components {
          * @enum {string}
          */
         AuditActionEnum: "add" | "change" | "delete" | "confirm" | "discard" | "annul" | "reconcile" | "reopen" | "adjust" | "alert";
+        /**
+         * @description * `dkim` - DKIM
+         *     * `arc` - ARC
+         *     * `none` - None
+         * @enum {string}
+         */
+        AuthEnum: "dkim" | "arc" | "none";
         /**
          * @description * `cookie` - cookie
          *     * `token` - token
@@ -6346,6 +6931,9 @@ export interface components {
             subject: string;
             /** @description Los campos que las condiciones de este disparador pueden usar. */
             condition_fields: components["schemas"]["CatalogField"][];
+            /** @description Qué hace la regla: `notify` en los del libro; `auto_confirm` en `sync_event` (correos de los bancos). */
+            actions: components["schemas"]["CustomRuleActionEnum"][];
+            max_conditions: number;
         };
         Category: {
             /** Format: uuid */
@@ -6508,7 +7096,7 @@ export interface components {
             /** @description Un campo del disparador (ver `GET automation/catalog`). */
             field: string;
             /**
-             * @description `gt`, `gte`, `lt`, `lte`, `eq`, `ne` (las opciones solo `eq` y `ne`).
+             * @description `gt`, `gte`, `lt`, `lte`, `eq`, `ne` (las opciones solo `eq` y `ne`); los textos (`sync_event`) `contains`, `starts_with` y `eq`.
              *
              *     * `gt` - gt
              *     * `gte` - gte
@@ -6516,6 +7104,8 @@ export interface components {
              *     * `lte` - lte
              *     * `eq` - eq
              *     * `ne` - ne
+             *     * `contains` - contains
+             *     * `starts_with` - starts_with
              */
             op: components["schemas"]["CustomRuleOperatorEnum"];
             /** @description Cadena: un monto (hasta 2 decimales, nunca se redondea), un porcentaje o un entero, o una opción del catálogo. */
@@ -6818,12 +7408,24 @@ export interface components {
             last_fired_on: string | null;
             /** Format: date-time */
             created_at: string;
+            /**
+             * Format: uuid
+             * @description `auto_confirm`: la categoría con que confirma (si no, la que sugiere el historial).
+             */
+            action_category_id: string | null;
+            /** @description `auto_confirm`: la contraparte con que confirma. */
+            action_counterparty: string | null;
+            /** @description `auto_confirm`: cuántas veces confirmó. */
+            applied_count: number;
+            /** Format: date-time */
+            last_applied_at: string | null;
         };
         /**
          * @description * `notify` - notify
+         *     * `auto_confirm` - auto_confirm
          * @enum {string}
          */
-        CustomRuleActionEnum: "notify";
+        CustomRuleActionEnum: "notify" | "auto_confirm";
         /**
          * @description * `app` - app
          *     * `email` - email
@@ -6834,10 +7436,20 @@ export interface components {
         CustomRuleCreate: {
             name: string;
             trigger: components["schemas"]["CustomRuleTriggerEnum"];
-            /** @description `[{field, op, value}]`: se combinan con «y». */
+            /** @description `[{field, op, value}]`: se combinan con «y» (hasta 5; `sync_event`, hasta 7). */
             conditions: {
                 [key: string]: unknown;
             }[];
+            /**
+             * @description Por defecto, la del disparador.
+             *
+             *     * `notify` - notify
+             *     * `auto_confirm` - auto_confirm
+             */
+            action?: components["schemas"]["CustomRuleActionEnum"];
+            /** Format: uuid */
+            action_category_id?: string | null;
+            action_counterparty?: string | null;
             /**
              * @description `app` (siempre), `email`, `push`.
              * @default [
@@ -6859,9 +7471,10 @@ export interface components {
          *     * `percent` - percent
          *     * `count` - count
          *     * `option` - option
+         *     * `text` - text
          * @enum {string}
          */
-        CustomRuleFieldKindEnum: "amount" | "percent" | "count" | "option";
+        CustomRuleFieldKindEnum: "amount" | "percent" | "count" | "option" | "text";
         /**
          * @description * `gt` - gt
          *     * `gte` - gte
@@ -6869,9 +7482,11 @@ export interface components {
          *     * `lte` - lte
          *     * `eq` - eq
          *     * `ne` - ne
+         *     * `contains` - contains
+         *     * `starts_with` - starts_with
          * @enum {string}
          */
-        CustomRuleOperatorEnum: "gt" | "gte" | "lt" | "lte" | "eq" | "ne";
+        CustomRuleOperatorEnum: "gt" | "gte" | "lt" | "lte" | "eq" | "ne" | "contains" | "starts_with";
         CustomRulePage: {
             count: number;
             page: number;
@@ -6890,9 +7505,10 @@ export interface components {
          *     * `budget_usage` - budget_usage
          *     * `account_balance` - account_balance
          *     * `upcoming_due` - upcoming_due
+         *     * `sync_event` - sync_event
          * @enum {string}
          */
-        CustomRuleTriggerEnum: "card_utilization" | "budget_usage" | "account_balance" | "upcoming_due";
+        CustomRuleTriggerEnum: "card_utilization" | "budget_usage" | "account_balance" | "upcoming_due" | "sync_event";
         Dashboard: {
             /** Format: date */
             period: string;
@@ -8424,6 +9040,15 @@ export interface components {
             label: string;
         };
         /**
+         * @description * `income` - income
+         *     * `expense` - expense
+         *     * `transfer_in` - transfer_in
+         *     * `transfer_out` - transfer_out
+         *     * `` -
+         * @enum {string}
+         */
+        Kind963Enum: "income" | "expense" | "transfer_in" | "transfer_out";
+        /**
          * @description * `account` - account
          *     * `card` - card
          * @enum {string}
@@ -8979,6 +9604,15 @@ export interface components {
          * @enum {string}
          */
         LocaleEnum: "es" | "en";
+        MailLink: {
+            provider: string;
+            /** @description Abre el mensaje (Gmail) o el buzón; con `noopener`. */
+            url: string | null;
+            /** @description `true`: el enlace abre ese mensaje. */
+            exact: boolean;
+            /** @description Qué buscar en el buzón si no abre el mensaje (remitente y fecha). */
+            search_hint: string;
+        };
         Maintenance: {
             /** Format: uuid */
             id: string;
@@ -9297,10 +9931,11 @@ export interface components {
          *     * `debt_opening` - Personal debt lent or received
          *     * `goal_contribution` - Goal contribution
          *     * `import` - Imported from a statement
+         *     * `sync` - Read from a bank e-mail
          *     * `household_transfer` - Transfer between personal and household
          * @enum {string}
          */
-        MovementOriginEnum: "manual" | "transfer" | "card_purchase" | "card_payment" | "card_advance" | "card_interest" | "card_fee" | "card_insurance" | "loan_payment" | "loan_disbursement" | "loan_interest" | "recurrence" | "debt_payment" | "debt_opening" | "goal_contribution" | "import" | "household_transfer";
+        MovementOriginEnum: "manual" | "transfer" | "card_purchase" | "card_payment" | "card_advance" | "card_interest" | "card_fee" | "card_insurance" | "loan_payment" | "loan_disbursement" | "loan_interest" | "recurrence" | "debt_payment" | "debt_opening" | "goal_contribution" | "import" | "sync" | "household_transfer";
         MovementPage: {
             count: number;
             page: number;
@@ -9447,9 +10082,12 @@ export interface components {
          *     * `vehicle_due` - vehicle_due
          *     * `maintenance_due` - maintenance_due
          *     * `card_rate_update` - card_rate_update
+         *     * `sync_proposed` - sync_proposed
+         *     * `sync_auto_confirmed` - sync_auto_confirmed
+         *     * `sync_health` - sync_health
          * @enum {string}
          */
-        NotificationRuleKeyEnum: "card_payment" | "card_cut" | "fixed_due" | "overdue" | "loan_due" | "subscription_confirm" | "low_balance" | "renewal" | "period_start" | "budget_warning" | "budget_exceeded" | "debt_reminder" | "vehicle_due" | "maintenance_due" | "card_rate_update";
+        NotificationRuleKeyEnum: "card_payment" | "card_cut" | "fixed_due" | "overdue" | "loan_due" | "subscription_confirm" | "low_balance" | "renewal" | "period_start" | "budget_warning" | "budget_exceeded" | "debt_reminder" | "vehicle_due" | "maintenance_due" | "card_rate_update" | "sync_proposed" | "sync_auto_confirmed" | "sync_health";
         NotificationsRead: {
             /** @description Sin `ids`, todas. */
             ids?: string[];
@@ -9772,6 +10410,9 @@ export interface components {
             conditions?: {
                 [key: string]: unknown;
             }[];
+            /** Format: uuid */
+            action_category_id?: string | null;
+            action_counterparty?: string | null;
             channels?: string[];
             severity?: components["schemas"]["CustomRuleSeverityEnum"];
             title?: string | null;
@@ -9967,6 +10608,12 @@ export interface components {
             adjustments?: {
                 [key: string]: unknown;
             }[];
+        };
+        PatchedSyncConnectionPatch: {
+            label?: string | null;
+            include_statements?: boolean;
+            status?: components["schemas"]["StatusB9bEnum"];
+            provider?: components["schemas"]["ProviderEnum"];
         };
         PatchedUserParameterClose: {
             /** Format: date */
@@ -10179,6 +10826,20 @@ export interface components {
             total: string;
             percent: number;
         };
+        /**
+         * @description * `gmail` - Gmail
+         *     * `outlook` - Outlook.com
+         *     * `other` - Other
+         * @enum {string}
+         */
+        ProviderEnum: "gmail" | "outlook" | "other";
+        /**
+         * @description * `gmail` - Gmail
+         *     * `outlook` - Outlook.com
+         *     * `other` - Other
+         * @enum {string}
+         */
+        ProvidersEnum: "gmail" | "outlook" | "other";
         Purchase: {
             movement: components["schemas"]["Movement"];
             plan: components["schemas"]["Plan"];
@@ -11248,6 +11909,12 @@ export interface components {
             statement: components["schemas"]["Statement"] | null;
             statements: components["schemas"]["Statement"][];
         };
+        /**
+         * @description * `active` - Active
+         *     * `paused` - Paused
+         * @enum {string}
+         */
+        StatusB9bEnum: "active" | "paused";
         SubscriptionItem: {
             recurrence: components["schemas"]["Recurrence"];
             /** @example 180000 */
@@ -11308,6 +11975,197 @@ export interface components {
              */
             owed: string;
             installment_purchases: components["schemas"]["InstallmentPurchase"][];
+        };
+        SyncCatalog: {
+            /** @description `false`: el servidor no tiene subdominio de ingesta. */
+            configured: boolean;
+            institutions: components["schemas"]["SyncInstitution"][];
+            providers: components["schemas"]["ProvidersEnum"][];
+            /** @description El subdominio de ingesta por idioma (`es`, `en`...) y `default`. */
+            ingest_domains: {
+                [key: string]: string;
+            };
+        };
+        SyncConnection: {
+            /** Format: uuid */
+            id: string;
+            institution_id: number;
+            institution_code: string;
+            institution_name: string;
+            /** Format: uuid */
+            account_id: string;
+            account_name: string;
+            status: components["schemas"]["StatusB9bEnum"];
+            include_statements: boolean;
+            /** Format: date-time */
+            last_event_at: string | null;
+            /** Format: date-time */
+            rotated_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** @description Si puedes ver su configuración y cambiarla, rotarla o borrarla (en un hogar, quien la creó o un administrador). */
+            is_manager: boolean;
+            /** @description Solo para quien la gestiona. */
+            label: string | null;
+            /**
+             * @description Solo para quien la gestiona.
+             *
+             *     * `gmail` - Gmail
+             *     * `outlook` - Outlook.com
+             *     * `other` - Other
+             */
+            provider: components["schemas"]["ProviderEnum"] | components["schemas"]["NullEnum"];
+            /** @description Solo para quien la gestiona. */
+            domain: string | null;
+            /** @description El código del correo de confirmación de reenvío del proveedor (24 h). Solo para quien la gestiona. */
+            forwarding_code: string | null;
+            /** Format: date-time */
+            forwarding_code_expires_at: string | null;
+            rejected_count: number;
+            /** @description La dirección de reenvío **en claro**: solo en la respuesta de crear y de rotar (nunca se vuelve a mostrar). */
+            address: string | null;
+        };
+        SyncConnectionCreate: {
+            institution_id: number;
+            /** Format: uuid */
+            account_id: string;
+            provider: components["schemas"]["ProviderEnum"];
+            label?: string | null;
+            /** @default true */
+            include_statements: boolean;
+            /** @description Elige el subdominio del idioma (`es`, `en`). */
+            locale?: string;
+            /** @description Uno de `ingest_domains` del catálogo. */
+            domain?: string;
+        };
+        SyncConnectionPage: {
+            count: number;
+            page: number;
+            page_size: number;
+            results: components["schemas"]["SyncConnection"][];
+        };
+        SyncDismiss: {
+            key: string;
+        };
+        SyncDocument: {
+            /** @description Tu cédula (4 a 20 letras o cifras). Se cifra con tu llave. */
+            document: string;
+        };
+        SyncDocumentReveal: {
+            document: string;
+        };
+        SyncEvent: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            connection_id: string;
+            /** Format: uuid */
+            account_id: string;
+            institution_code: string;
+            status: components["schemas"]["SyncEventStatusEnum"];
+            auth: components["schemas"]["AuthEnum"];
+            error_code: string;
+            /** Format: date-time */
+            received_at: string;
+            /** Format: date */
+            date: string | null;
+            /** @example 180000 */
+            amount: string | null;
+            kind: components["schemas"]["Kind963Enum"] | components["schemas"]["BlankEnum"];
+            counterparty: string | null;
+            last4: string | null;
+            reference: string | null;
+            match: components["schemas"]["ImportMatchEnum"] | components["schemas"]["BlankEnum"];
+            /** Format: uuid */
+            movement_id: string | null;
+            /** Format: uuid */
+            candidate_id: string | null;
+            /** Format: uuid */
+            batch_id: string | null;
+            /** Format: uuid */
+            rule_id: string | null;
+            /** Format: date-time */
+            decided_at: string | null;
+            /**
+             * Format: uuid
+             * @description La categoría del movimiento propuesto (sugerida por el historial).
+             */
+            suggested_category_id: string | null;
+            mail_link: components["schemas"]["MailLink"] | null;
+        };
+        SyncEventModify: {
+            type?: components["schemas"]["AmountTypeEnum"];
+            /** @example 180000 */
+            amount?: string;
+            /** Format: date */
+            date?: string;
+            /** Format: uuid */
+            account_id?: string;
+            /** Format: uuid */
+            category_id?: string | null;
+            counterparty?: string | null;
+            description?: string | null;
+            notes?: string | null;
+        };
+        SyncEventPage: {
+            count: number;
+            page: number;
+            page_size: number;
+            results: components["schemas"]["SyncEvent"][];
+        };
+        /**
+         * @description * `proposed` - Proposed
+         *     * `auto_confirmed` - Confirmed by a rule
+         *     * `approved` - Approved
+         *     * `modified` - Approved with changes
+         *     * `discarded` - Discarded
+         *     * `undone` - Undone
+         *     * `rejected_auth` - Rejected: not authenticated
+         *     * `parse_error` - Could not be read
+         * @enum {string}
+         */
+        SyncEventStatusEnum: "proposed" | "auto_confirmed" | "approved" | "modified" | "discarded" | "undone" | "rejected_auth" | "parse_error";
+        SyncEventSummary: {
+            /** @description Cuántas propuestas esperan en «Por revisar». */
+            proposed: number;
+        };
+        SyncInstitution: {
+            id: number;
+            code: string;
+            name: string;
+            /** @description Nequi y Nu: se activan desde la app móvil (en la web no se crean). */
+            mobile_only: boolean;
+        };
+        SyncRuleSuggestion: {
+            /** @description Para descartarla (`rule-suggestions/dismiss`). */
+            key: string;
+            kind: components["schemas"]["Kind963Enum"];
+            text: string;
+            count: number;
+            /** @example 180000 */
+            amount_min: string;
+            /** @example 180000 */
+            amount_max: string;
+            day_min: number;
+            day_max: number;
+            trigger: string;
+            action: string;
+            /** @description Listas para `POST automation/rules` (el usuario puede editarlas). */
+            conditions: components["schemas"]["SyncRuleSuggestionCondition"][];
+        };
+        SyncRuleSuggestionCondition: {
+            field: string;
+            op: string;
+            value: string;
+        };
+        SyncRuleSuggestions: {
+            results: components["schemas"]["SyncRuleSuggestion"][];
+        };
+        SyncSettings: {
+            /** @description Si guardaste tu cédula para abrir extractos en PDF. */
+            document_saved: boolean;
+            /** Format: date-time */
+            document_set_at: string | null;
         };
         Table: {
             key: string;
@@ -23076,6 +23934,828 @@ export interface operations {
             };
         };
     };
+    fmsSyncConnections: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnectionPage"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnectionCreate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncConnectionCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnectionDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Borrada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnectionPatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedSyncConnectionPatch"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnectionRotate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEvents: {
+        parameters: {
+            query?: {
+                connection?: string;
+                page?: number;
+                page_size?: number;
+                /** @description Un estado, o `all`. Por defecto, `proposed`. */
+                status?: string;
+            };
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEventPage"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEvent"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEventApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEvent"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEventDiscard: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEvent"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEventModify: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SyncEventModify"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEvent"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEventUndo: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEvent"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEventsSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEventSummary"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsTags: {
         parameters: {
             query?: {
@@ -30216,6 +31896,1122 @@ export interface operations {
             };
             /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncCatalog"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnections_2: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnectionPage"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnectionCreate_2: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncConnectionCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnection_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnectionDelete_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Borrada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnectionPatch_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedSyncConnectionPatch"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnectionRotate_2: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnection"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEvents_2: {
+        parameters: {
+            query?: {
+                connection?: string;
+                page?: number;
+                page_size?: number;
+                /** @description Un estado, o `all`. Por defecto, `proposed`. */
+                status?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEventPage"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEvent_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEvent"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEventApprove_2: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEvent"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEventDiscard_2: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEvent"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEventModify_2: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["SyncEventModify"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEvent"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEventUndo_2: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEvent"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncEventsSummary_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncEventSummary"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncRuleSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRuleSuggestions"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncRuleSuggestionDismiss: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncDismiss"];
+            };
+        };
+        responses: {
+            /** @description Descartada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncSettings"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncDocumentSave: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncDocument"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncSettings"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncDocumentClear: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncSettings"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncDocumentReveal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncDocumentReveal"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -10923,6 +10923,833 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active`, `account_blocked` o
             `reauthentication_required`.'
+  /api/fms/v1/households/{household_id}/sync/connections:
+    get:
+      operationId: fmsSyncConnections
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Tus conexiones (o las del hogar). Nunca la dirección: esa sale solo
+        al crear y al rotar'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnectionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+    post:
+      operationId: fmsSyncConnectionCreate
+      description: Exige reautenticación reciente (403 `reauthentication_required`).
+        Nequi y Nu solo desde la app (403 `activate_from_app`). Repetir la `Idempotency-Key`
+        devuelve la conexión (200) **sin** la dirección.
+      summary: 'Conectar un banco: crea la dirección única de reenvío (128 bits) y
+        la devuelve **una sola vez**'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncConnectionCreate'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/sync/connections/{id}:
+    get:
+      operationId: fmsSyncConnection
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Una conexión (sin la dirección)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    patch:
+      operationId: fmsSyncConnectionPatch
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cambiar el nombre, el proveedor, si incluye extractos, o pausarla y
+        reanudarla
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSyncConnectionPatch'
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsSyncConnectionDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Borrar la conexión: la dirección deja de valer; las propuestas sin
+        decidir se descartan (reautenticación)'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: Borrada.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/sync/connections/{id}/rotate:
+    post:
+      operationId: fmsSyncConnectionRotate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Rotar la dirección: la anterior deja de valer en el acto y la nueva
+        sale **una sola vez** (reautenticación)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/sync/events:
+    get:
+      operationId: fmsSyncEvents
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Lo que llegó de los bancos: por defecto, las propuestas por revisar'
+      parameters:
+      - in: query
+        name: connection
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: Un estado, o `all`. Por defecto, `proposed`.
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEventPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/households/{household_id}/sync/events/{id}:
+    get:
+      operationId: fmsSyncEvent
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Un evento: los campos extraídos y «Ir al correo». Nunca el correo'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEvent'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/sync/events/{id}/approve:
+    post:
+      operationId: fmsSyncEventApprove
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Aprobar: confirma el movimiento propuesto (o el pendiente con el que
+        cruzó)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEvent'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/sync/events/{id}/discard:
+    post:
+      operationId: fmsSyncEventDiscard
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Descartar la propuesta (anula el pendiente que creó; el evento se borra
+        a los 30 días)
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEvent'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/sync/events/{id}/modify:
+    post:
+      operationId: fmsSyncEventModify
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Modificar y aprobar: cualquier campo, el monto incluido (queda auditado
+        antes y después)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncEventModify'
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEvent'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/sync/events/{id}/undo:
+    post:
+      operationId: fmsSyncEventUndo
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Deshacer una aprobación o una autoconfirmación: anula con reverso
+        (lo conciliado no: 409 `immutable_entry`)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEvent'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/sync/events/summary:
+    get:
+      operationId: fmsSyncEventsSummary
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cuántas propuestas esperan (el contador del Resumen)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEventSummary'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/households/{household_id}/tags:
     get:
       operationId: fmsTags
@@ -17544,6 +18371,1018 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active`, `account_blocked` o
             `reauthentication_required`.'
+  /api/fms/v1/sync/catalog:
+    get:
+      operationId: fmsSyncCatalog
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Qué se puede conectar: instituciones con analizador, proveedores de
+        correo y subdominios de ingesta'
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncCatalog'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/sync/connections:
+    get:
+      operationId: fmsSyncConnections_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Tus conexiones (o las del hogar). Nunca la dirección: esa sale solo
+        al crear y al rotar'
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnectionPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+    post:
+      operationId: fmsSyncConnectionCreate_2
+      description: Exige reautenticación reciente (403 `reauthentication_required`).
+        Nequi y Nu solo desde la app (403 `activate_from_app`). Repetir la `Idempotency-Key`
+        devuelve la conexión (200) **sin** la dirección.
+      summary: 'Conectar un banco: crea la dirección única de reenvío (128 bits) y
+        la devuelve **una sola vez**'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - sync
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncConnectionCreate'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/sync/connections/{id}:
+    get:
+      operationId: fmsSyncConnection_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Una conexión (sin la dirección)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    patch:
+      operationId: fmsSyncConnectionPatch_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cambiar el nombre, el proveedor, si incluye extractos, o pausarla y
+        reanudarla
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sync
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSyncConnectionPatch'
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsSyncConnectionDelete_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Borrar la conexión: la dirección deja de valer; las propuestas sin
+        decidir se descartan (reautenticación)'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: Borrada.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/sync/connections/{id}/rotate:
+    post:
+      operationId: fmsSyncConnectionRotate_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Rotar la dirección: la anterior deja de valer en el acto y la nueva
+        sale **una sola vez** (reautenticación)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnection'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/sync/events:
+    get:
+      operationId: fmsSyncEvents_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Lo que llegó de los bancos: por defecto, las propuestas por revisar'
+      parameters:
+      - in: query
+        name: connection
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+        description: Un estado, o `all`. Por defecto, `proposed`.
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEventPage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/sync/events/{id}:
+    get:
+      operationId: fmsSyncEvent_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Un evento: los campos extraídos y «Ir al correo». Nunca el correo'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEvent'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/sync/events/{id}/approve:
+    post:
+      operationId: fmsSyncEventApprove_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Aprobar: confirma el movimiento propuesto (o el pendiente con el que
+        cruzó)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEvent'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/sync/events/{id}/discard:
+    post:
+      operationId: fmsSyncEventDiscard_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Descartar la propuesta (anula el pendiente que creó; el evento se borra
+        a los 30 días)
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEvent'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/sync/events/{id}/modify:
+    post:
+      operationId: fmsSyncEventModify_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Modificar y aprobar: cualquier campo, el monto incluido (queda auditado
+        antes y después)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sync
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncEventModify'
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEvent'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/sync/events/{id}/undo:
+    post:
+      operationId: fmsSyncEventUndo_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Deshacer una aprobación o una autoconfirmación: anula con reverso
+        (lo conciliado no: 409 `immutable_entry`)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEvent'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/sync/events/summary:
+    get:
+      operationId: fmsSyncEventsSummary_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cuántas propuestas esperan (el contador del Resumen)
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncEventSummary'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/sync/rule-suggestions:
+    get:
+      operationId: fmsSyncRuleSuggestions
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Reglas de autoconfirmación sugeridas por tus aprobaciones (3 o más
+        parecidas)
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncRuleSuggestions'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/sync/rule-suggestions/dismiss:
+    post:
+      operationId: fmsSyncRuleSuggestionDismiss
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Descartar una sugerencia: no se vuelve a sugerir'
+      tags:
+      - sync
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncDismiss'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: Descartada.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/sync/settings:
+    get:
+      operationId: fmsSyncSettings
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Tus preferencias de la sincronización (si guardaste tu cédula; nunca
+        su valor)
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncSettings'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/sync/settings/document:
+    put:
+      operationId: fmsSyncDocumentSave
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Guardar (o cambiar) tu cédula para abrir solos los extractos en PDF
+        con contraseña (reautenticación)
+      tags:
+      - sync
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncDocument'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncSettings'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsSyncDocumentClear
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Olvidar tu cédula: los PDF con contraseña la vuelven a pedir cada
+        vez (reautenticación)'
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncSettings'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/sync/settings/document/reveal:
+    post:
+      operationId: fmsSyncDocumentReveal
+      description: '`POST` para que nada viaje en la URL ni quede en una caché.'
+      summary: Ver tu cédula guardada (reautenticación; queda en tu auditoría)
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncDocumentReveal'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
   /api/fms/v1/tags:
     get:
       operationId: fmsTags_2
@@ -18758,6 +20597,16 @@ components:
         * `reopen` - reopen
         * `adjust` - adjust
         * `alert` - alert
+    AuthEnum:
+      enum:
+      - dkim
+      - arc
+      - none
+      type: string
+      description: |-
+        * `dkim` - DKIM
+        * `arc` - ARC
+        * `none` - None
     AuthModeEnum:
       enum:
       - cookie
@@ -19938,10 +21787,20 @@ components:
           items:
             $ref: '#/components/schemas/CatalogField'
           description: Los campos que las condiciones de este disparador pueden usar.
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomRuleActionEnum'
+          description: 'Qué hace la regla: `notify` en los del libro; `auto_confirm`
+            en `sync_event` (correos de los bancos).'
+        max_conditions:
+          type: integer
       required:
+      - actions
       - condition_fields
       - key
       - label
+      - max_conditions
       - subject
     Category:
       type: object
@@ -20266,7 +22125,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/CustomRuleOperatorEnum'
           description: |-
-            `gt`, `gte`, `lt`, `lte`, `eq`, `ne` (las opciones solo `eq` y `ne`).
+            `gt`, `gte`, `lt`, `lte`, `eq`, `ne` (las opciones solo `eq` y `ne`); los textos (`sync_event`) `contains`, `starts_with` y `eq`.
 
             * `gt` - gt
             * `gte` - gte
@@ -20274,6 +22133,8 @@ components:
             * `lte` - lte
             * `eq` - eq
             * `ne` - ne
+            * `contains` - contains
+            * `starts_with` - starts_with
         value:
           type: string
           description: 'Cadena: un monto (hasta 2 decimales, nunca se redondea), un
@@ -20899,14 +22760,38 @@ components:
         created_at:
           type: string
           format: date-time
+        action_category_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: '`auto_confirm`: la categoría con que confirma (si no, la que
+            sugiere el historial).'
+        action_counterparty:
+          type:
+          - string
+          - 'null'
+          description: '`auto_confirm`: la contraparte con que confirma.'
+        applied_count:
+          type: integer
+          description: '`auto_confirm`: cuántas veces confirmó.'
+        last_applied_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
       required:
       - action
+      - action_category_id
+      - action_counterparty
+      - applied_count
       - channels
       - conditions
       - cooldown_days
       - created_at
       - enabled
       - id
+      - last_applied_at
       - last_fired_on
       - name
       - severity
@@ -20915,8 +22800,11 @@ components:
     CustomRuleActionEnum:
       enum:
       - notify
+      - auto_confirm
       type: string
-      description: '* `notify` - notify'
+      description: |-
+        * `notify` - notify
+        * `auto_confirm` - auto_confirm
     CustomRuleChannelEnum:
       enum:
       - app
@@ -20940,8 +22828,27 @@ components:
           items:
             type: object
             additionalProperties: {}
-          description: '`[{field, op, value}]`: se combinan con «y».'
-          maxItems: 5
+          description: '`[{field, op, value}]`: se combinan con «y» (hasta 5; `sync_event`,
+            hasta 7).'
+          maxItems: 7
+        action:
+          allOf:
+          - $ref: '#/components/schemas/CustomRuleActionEnum'
+          description: |-
+            Por defecto, la del disparador.
+
+            * `notify` - notify
+            * `auto_confirm` - auto_confirm
+        action_category_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        action_counterparty:
+          type:
+          - string
+          - 'null'
+          maxLength: 120
         channels:
           type: array
           items:
@@ -20977,12 +22884,14 @@ components:
       - percent
       - count
       - option
+      - text
       type: string
       description: |-
         * `amount` - amount
         * `percent` - percent
         * `count` - count
         * `option` - option
+        * `text` - text
     CustomRuleOperatorEnum:
       enum:
       - gt
@@ -20991,6 +22900,8 @@ components:
       - lte
       - eq
       - ne
+      - contains
+      - starts_with
       type: string
       description: |-
         * `gt` - gt
@@ -20999,6 +22910,8 @@ components:
         * `lte` - lte
         * `eq` - eq
         * `ne` - ne
+        * `contains` - contains
+        * `starts_with` - starts_with
     CustomRulePage:
       type: object
       properties:
@@ -21033,12 +22946,14 @@ components:
       - budget_usage
       - account_balance
       - upcoming_due
+      - sync_event
       type: string
       description: |-
         * `card_utilization` - card_utilization
         * `budget_usage` - budget_usage
         * `account_balance` - account_balance
         * `upcoming_due` - upcoming_due
+        * `sync_event` - sync_event
     Dashboard:
       type: object
       properties:
@@ -24266,6 +26181,15 @@ components:
       required:
       - id
       - label
+    Kind963Enum:
+      enum:
+      - income
+      - expense
+      - transfer_in
+      - transfer_out
+      type: string
+      description: "* `income` - income\n* `expense` - expense\n* `transfer_in` -
+        transfer_in\n* `transfer_out` - transfer_out\n* `` - "
     Kind9efEnum:
       enum:
       - account
@@ -25242,6 +27166,27 @@ components:
       description: |-
         * `es` - es
         * `en` - en
+    MailLink:
+      type: object
+      properties:
+        provider:
+          type: string
+        url:
+          type:
+          - string
+          - 'null'
+          description: Abre el mensaje (Gmail) o el buzón; con `noopener`.
+        exact:
+          type: boolean
+          description: '`true`: el enlace abre ese mensaje.'
+        search_hint:
+          type: string
+          description: Qué buscar en el buzón si no abre el mensaje (remitente y fecha).
+      required:
+      - exact
+      - provider
+      - search_hint
+      - url
     Maintenance:
       type: object
       properties:
@@ -25956,6 +27901,7 @@ components:
       - debt_opening
       - goal_contribution
       - import
+      - sync
       - household_transfer
       type: string
       description: |-
@@ -25975,6 +27921,7 @@ components:
         * `debt_opening` - Personal debt lent or received
         * `goal_contribution` - Goal contribution
         * `import` - Imported from a statement
+        * `sync` - Read from a bank e-mail
         * `household_transfer` - Transfer between personal and household
     MovementPage:
       type: object
@@ -26262,6 +28209,9 @@ components:
       - vehicle_due
       - maintenance_due
       - card_rate_update
+      - sync_proposed
+      - sync_auto_confirmed
+      - sync_health
       type: string
       description: |-
         * `card_payment` - card_payment
@@ -26279,6 +28229,9 @@ components:
         * `vehicle_due` - vehicle_due
         * `maintenance_due` - maintenance_due
         * `card_rate_update` - card_rate_update
+        * `sync_proposed` - sync_proposed
+        * `sync_auto_confirmed` - sync_auto_confirmed
+        * `sync_health` - sync_health
     NotificationsRead:
       type: object
       properties:
@@ -26937,7 +28890,17 @@ components:
           items:
             type: object
             additionalProperties: {}
-          maxItems: 5
+          maxItems: 7
+        action_category_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        action_counterparty:
+          type:
+          - string
+          - 'null'
+          maxLength: 120
         channels:
           type: array
           items:
@@ -27409,6 +29372,20 @@ components:
             type: object
             additionalProperties: {}
           maxItems: 10
+    PatchedSyncConnectionPatch:
+      type: object
+      properties:
+        label:
+          type:
+          - string
+          - 'null'
+          maxLength: 60
+        include_statements:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/StatusB9bEnum'
+        provider:
+          $ref: '#/components/schemas/ProviderEnum'
     PatchedUserParameterClose:
       type: object
       properties:
@@ -27861,6 +29838,26 @@ components:
       - pending
       - percent
       - total
+    ProviderEnum:
+      enum:
+      - gmail
+      - outlook
+      - other
+      type: string
+      description: |-
+        * `gmail` - Gmail
+        * `outlook` - Outlook.com
+        * `other` - Other
+    ProvidersEnum:
+      enum:
+      - gmail
+      - outlook
+      - other
+      type: string
+      description: |-
+        * `gmail` - Gmail
+        * `outlook` - Outlook.com
+        * `other` - Other
     Purchase:
       type: object
       properties:
@@ -29243,7 +31240,7 @@ components:
           items:
             type: object
             additionalProperties: {}
-          maxItems: 5
+          maxItems: 7
       required:
       - conditions
       - trigger
@@ -30030,6 +32027,14 @@ components:
       required:
       - statement
       - statements
+    StatusB9bEnum:
+      enum:
+      - active
+      - paused
+      type: string
+      description: |-
+        * `active` - Active
+        * `paused` - Paused
     SubscriptionItem:
       type: object
       properties:
@@ -30160,6 +32165,491 @@ components:
       - owed
       - period
       - spent
+    SyncCatalog:
+      type: object
+      properties:
+        configured:
+          type: boolean
+          description: '`false`: el servidor no tiene subdominio de ingesta.'
+        institutions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncInstitution'
+        providers:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProvidersEnum'
+        ingest_domains:
+          type: object
+          additionalProperties:
+            type: string
+          description: El subdominio de ingesta por idioma (`es`, `en`...) y `default`.
+      required:
+      - configured
+      - ingest_domains
+      - institutions
+      - providers
+    SyncConnection:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        institution_id:
+          type: integer
+        institution_code:
+          type: string
+        institution_name:
+          type: string
+        account_id:
+          type: string
+          format: uuid
+        account_name:
+          type: string
+        status:
+          $ref: '#/components/schemas/StatusB9bEnum'
+        include_statements:
+          type: boolean
+        last_event_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        rotated_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        is_manager:
+          type: boolean
+          description: Si puedes ver su configuración y cambiarla, rotarla o borrarla
+            (en un hogar, quien la creó o un administrador).
+        label:
+          type:
+          - string
+          - 'null'
+          description: Solo para quien la gestiona.
+        provider:
+          description: |-
+            Solo para quien la gestiona.
+
+            * `gmail` - Gmail
+            * `outlook` - Outlook.com
+            * `other` - Other
+          oneOf:
+          - $ref: '#/components/schemas/ProviderEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        domain:
+          type:
+          - string
+          - 'null'
+          description: Solo para quien la gestiona.
+        forwarding_code:
+          type:
+          - string
+          - 'null'
+          description: El código del correo de confirmación de reenvío del proveedor
+            (24 h). Solo para quien la gestiona.
+        forwarding_code_expires_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        rejected_count:
+          type: integer
+        address:
+          type:
+          - string
+          - 'null'
+          description: 'La dirección de reenvío **en claro**: solo en la respuesta
+            de crear y de rotar (nunca se vuelve a mostrar).'
+      required:
+      - account_id
+      - account_name
+      - address
+      - created_at
+      - domain
+      - forwarding_code
+      - forwarding_code_expires_at
+      - id
+      - include_statements
+      - institution_code
+      - institution_id
+      - institution_name
+      - is_manager
+      - label
+      - last_event_at
+      - provider
+      - rejected_count
+      - rotated_at
+      - status
+    SyncConnectionCreate:
+      type: object
+      properties:
+        institution_id:
+          type: integer
+        account_id:
+          type: string
+          format: uuid
+        provider:
+          $ref: '#/components/schemas/ProviderEnum'
+        label:
+          type:
+          - string
+          - 'null'
+          maxLength: 60
+        include_statements:
+          type: boolean
+          default: true
+        locale:
+          type: string
+          description: Elige el subdominio del idioma (`es`, `en`).
+          maxLength: 5
+        domain:
+          type: string
+          description: Uno de `ingest_domains` del catálogo.
+          maxLength: 253
+      required:
+      - account_id
+      - institution_id
+      - provider
+    SyncConnectionPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncConnection'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    SyncDismiss:
+      type: object
+      properties:
+        key:
+          type: string
+          maxLength: 120
+      required:
+      - key
+    SyncDocument:
+      type: object
+      properties:
+        document:
+          type: string
+          description: Tu cédula (4 a 20 letras o cifras). Se cifra con tu llave.
+          maxLength: 30
+      required:
+      - document
+    SyncDocumentReveal:
+      type: object
+      properties:
+        document:
+          type: string
+      required:
+      - document
+    SyncEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        connection_id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        institution_code:
+          type: string
+        status:
+          $ref: '#/components/schemas/SyncEventStatusEnum'
+        auth:
+          $ref: '#/components/schemas/AuthEnum'
+        error_code:
+          type: string
+        received_at:
+          type: string
+          format: date-time
+        date:
+          type:
+          - string
+          - 'null'
+          format: date
+        amount:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        kind:
+          oneOf:
+          - $ref: '#/components/schemas/Kind963Enum'
+          - $ref: '#/components/schemas/BlankEnum'
+        counterparty:
+          type:
+          - string
+          - 'null'
+        last4:
+          type:
+          - string
+          - 'null'
+        reference:
+          type:
+          - string
+          - 'null'
+        match:
+          oneOf:
+          - $ref: '#/components/schemas/ImportMatchEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        movement_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        candidate_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        batch_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        rule_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        decided_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        suggested_category_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: La categoría del movimiento propuesto (sugerida por el historial).
+        mail_link:
+          oneOf:
+          - $ref: '#/components/schemas/MailLink'
+          - type: 'null'
+      required:
+      - account_id
+      - amount
+      - auth
+      - batch_id
+      - candidate_id
+      - connection_id
+      - counterparty
+      - date
+      - decided_at
+      - error_code
+      - id
+      - institution_code
+      - kind
+      - last4
+      - mail_link
+      - match
+      - movement_id
+      - received_at
+      - reference
+      - rule_id
+      - status
+      - suggested_category_id
+    SyncEventModify:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/AmountTypeEnum'
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        date:
+          type: string
+          format: date
+        account_id:
+          type: string
+          format: uuid
+        category_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        counterparty:
+          type:
+          - string
+          - 'null'
+          maxLength: 120
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 200
+        notes:
+          type:
+          - string
+          - 'null'
+          maxLength: 280
+    SyncEventPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncEvent'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    SyncEventStatusEnum:
+      enum:
+      - proposed
+      - auto_confirmed
+      - approved
+      - modified
+      - discarded
+      - undone
+      - rejected_auth
+      - parse_error
+      type: string
+      description: |-
+        * `proposed` - Proposed
+        * `auto_confirmed` - Confirmed by a rule
+        * `approved` - Approved
+        * `modified` - Approved with changes
+        * `discarded` - Discarded
+        * `undone` - Undone
+        * `rejected_auth` - Rejected: not authenticated
+        * `parse_error` - Could not be read
+    SyncEventSummary:
+      type: object
+      properties:
+        proposed:
+          type: integer
+          description: Cuántas propuestas esperan en «Por revisar».
+      required:
+      - proposed
+    SyncInstitution:
+      type: object
+      properties:
+        id:
+          type: integer
+        code:
+          type: string
+        name:
+          type: string
+        mobile_only:
+          type: boolean
+          description: 'Nequi y Nu: se activan desde la app móvil (en la web no se
+            crean).'
+      required:
+      - code
+      - id
+      - mobile_only
+      - name
+    SyncRuleSuggestion:
+      type: object
+      properties:
+        key:
+          type: string
+          description: Para descartarla (`rule-suggestions/dismiss`).
+        kind:
+          $ref: '#/components/schemas/Kind963Enum'
+        text:
+          type: string
+        count:
+          type: integer
+        amount_min:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        amount_max:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        day_min:
+          type: integer
+        day_max:
+          type: integer
+        trigger:
+          type: string
+        action:
+          type: string
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncRuleSuggestionCondition'
+          description: Listas para `POST automation/rules` (el usuario puede editarlas).
+      required:
+      - action
+      - amount_max
+      - amount_min
+      - conditions
+      - count
+      - day_max
+      - day_min
+      - key
+      - kind
+      - text
+      - trigger
+    SyncRuleSuggestionCondition:
+      type: object
+      properties:
+        field:
+          type: string
+        op:
+          type: string
+        value:
+          type: string
+      required:
+      - field
+      - op
+      - value
+    SyncRuleSuggestions:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncRuleSuggestion'
+      required:
+      - results
+    SyncSettings:
+      type: object
+      properties:
+        document_saved:
+          type: boolean
+          description: Si guardaste tu cédula para abrir extractos en PDF.
+        document_set_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      required:
+      - document_saved
+      - document_set_at
     Table:
       type: object
       properties:

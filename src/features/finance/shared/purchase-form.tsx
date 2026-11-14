@@ -8,6 +8,7 @@ import { todayBogota } from "@/lib/dates";
 import { formatCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { movementAccounts } from "../helpers";
+import { CategoryCombobox } from "../category-combobox";
 import { useAll, useSubmit } from "../hooks";
 import { AmountField, Banner, FormActions, Segmented, SelectField, TextField } from "../kit";
 import { MAX_PEOPLE, previewSplit, purchaseBody, SHARED_MODES, type PersonDraft } from "./logic";
@@ -67,7 +68,7 @@ export function PurchaseForm({ onDone, onCancel }: { onDone: (purchase: SharedPu
       <AmountField label={t.total} value={total} onChange={setTotal} required error={problem === "total" ? t.problems.total : null} apiCode={submit.errorCode} />
       <div className="fin-grid-2">
         <TextField label={t.date} type="date" value={date} onChange={setDate} required error={problem === "date" ? dict.fin.common.requiredField : null} />
-        <SelectField label={t.category} value={categoryId} onChange={setCategoryId} placeholder={t.noCategory} options={categories.items.filter((c) => c.kind === "expense").map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />
+        <CategoryCombobox label={t.category} kind="expense" categories={categories} value={categoryId} onChange={setCategoryId} placeholder={t.noCategory} />
       </div>
       <TextField label={t.description} value={description} onChange={setDescription} maxLength={280} />
 

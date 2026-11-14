@@ -19,6 +19,7 @@ import { ForeignFields, useForeign } from "../currencies/fx-fields";
 import { EMPTY_FOREIGN, type ForeignState } from "../currencies/logic";
 import { clearDraft, peekDraft, type MovementDraft } from "../draft-store";
 import { effectPhrase, fill, movementAccounts, topByFrequency, wouldOverdraw } from "../helpers";
+import { CategoryCombobox } from "../category-combobox";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Banner, Checkbox, Empty, ErrorState, FormActions, Loading, Money, ScreenHeader, Segmented, SelectField, TextArea, TextField } from "../kit";
 
@@ -296,7 +297,7 @@ export function MovementForm() {
           {!isTransfer && (
             <>
               {frequentCategories.length > 0 && <Segmented legend={t.category} variant="chips" options={frequentCategories.map((c) => ({ value: c.id, label: c.name }))} value={state.categoryId} onChange={(v) => set("categoryId", v)} />}
-              <SelectField label={frequentCategories.length > 0 ? t.otherCategory : t.category} value={state.categoryId} onChange={(v) => set("categoryId", v)} placeholder={t.noCategory} options={categoryOptions.map((c) => ({ value: c.id, label: c.path.join(" › ") }))} hint={categoryOptions.length === 0 && categories.data ? t.noCategoriesHint : undefined} />
+              <CategoryCombobox label={frequentCategories.length > 0 ? t.otherCategory : t.category} kind={categoryKind} categories={categories} value={state.categoryId} onChange={(v) => set("categoryId", v)} placeholder={t.noCategory} />
             </>
           )}
 

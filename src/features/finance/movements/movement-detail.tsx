@@ -13,6 +13,7 @@ import { formatForeign, formatRate } from "@/lib/decimal";
 import { useI18n } from "@/i18n/provider";
 import { setDraft } from "../draft-store";
 import { effectPhrase, fill, movementAccounts, signedAmount, transferAccounts } from "../helpers";
+import { CategoryCombobox } from "../category-combobox";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, DefinitionList, Empty, ErrorState, FormActions, Loading, Modal, Money, ScreenHeader, Section, Segmented, SelectField, TextArea, TextField } from "../kit";
 import { AuthorLine, ReadOnlyBanner } from "../../household/notices";
@@ -368,7 +369,7 @@ function EditForm({ movement, onDone, onCancel }: { movement: Movement; onDone: 
       <AmountField apiCode={submit.errorCode} label={f.amount} value={amountText} onChange={setAmountText} required error={amount ? null : dict.fin.common.invalidAmount} />
       <TextField label={f.date} type="date" value={date} onChange={setDate} required />
       <SelectField label={f.account} value={accountId} onChange={setAccountId} options={(isTransfer ? transferAccounts(accounts.items) : movementAccounts(accounts.items)).map((a) => ({ value: a.id, label: a.name }))} />
-      {!isTransfer && <SelectField label={f.category} value={categoryId} onChange={setCategoryId} placeholder={f.noCategory} options={categories.items.filter((c) => c.kind === (movement.type === "income" ? "income" : "expense")).map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />}
+      {!isTransfer && <CategoryCombobox label={f.category} kind={movement.type === "income" ? "income" : "expense"} categories={categories} value={categoryId} onChange={setCategoryId} placeholder={f.noCategory} />}
       {!isTransfer && <TextField label={f.counterparty} value={counterparty} onChange={setCounterparty} maxLength={80} />}
       <TextField label={f.description} value={description} onChange={setDescription} maxLength={200} />
       {!isTransfer && (

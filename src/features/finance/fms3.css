@@ -26,3 +26,6 @@
 .audit-table td { overflow-wrap: anywhere; }
 .audit-before { background: var(--color-negative-container); color: var(--color-on-negative-container); }
 .audit-after { background: var(--color-positive-container); color: var(--color-on-positive-container); }
+.imp-format { min-width: 0; }
+.fin-bullets { margin: 0; padding-inline-start: var(--space-20, 1.25rem); display: grid; gap: var(--space-4); }
+.imp-validity { display: inline-flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; }

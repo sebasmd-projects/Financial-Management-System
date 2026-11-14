@@ -8,7 +8,7 @@ import { useI18n } from "@/i18n/provider";
 import { fill } from "../helpers";
 import { Badge, Banner, Money, Pager, Section, Segmented } from "../kit";
 import { CardRowFields, KindSummary, SignControl } from "./card-rows";
-import { effectiveAction, isBlocked, tally, type RowEdit, type SignChoice } from "./logic";
+import { effectiveAction, filterEntries, isBlocked, previewEntries, storedAs, tally, type EntryFilter, type RowEdit, type SignChoice } from "./logic";
 
 const PAGE = 25;
 const MATCH_TONE: Record<ImportMatch, "neutral" | "info" | "positive" | "warning" | "negative"> = {
@@ -69,12 +69,20 @@ export function ReviewStep({
 }) {
   const { dict } = useI18n();
   const t = dict.fin.imp.review;
-  const [filter, setFilter] = useState<"all" | ImportMatch>("all");
+  const [filter, setFilter] = useState<EntryFilter>("all");
   const [page, setPage] = useState(1);
   const counts = tally(preview.rows, choices);
-  const shown = preview.rows.filter((row) => filter === "all" || row.match === filter);
+  const entries = previewEntries(preview);
+  const shown = filterEntries(entries, filter);
   const visible = shown.slice((page - 1) * PAGE, page * PAGE);
   const present = MATCHES.filter((match) => (preview.counts[match] ?? 0) > 0);
+  const summary = preview.summary;
+  const filterOptions = [
+    { value: "all", label: `${t.all} (${entries.length})` },
+    ...(summary.warnings > 0 ? [{ value: "warning", label: `${t.filters.warning} (${summary.warnings})` }] : []),
+    ...(summary.errors > 0 ? [{ value: "error", label: `${t.filters.error} (${summary.errors})` }] : []),
+    ...(present.length > 1 ? present.map((m) => ({ value: m, label: `${t.matches[m]} (${preview.counts[m] ?? 0})` })) : []),
+  ];
   const isCard = preview.target === "card";
 
   return (
@@ -82,6 +90,7 @@ export function ReviewStep({
       <IgnoredNotes preview={preview} />
       {isCard && onSign && <SignControl preview={preview} sign={sign} onChange={onSign} busy={busy} />}
       <Section title={t.summaryTitle}>
+        <p data-testid="import-validity">{fill(t.readSummary, { read: String(summary.rows_read), valid: String(summary.valid), warnings: String(summary.warnings), errors: String(summary.errors) })}</p>
         <ul className="fin-list imp-summary" data-testid="import-summary">
           <li>{fill(t.willImport, { count: String(counts.import) })}</li>
           <li>{fill(t.willConfirm, { count: String(counts.confirm) })}</li>
@@ -91,18 +100,27 @@ export function ReviewStep({
         {isCard && <KindSummary preview={preview} />}
         {preview.meta.ledger_balance && <p className="hint">{fill(t.ofxBalance, { balance: formatCop(preview.meta.ledger_balance) })}</p>}
       </Section>
-      {present.length > 1 && (
-        <Segmented
-          legend={t.filter}
-          variant="chips"
-          value={filter}
-          onChange={(v) => { setFilter(v as "all" | ImportMatch); setPage(1); }}
-          options={[{ value: "all", label: `${t.all} (${preview.rows.length})` }, ...present.map((m) => ({ value: m, label: `${t.matches[m]} (${preview.counts[m] ?? 0})` }))]}
-        />
+      {filterOptions.length > 1 && (
+        <Segmented legend={t.filter} variant="chips" value={filter} onChange={(v) => { setFilter(v as EntryFilter); setPage(1); }} options={filterOptions} />
       )}
+      <h3 className="title-s">{t.tableTitle}</h3>
       {visible.length === 0 && <p className="muted">{t.empty}</p>}
       <ul className="fin-list">
-        {visible.map((row) => {
+        {visible.map((entry) => {
+          if (entry.kind === "error") {
+            return (
+              <li key={`error-${entry.number}`} className="fin-row fin-row--static imp-row imp-row--skipped" data-testid={`error-row-${entry.number}`}>
+                <span className="fin-row__main">
+                  <span className="fin-row__title">{fill(t.row, { number: String(entry.number) })}</span>
+                  <span className="fin-row__badges">
+                    <Badge tone="negative">{t.validity.error}</Badge>
+                  </span>
+                  <span className="fin-row__sub muted">{fill(t.errorRow, { reason: t.rowErrors[entry.code] ?? t.rowErrorFallback })}</span>
+                </span>
+              </li>
+            );
+          }
+          const row = entry.row;
           const action = effectiveAction(row, choices);
           const included = action !== "skip";
           return (
@@ -118,12 +136,17 @@ export function ReviewStep({
                   {row.reference ? ` · ${row.reference}` : ""}
                 </span>
                 <span className="fin-row__badges">
+                  <Badge tone={row.validity === "valid" ? "positive" : "warning"}>{t.validity[row.validity]}</Badge>
                   <Badge tone={MATCH_TONE[row.match]} dashed={row.match === "possible_duplicate"}>
                     {t.matches[row.match]}
                   </Badge>
                   {row.counterparty && <Badge>{row.counterparty}</Badge>}
                 </span>
                 <span className="fin-row__sub muted">{t.matchHints[row.match]}</span>
+                <span className="fin-row__sub" data-testid={`stored-${row.number}`}>{t.storedAs[storedAs(row, choices)]}</span>
+                {row.reasons.filter((reason) => t.reasons[reason]).map((reason) => (
+                  <span key={reason} className="fin-row__sub muted">{t.reasons[reason]}</span>
+                ))}
                 {isCard && onEdit && <CardRowFields row={row} accounts={accounts} onEdit={onEdit} busy={busy} />}
               </span>
               <Money value={row.amount} sign="always" kind={row.amount.startsWith("-") ? "egreso" : "ingreso"} />

@@ -3300,6 +3300,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/imports/formats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * El formato del archivo de cada importador (columnas, separadores, fechas, signo, límites y filas de ejemplo con su plantilla CSV)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsImportFormats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/imports/preview": {
         parameters: {
             query?: never;
@@ -7809,6 +7830,108 @@ export interface components {
          * @enum {string}
          */
         ImportFileKindEnum: "csv" | "xlsx" | "ofx";
+        /** @description El formato del archivo de un importador: sale de las mismas constantes y del mismo lector que lo procesan. */
+        ImportFormat: {
+            /**
+             * @description `account` (cuenta de activo) o `card` (tarjeta de crédito).
+             *
+             *     * `account` - account
+             *     * `card` - card
+             */
+            kind: components["schemas"]["Kind9efEnum"];
+            file_types: string[];
+            extensions: string[];
+            encodings: string[];
+            delimiters: string[];
+            decimal_separators: string[];
+            thousands_separators: string[];
+            date_formats: components["schemas"]["ImportFormatDate"][];
+            /** @description `amount` (una columna con signo) o `debit_credit` (dos columnas). */
+            amount_modes: string[];
+            /** @description Solo tarjetas: los valores de `sign`. */
+            sign_modes: string[];
+            columns: components["schemas"]["ImportFormatColumn"][];
+            example_header: string[];
+            /** @description Al menos 5 filas de ejemplo (datos inventados). */
+            example_rows: string[][];
+            /** @description Cómo queda cada fila de ejemplo tras leerla con el lector real. */
+            example_stored: components["schemas"]["ImportFormatStored"][];
+            /** @description La plantilla: títulos y filas de ejemplo, UTF-8, separada por comas. */
+            template_csv: string;
+            template_filename: string;
+            /** @description El mapeo con que se lee la plantilla. */
+            template_mapping: {
+                [key: string]: string;
+            };
+            ofx_fields: string[];
+            /** @description Los códigos con que se informa una fila ilegible. */
+            row_errors: string[];
+            limits: components["schemas"]["ImportFormatLimits"];
+        };
+        ImportFormatColumn: {
+            /** @description El rol: `date`, `description`, `amount`, `reference`, `balance` o `installments`. */
+            key: string;
+            /** @description El título que lleva la plantilla (con él se reconoce la columna sola). */
+            header: string;
+            required: boolean;
+            type: components["schemas"]["ImportFormatColumnTypeEnum"];
+            /** @description `max_length`, `min`, `max`. */
+            constraints: {
+                [key: string]: number;
+            };
+            example: string;
+        };
+        /**
+         * @description * `date` - date
+         *     * `money` - money
+         *     * `text` - text
+         *     * `integer` - integer
+         * @enum {string}
+         */
+        ImportFormatColumnTypeEnum: "date" | "money" | "text" | "integer";
+        ImportFormatDate: {
+            /** @description El `strftime` que usa el lector (`%d/%m/%Y`) o `serial` (número de Excel). */
+            format: string;
+            /** @description Cómo se escribe (`DD/MM/YYYY`). */
+            pattern: string;
+            /** @description El 25 de octubre de 2026 escrito así. */
+            example: string;
+        };
+        ImportFormatLimits: {
+            max_bytes: number;
+            max_rows: number;
+            max_columns: number;
+            max_cell_chars: number;
+            max_installments: number;
+        };
+        ImportFormatStored: {
+            /** @description La fila en la plantilla (la 1 son los títulos). */
+            number: number;
+            /** Format: date */
+            date: string;
+            /** @description Cadena decimal con signo: negativo es un egreso o un cargo. */
+            amount: string;
+            description: string;
+            reference: string;
+            /**
+             * @description Solo tarjetas: la clase que se propone.
+             *
+             *     * `purchase` - purchase
+             *     * `advance` - advance
+             *     * `interest` - interest
+             *     * `fee` - fee
+             *     * `insurance` - insurance
+             *     * `payment` - payment
+             *     * `refund` - refund
+             *     * `adjustment` - adjustment
+             */
+            kind: components["schemas"]["KindE46Enum"] | components["schemas"]["NullEnum"];
+            /** @description Solo tarjetas y compras. */
+            installments: number | null;
+        };
+        ImportFormats: {
+            formats: components["schemas"]["ImportFormat"][];
+        };
         /** @description Qué columna es cada cosa (por título) y cómo se escriben las fechas y los montos. */
         ImportMapping: {
             /** @description Título de la columna de la fecha. */
@@ -7901,6 +8024,8 @@ export interface components {
             counts: {
                 [key: string]: number;
             };
+            /** @description Los totales: filas leídas, válidas, con aviso y con error. */
+            summary: components["schemas"]["ImportSummary"];
             target: components["schemas"]["TargetEnum"];
             /** @description Solo tarjetas: `cut_day` y `pay_day`. */
             card: {
@@ -7965,7 +8090,7 @@ export interface components {
              *     * `refund` - refund
              *     * `adjustment` - adjustment
              */
-            kind: components["schemas"]["ImportPreviewRowKindEnum"] | components["schemas"]["NullEnum"];
+            kind: components["schemas"]["KindE46Enum"] | components["schemas"]["NullEnum"];
             /** @description Solo tarjetas y compras: cuántas cuotas (1 a 48). */
             installments: number | null;
             /**
@@ -7989,19 +8114,16 @@ export interface components {
             counter_account: string | null;
             /** @description Código de lo que falta decidir o conviene saber (p. ej. `payment_source_required`); vacío si nada. */
             issue: string;
+            /**
+             * @description `valid`: se importará tal cual; `warning`: conviene saber o decidir algo (ver `reasons`). Una fila ilegible no está aquí: es un `error` de la vista previa.
+             *
+             *     * `valid` - valid
+             *     * `warning` - warning
+             */
+            validity: components["schemas"]["ValidityEnum"];
+            /** @description Los códigos del aviso (`already_imported`, `possible_duplicate`, `payment_source_required`...); vacío si la fila es válida. */
+            reasons: string[];
         };
-        /**
-         * @description * `purchase` - purchase
-         *     * `advance` - advance
-         *     * `interest` - interest
-         *     * `fee` - fee
-         *     * `insurance` - insurance
-         *     * `payment` - payment
-         *     * `refund` - refund
-         *     * `adjustment` - adjustment
-         * @enum {string}
-         */
-        ImportPreviewRowKindEnum: "purchase" | "advance" | "interest" | "fee" | "insurance" | "payment" | "refund" | "adjustment";
         ImportRowError: {
             row: number;
             code: string;
@@ -8014,6 +8136,14 @@ export interface components {
             mapping: components["schemas"]["ImportMapping"];
             /** Format: date-time */
             last_used_at: string | null;
+        };
+        ImportSummary: {
+            /** @description Filas de datos del archivo: válidas, con aviso y con error. */
+            rows_read: number;
+            valid: number;
+            warnings: number;
+            /** @description Filas ilegibles: no se importan (ver `errors`). */
+            errors: number;
         };
         ImportUpload: {
             /**
@@ -8294,11 +8424,29 @@ export interface components {
             label: string;
         };
         /**
+         * @description * `account` - account
+         *     * `card` - card
+         * @enum {string}
+         */
+        Kind9efEnum: "account" | "card";
+        /**
          * @description * `handling_fee` - handling_fee
          *     * `insurance` - insurance
          * @enum {string}
          */
         Kind9ffEnum: "handling_fee" | "insurance";
+        /**
+         * @description * `purchase` - purchase
+         *     * `advance` - advance
+         *     * `interest` - interest
+         *     * `fee` - fee
+         *     * `insurance` - insurance
+         *     * `payment` - payment
+         *     * `refund` - refund
+         *     * `adjustment` - adjustment
+         * @enum {string}
+         */
+        KindE46Enum: "purchase" | "advance" | "interest" | "fee" | "insurance" | "payment" | "refund" | "adjustment";
         Kpi: {
             /**
              * @description «Te queda»: ingresos - gastado - abonos a capital - compromisos pendientes del periodo - aportes planeados a metas.
@@ -11402,6 +11550,12 @@ export interface components {
             usury: string | null;
             exceeds: boolean;
         };
+        /**
+         * @description * `valid` - valid
+         *     * `warning` - warning
+         * @enum {string}
+         */
+        ValidityEnum: "valid" | "warning";
         Vehicle: {
             plate: string;
             brand: string | null;
@@ -23604,6 +23758,43 @@ export interface operations {
             };
             /** @description El estado actual no lo permite. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsImportFormats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportFormats"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

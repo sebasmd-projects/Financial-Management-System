@@ -12,6 +12,7 @@ import { fill, movementAccounts } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { Badge, Banner, Empty, ErrorState, FormActions, Loading, Modal, Pager, ScreenHeader, Section, SelectField } from "../kit";
 import { buildUpload, fileProblem, overridesBody, tally, toggleRow, uploadFingerprint, withEdit, ACCEPTED_EXTENSIONS, type RowEdit, type SignChoice } from "./logic";
+import { FormatGuide } from "./format-guide";
 import { MappingStep } from "./mapping-step";
 import { ReviewStep } from "./review-step";
 
@@ -192,6 +193,9 @@ export function ImportScreen() {
                 {file && <p className="hint">{fill(t.file.chosen, { name: file.name, size: sizeText(file.size) })}</p>}
               </div>
               <p className="hint">{t.file.privacy}</p>
+              <p>
+                <FormatGuide initial={isCard ? "card" : "account"} />
+              </p>
               {error && <Banner tone="negative" live="assertive">{error}</Banner>}
               <FormActions>
                 <button type="submit" className="button button--primary" disabled={!file || analyzing}>

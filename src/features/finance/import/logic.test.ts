@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { ImportPreviewRow } from "@/api/models";
-import { buildUpload, editsBody, kindsForAmount, isBlocked, withEdit, effectiveAction, fileProblem, initialMapping, mappingProblems, mappingToApi, overridesBody, tally, toggleRow, uploadFingerprint, EMPTY_MAPPING, MAX_UPLOAD_BYTES } from "./logic";
+import { buildUpload, editsBody, kindsForAmount, isBlocked, withEdit, effectiveAction, fileProblem, initialMapping, mappingProblems, mappingToApi, overridesBody, tally, previewEntries, filterEntries, storedAs, formatFor, toggleRow, uploadFingerprint, EMPTY_MAPPING, MAX_UPLOAD_BYTES } from "./logic";
 
-const row = (number: number, match: ImportPreviewRow["match"], action: ImportPreviewRow["action"]): ImportPreviewRow => ({ number, date: "2026-11-02", amount: "-182300.00", description: "ÉXITO", reference: "", match, candidate_id: null, action, counterparty: null, category_id: null, kind: null, installments: null, period_start: null, period_end: null, refund_of_id: null, refund_of_row: null, counter_account: null, issue: "" });
+const row = (number: number, match: ImportPreviewRow["match"], action: ImportPreviewRow["action"]): ImportPreviewRow => ({ number, date: "2026-11-02", amount: "-182300.00", description: "ÉXITO", reference: "", match, candidate_id: null, action, counterparty: null, category_id: null, kind: null, installments: null, period_start: null, period_end: null, refund_of_id: null, refund_of_row: null, counter_account: null, issue: "", validity: "valid", reasons: [] });
 const HEADERS = ["Fecha", "Descripción", "Valor", "Saldo"];
 
 describe("archivo", () => {
@@ -119,5 +119,33 @@ describe("tarjeta de crédito", () => {
   it("lo que impide importar una fila se reconoce por su código", () => {
     expect(isBlocked({ issue: "payment_source_required" })).toBe(true);
     expect(isBlocked({ issue: "" })).toBe(false);
+  });
+});
+
+describe("vista previa: validez por fila", () => {
+  const warn = { ...row(4, "possible_duplicate", "skip"), validity: "warning" as const, reasons: ["possible_duplicate"] };
+  const preview = { rows: [row(2, "new", "import"), row(3, "new", "import"), warn], errors: [{ row: 9, code: "invalid_date" }, { row: 3, code: "x" }] };
+  it("junta filas legibles e ilegibles en el orden del archivo", () => {
+    expect(previewEntries(preview).map((e) => `${e.kind}:${e.number}`)).toEqual(["row:2", "row:3", "error:3", "row:4", "error:9"]);
+  });
+  it("filtra por error, por aviso y por cruce", () => {
+    const all = previewEntries(preview);
+    expect(filterEntries(all, "all")).toHaveLength(5);
+    expect(filterEntries(all, "error").map((e) => e.number)).toEqual([3, 9]);
+    expect(filterEntries(all, "warning").map((e) => e.number)).toEqual([4]);
+    expect(filterEntries(all, "new").map((e) => e.number)).toEqual([2, 3]);
+  });
+  it("dice cómo se guardará: ingreso, egreso, confirmar, enlazar u omitir (y respeta lo que eliges)", () => {
+    const none = new Map<number, "import" | "skip">();
+    expect(storedAs(row(2, "new", "import"), none)).toBe("expense");
+    expect(storedAs({ ...row(2, "new", "import"), amount: "5200000.00" }, none)).toBe("income");
+    expect(storedAs(row(3, "matches_pending", "confirm"), none)).toBe("confirm");
+    expect(storedAs(row(3, "matches_confirmed", "link"), none)).toBe("link");
+    expect(storedAs(row(4, "possible_duplicate", "skip"), new Map([[4, "import"]]))).toBe("expense");
+    expect(storedAs(row(2, "new", "import"), new Map([[2, "skip"]]))).toBe("skip");
+  });
+  it("elige el formato del destino", () => {
+    expect(formatFor([{ kind: "account" }, { kind: "card" }] as never, "card")?.kind).toBe("card");
+    expect(formatFor([], "card")).toBeNull();
   });
 });

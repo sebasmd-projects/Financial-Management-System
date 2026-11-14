@@ -58,6 +58,12 @@ describe("avisos push y enlaces", () => {
     expect(offenders((source, path) => !path.startsWith("src/nav/") && /\b(getInitialURL|useURL|Linking\.addEventListener)\b/.test(source))).toEqual([]);
     expect(read(join(SRC, "app/+native-intent.ts"))).toMatch(/sanitizeDeepLink/);
   });
+  it("«Ir al correo» solo sale por src/nav/external.ts, que comprueba la URL con la lista blanca de deeplink.ts", () => {
+    expect(offenders((source, path) => path.startsWith("src/features/sync/") && /\bLinking\b/.test(source))).toEqual([]);
+    const external = read(join(SRC, "nav/external.ts"));
+    expect(external).toMatch(/sanitizeMailLink/);
+    expect(external).not.toMatch(/canOpenURL|getInitialURL|addEventListener/);
+  });
   it("ninguna petición lleva un monto en la URL (los filtros con montos van en el cuerpo de POST movements/search)", () => {
     expect(offenders((source) => /(?:fms|allauth)\.(?:get|delete)\(\s*[`"'][^`"']*(?:amount|monto|balance)/i.test(source))).toEqual([]);
     expect(read(join(SRC, "features/movements/list.tsx"))).toMatch(/fms\.post<Page>\(scopedPath\(paths\.movementsSearch/);

@@ -13,6 +13,7 @@ import {
   editableFields,
   emptyAutoRule,
   hasConnection,
+  isBankAccount,
   ingestDomain,
   offeredInstitutions,
   offeredProviders,
@@ -95,6 +96,13 @@ describe("conexiones", () => {
   it("Nequi y Nu no se ofrecen en la web, pero sí en la app", () => {
     expect(offeredInstitutions(catalog, "web").map((i) => i.code)).toEqual(["bancolombia"]);
     expect(offeredInstitutions(catalog, "app").map((i) => i.code)).toEqual(["bancolombia", "nequi"]);
+  });
+  it("solo las cuentas bancarias abiertas se ofrecen", () => {
+    expect(isBankAccount({ kind: "savings", status: "active" })).toBe(true);
+    expect(isBankAccount({ kind: "wallet", status: "active" })).toBe(true);
+    expect(isBankAccount({ kind: "savings", status: "closed" })).toBe(false);
+    expect(isBankAccount({ kind: "credit_card", status: "active" })).toBe(false);
+    expect(isBankAccount({ kind: "cash", status: "active" })).toBe(false);
   });
   it("los proveedores salen en orden estable y el subdominio sigue al idioma", () => {
     expect(offeredProviders(catalog)).toEqual(["gmail", "other"]);

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import { markRouted, openFromTap, usePending } from "@/features/notifications/pending";
-import { NOTIFICATION_ROUTE, parsePushData } from "@/features/notifications/routing";
+import { parsePushData, routeFor } from "@/features/notifications/routing";
 import { showForegroundNotifications } from "@/features/notifications/native";
 import { runtime } from "./runtime";
 import { usePhase } from "./use-session";
@@ -20,7 +20,7 @@ export function useNotificationTaps(): void {
   }, []);
 }
 
-/** Con la sesión lista: sincroniza el token de FCM (solo si ya hay permiso) y, si hay un aviso tocado, abre el centro de avisos. */
+/** Con la sesión lista: sincroniza el token de FCM (solo si ya hay permiso) y, si hay un aviso tocado, abre el centro de avisos (o «Por revisar» si el aviso es de un movimiento propuesto). */
 export function usePushWhenReady(): void {
   const phase = usePhase();
   const pending = usePending();
@@ -34,7 +34,7 @@ export function usePushWhenReady(): void {
   useEffect(() => {
     if (ready && pending && !pending.routed) {
       markRouted();
-      router.navigate(NOTIFICATION_ROUTE);
+      router.navigate(routeFor(pending.target));
     }
   }, [ready, pending, router]);
 }

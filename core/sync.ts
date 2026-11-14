@@ -150,6 +150,10 @@ export function hasConnection(connections: readonly Pick<SyncConnection, "instit
   return connections.some((c) => c.institution_id === institutionId && c.account_id === accountId);
 }
 
+/** Las cuentas a las que un banco puede mandar movimientos por correo: las bancarias (el servidor igual valida `invalid_account_for_sync`). */
+const BANK_ACCOUNT_KINDS: ReadonlySet<string> = new Set(["savings", "checking", "wallet", "pocket", "fund"]);
+export const isBankAccount = (account: { kind: string; status: string }): boolean => BANK_ACCOUNT_KINDS.has(account.kind) && account.status !== "closed";
+
 export const PROVIDER_ORDER: readonly Provider[] = ["gmail", "outlook", "other"];
 
 /** Los proveedores del catálogo en un orden estable (el servidor puede mandar más de los que la interfaz sabe explicar). */

@@ -26,3 +26,11 @@ export function parsePushData(data: unknown): OpenTarget | null {
 
 /** A dónde lleva cualquier aviso: al centro de avisos (ruta literal, sin parámetros). */
 export const NOTIFICATION_ROUTE = "/notifications" as const;
+
+/** Un movimiento propuesto por el correo del banco abre «Por revisar» (ruta literal, sin id: el id se queda en memoria para resaltarlo). */
+export const REVIEW_ROUTE = "/review" as const;
+
+/** A dónde lleva el toque de un aviso: «Por revisar» si es un movimiento propuesto; si no, el centro de avisos. Siempre una ruta literal. */
+export function routeFor(target: Pick<OpenTarget, "objectKind">): typeof NOTIFICATION_ROUTE | typeof REVIEW_ROUTE {
+  return target.objectKind === "sync_event" ? REVIEW_ROUTE : NOTIFICATION_ROUTE;
+}

@@ -1,5 +1,5 @@
 import { redirectSystemPath } from "@/app/+native-intent";
-import { DEEP_LINK_ROUTES, sanitizeDeepLink } from "./deeplink";
+import { DEEP_LINK_ROUTES, sanitizeDeepLink, sanitizeMailLink } from "./deeplink";
 
 describe("enlaces profundos: lista blanca sin datos", () => {
   it("deja pasar las rutas conocidas", () => {
@@ -23,6 +23,17 @@ describe("enlaces profundos: lista blanca sin datos", () => {
     expect(sanitizeDeepLink("/home/../security")).toBe("/");
     expect(sanitizeDeepLink("")).toBe("/");
     expect(sanitizeDeepLink("x".repeat(5000))).toBe("/");
+  });
+  it("«Por revisar» se abre por enlace, sin ningún id ni monto", () => {
+    expect(sanitizeDeepLink("finanzas://review")).toBe("/review");
+    expect(sanitizeDeepLink("finanzas://review?event=0f8b&amount=180000")).toBe("/review");
+    expect(sanitizeDeepLink("/review/0f8b")).toBe("/");
+  });
+  it("«Ir al correo» solo sale hacia HTTPS en un servidor de correo conocido", () => {
+    expect(sanitizeMailLink({ url: "https://mail.google.com/mail/u/0/#search/rfc822msgid%3Aabc" })).toMatch(/^https:\/\/mail\.google\.com\//);
+    expect(sanitizeMailLink({ url: "https://outlook.live.com/mail/0/" })).toBe("https://outlook.live.com/mail/0/");
+    for (const url of ["javascript:alert(1)", "http://mail.google.com/", "https://mail.google.com.evil.test/", "intent://x#Intent;scheme=https;end", "finanzas://home", "https://user:pw@mail.google.com/", "", null]) expect(sanitizeMailLink({ url })).toBeNull();
+    expect(sanitizeMailLink(null)).toBeNull();
   });
   it("es lo que Expo Router llama con cada enlace del sistema", () => {
     expect(redirectSystemPath({ path: "finanzas://quick-add?amount=99", initial: true })).toBe("/quick-add");

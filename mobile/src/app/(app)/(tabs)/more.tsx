@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { useRouter } from "expo-router";
 import { usePhase, useSession } from "@/auth/use-session";
+import { useReviewCount } from "@/features/sync/count";
 import { es } from "@/i18n/es";
 import { AppText, Button, Card, Screen, Title } from "@/ui/primitives";
 
@@ -13,6 +14,7 @@ export default function More() {
   const session = useSession();
   const router = useRouter();
   const t = es.more;
+  const review = useReviewCount();
   return (
     <Screen>
       <Title>{t.title}</Title>
@@ -32,6 +34,9 @@ export default function More() {
         ))}
       </Card>
       <View style={{ gap: 8 }}>
+        <Button label={review > 0 ? t.reviewCount(review) : t.review} kind="secondary" onPress={() => router.push("/review")} />
+        <Button label={t.connections} kind="secondary" onPress={() => router.push("/connections")} />
+        <Button label={t.rules} kind="secondary" onPress={() => router.push("/rules")} />
         <Button label={t.statements} kind="secondary" onPress={() => router.push("/statements")} />
         <Button label={t.trash} kind="secondary" onPress={() => router.push("/trash")} />
         <Button label={t.profile} kind="secondary" onPress={() => router.push("/security")} />

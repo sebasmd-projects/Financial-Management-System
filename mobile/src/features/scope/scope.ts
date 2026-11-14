@@ -18,7 +18,10 @@ export function sameScope(a: Scope, b: Scope): boolean {
  * Las raíces de la API que el hogar sabe servir bajo `households/{id}/…` (las mismas que la web). Lo que no está aquí sigue
  * siendo solo personal.
  */
-const HOUSEHOLD_ROOTS: ReadonlySet<string> = new Set(["accounts", "payment-methods", "entries", "movements", "transfers", "categories", "tags", "counterparties", "cost-centers", "reports", "liquidity", "dashboard", "summary", "deletions"]);
+const HOUSEHOLD_ROOTS: ReadonlySet<string> = new Set(["accounts", "payment-methods", "entries", "movements", "transfers", "categories", "tags", "counterparties", "cost-centers", "reports", "liquidity", "dashboard", "summary", "deletions", "sync"]);
+
+/** De `sync` el hogar sirve solo las conexiones y los eventos («Por revisar»); el catálogo, las sugerencias y la cédula son personales. */
+const SYNC_IN_HOUSEHOLD = /^\/sync\/(?:connections|events)(?:[/?]|$)/;
 
 /** Una clave estable del ámbito (para comparar y para claves de consulta). */
 export function scopeKey(scope: Scope): string {
@@ -30,6 +33,7 @@ export function scopedPath(path: string, scope: Scope): string {
   if (scope.kind !== "household") return path;
   const root = /^\/([^/?]+)/.exec(path)?.[1];
   if (!root || !HOUSEHOLD_ROOTS.has(root)) return path;
+  if (root === "sync" && !SYNC_IN_HOUSEHOLD.test(path)) return path;
   return `/households/${encodeURIComponent(scope.id)}${path}`;
 }
 

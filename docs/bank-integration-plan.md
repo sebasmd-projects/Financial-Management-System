@@ -1,14 +1,15 @@
 # FMS: plan de integración con los bancos (solo lectura)
 
-Estado: **propuesta para el propietario** (2026-11-14). No hay código: esto es planeación. Lo que aquí se decide de arquitectura
-o de seguridad necesita un ADR nuevo (apéndice A); los agentes no editan ADR.
+Estado: **versión 2, con las decisiones del propietario** (2026-11-14). No hay código: esto es planeación. Lo que aquí se decide de
+arquitectura o de seguridad necesita un ADR nuevo (apéndice A); los agentes no editan ADR.
 
 Pedido del propietario (literal): «Empieza con la planeación para la integración con los propios bancos, no hace envíos,
 transferencias, únicamente lectura de movimientos».
 
-Documentos relacionados: [reglas del propietario](owner-rules.md), [plan técnico](technical-plan.md), [diseño](design-spec.md).
-En el repo del CV: `docs/adr/ADR-019-fms-finanzas.md`, `backend/apps/finance_import/README.md` (el importador que se reutiliza)
-y `backend/apps/finance_household/README.md` (Hogar).
+Decisiones del propietario que este plan aplica: [reglas del propietario, 2026-11-14](owner-rules.md#2026-11-14-integración-con-los-bancos-solo-lectura).
+Documentos relacionados: [plan técnico](technical-plan.md), [diseño](design-spec.md). En el repo del CV: `docs/adr/ADR-019-fms-finanzas.md`,
+`backend/apps/finance_import/README.md` (el importador que se reutiliza), `backend/apps/finance_automation/README.md` (reglas propias) y
+`backend/apps/finance_household/README.md` (Hogar).
 
 Convención de confianza en las fuentes: **[P]** fuente primaria leída (texto oficial), **[S]** fuente secundaria (prensa,
 bufetes, directorios), **[?]** sin confirmar: lo resuelve un *spike* de la fase 0.
@@ -17,33 +18,36 @@ bufetes, directorios), **[?]** sin confirmar: lo resuelve un *spike* de la fase 
 
 ## 1. Resumen ejecutivo y recomendación
 
-1. **Las finanzas abiertas reguladas no sirven hoy para el FMS, ni van a servir pronto.** El Decreto 0368 de 2026 hizo
-   obligatorio el sistema para las entidades vigiladas, pero (a) un receptor **no vigilado** solo entra mediante un acuerdo
-   bilateral con un proveedor vigilado y, según el proyecto de la SFC, solo con los clientes de ese acuerdo; (b) el proyecto de
-   cronograma de la SFC deja el estándar de **historial transaccional de depósitos a la vista a 96 meses** y el de **créditos a
-   84 meses** desde que se publique el cronograma. En la práctica, el canal regulado para leer movimientos llegaría hacia 2034.
-   Una persona natural con una app propia no tiene hoy una vía regulada para leer por API sus propios movimientos.
-2. **Ningún banco del propietario ofrece una API pública de movimientos para personas.** Bancolombia publica APIs para
-   empresas y aliados (su API de validación de cuentas excluye de forma expresa saldos y movimientos). El Aval API Market
-   (julio de 2026) es para empresas: créditos preaprobados, apertura de cuentas, pagos. Nequi Conecta es de cobros. Nu
-   Colombia e ICETEX no publican APIs.
-3. **Los agregadores existen, pero no encajan hoy.** Belvo cubre bancos colombianos (sobre todo con credenciales, es decir,
-   *scraping*), pero su plan de producción más barato publicado cuesta **1.000 USD al mes** y está pensado para empresas.
-   Prometeo exige que **nuestro servidor** reciba usuario y contraseña del banco (`POST /login/`), lo que viola la regla de
-   seguridad de este plan. Floid aparece con cobertura en Colombia solo en directorios. Fintoc (Chile, México) y Pluggy
-   (Brasil) no operan en Colombia.
-4. **Recomendación: una fase 1 sin terceros, con dos canales rápidos y uno de verdad:**
-   * **Correos de alerta del banco** reenviados a un buzón dedicado, leídos por el servidor, con **verificación DKIM
-     obligatoria**. Proponen movimientos y no los confirman.
-   * **Notificaciones de la app del banco en el Android propio** (opcional, opt-in), para Nequi y Nu si no mandan correo.
-   * **Extractos** (CSV, XLSX y OFX ya existen; PDF es nuevo): son la **fuente de verdad**. Confirman y concilian lo que los
-     dos canales rápidos propusieron.
+1. **No hay vía regulada ni API de banco para una app personal** (§2 y §3). Las finanzas abiertas obligatorias (Decreto 0368 de 2026) no
+   llegan al historial transaccional antes de unos 84 a 96 meses según el proyecto de cronograma de la SFC, y un receptor no vigilado
+   necesita un acuerdo bilateral con cada banco. Ningún banco del propietario publica una API de movimientos para personas.
+2. **Ningún agregador cabe en 20 USD al mes.** Belvo publica 1.000 USD/mes como su plan de producción más barato; Floid y Prometeo no
+   publican precios y sus API reciben usuario y contraseña del banco en el cuerpo de la petición (hay *widget* en Floid, pero sin precio
+   público). Se mantiene como opción condicionada (fase 4): solo con *widget* propio, segundo factor, certificación y dentro del presupuesto.
+3. **Canal recomendado para la fase 1: una dirección de reenvío única por conexión** (`<token>@<subdominio de ingesta>`). El usuario
+   crea en **su propio correo** (Gmail, Outlook, el que sea) un filtro que reenvía **solo** los correos de su banco a esa dirección. El
+   FMS:
+   * recibe únicamente los correos del banco, nunca el buzón entero;
+   * no guarda ninguna credencial del correo ni del banco;
+   * verifica la **firma DKIM del banco** (o el sello ARC del proveedor que reenvía);
+   * extrae movimientos y **extractos adjuntos**;
+   * guarda el original cifrado con la DEK solo 30 días, para depurar;
+   * propone el movimiento: **Aprobar | Modificar | «Ir al correo»**.
 
-   Todo entra por el **mismo flujo del importador** (`domain/finance/importing.classify`): huella ciega, cruce con pendientes,
-   deshacer por lote y conciliación. No se guardan credenciales bancarias en ningún momento y no hay nada que pueda mover
-   dinero.
-5. **Para más adelante:** un agregador con *widget* propio (las credenciales nunca pasan por el FMS), solo si el propietario
-   acepta el costo y el tercero. Y el canal regulado, cuando la SFC expida los estándares de historial transaccional.
+   Funciona igual para cualquier usuario y para el Hogar. Cuesta **0 USD** adicionales sobre el VPS y el dominio que ya existen.
+4. **Por qué no leer el buzón con OAuth o IMAP** (§4.1): `gmail.readonly` es un alcance **restringido** de Google. Una app pública
+   necesita verificación y una **evaluación de seguridad anual (CASA)**: según los laboratorios, entre ~500 y ~5.400 USD al año. Eso
+   está por encima de los 240 USD anuales del presupuesto. IMAP con contraseña de aplicación obliga a **guardar una credencial que abre
+   todo el buzón (y permite enviar)**, lo que choca con la regla de no guardar credenciales. Microsoft Graph `Mail.Read` es viable sin
+   costo para cuentas personales de Outlook y queda como opción de la fase 2 para quien no pueda reenviar (p. ej. una cuenta de trabajo
+   que bloquea el reenvío externo).
+5. **Fuera:** lector de notificaciones de Android y SMS (decisión del propietario), y Pexto Capital y patrimonios autónomos en la fase 1.
+6. **Reglas de autoconfirmación** sobre `finance_automation`: el sistema sugiere una regla al ver un patrón (p. ej. la nómina) y el
+   usuario puede escribir la suya. Nada se confirma solo sin una regla que el usuario aceptó.
+
+**Costo estimado:** 0 USD/mes en la fase 1 (correo entrante en el VPS y DNS en Virtualmin, ya pagados; almacenamiento de unos
+15 MB por usuario y mes de originales cifrados, borrados a los 30 días). El presupuesto de 20 USD/mes queda libre para un agregador si
+alguno cotiza dentro de él (fase 4), o para un servicio de correo entrante gestionado si el VPS no pudiera recibir correo (§4.2).
 
 ## 2. Regulación colombiana (estado al 2026-11-14)
 
@@ -51,390 +55,397 @@ bufetes, directorios), **[?]** sin confirmar: lo resuelve un *spike* de la fase 
 |---|---|---|
 | Decreto 1297 de 2022 | Primer marco, **voluntario**: las entidades vigiladas pueden tratar datos con autorización expresa e informada del consumidor. | [P] lo cita la carta circular de la SFC |
 | Circular Externa 004 de 2024 (SFC, 7-feb-2024) | Estándares tecnológicos y de seguridad, consentimiento y lineamientos para esquemas con terceros no vigilados. Plazos prorrogados por la CE 009 de 2025 y la CE 001 de 2026 (3-feb-2026). | [P] mención en la carta circular; [S] prórrogas |
-| **Decreto 0368 de 2026** (7-abr-2026) | Sustituye el título 8 del libro 35 de la parte 2 del Decreto 2555 de 2010: **sistema obligatorio** para las entidades vigiladas del art. 2.35.8.2.3. Ser receptor es **voluntario**. Los datos son **gratuitos**; solo cabe recuperar costos limitados de infraestructura. La SFC debía publicar el cronograma de estándares en 6 meses y poner a funcionar el **Directorio de Participantes** en 12. Cada estándar se habilita en los 12 meses siguientes a su expedición (prorrogable 6). | [P] art. 3 (transcrito en la carta circular); [S] el resto |
+| **Decreto 0368 de 2026** (7-abr-2026) | **Sistema obligatorio** para las entidades vigiladas del art. 2.35.8.2.3 del Decreto 2555 de 2010. Ser receptor es voluntario. Los datos son **gratuitos** (solo cabe recuperar costos limitados de infraestructura). Cronograma de estándares en 6 meses y **Directorio de Participantes** en 12. Cada estándar se habilita en los 12 meses siguientes a su expedición (prorrogable 6). | [P] art. 3 (transcrito en la carta circular); [S] el resto |
 | Decreto 977 de 2026 (4-ago-2026) | **Portabilidad financiera** como caso de uso del sistema, con 24 meses para sus estándares. | [P] transcrito en la carta circular |
-| Proyecto de CE 010 de 2026 (comentarios hasta el 10-ago-2026) | Terceros **vigilados**: autorizados por la SFC e inscritos en el directorio. **No vigilados**: solo a través de un proveedor vigilado con acuerdo bilateral, y solo con los clientes que lo suscribieron. El proveedor les verifica el Registro Nacional de Bases de Datos, PQR, autorización, capacidad técnica y financiera, ciberseguridad y cifrado. APIs, cifrado en reposo y en tránsito, PCI-DSS si hay datos de tarjetas. Los esquemas de la CE 004 se adecúan antes del **7-abr-2027**. Recibió 651 observaciones. | [S] Holland & Knight; [P] cifra de observaciones (URF) |
-| Proyecto de carta circular (31-ago-2026): cronograma | Plazos máximos, en meses desde la publicación del cronograma: portabilidad de crédito de consumo 8, hipotecario 16, comercial 24; características de productos de crédito 36, de captación 48, de seguros 60, de inversión 72; **historial transaccional de créditos 84**; **historial de depósitos a la vista 96**; vinculación 108; CDT 120; **iniciación de pagos 132**. | [P] texto del proyecto |
-| Proyecto de decreto (URF, sep-2026) | Propone **6 meses más** para cada plazo de la SFC (cronograma, directorio, portabilidad). | [P] documento técnico de la URF |
+| Proyecto de CE 010 de 2026 | Terceros **vigilados**: autorizados e inscritos en el directorio. **No vigilados**: solo a través de un proveedor vigilado con acuerdo bilateral, y solo con los clientes de ese acuerdo. Cifrado en reposo y en tránsito, PCI-DSS con datos de tarjetas. Los esquemas de la CE 004 se adecúan antes del 7-abr-2027. 651 observaciones. | [S] Holland & Knight; [P] cifra (URF) |
+| Proyecto de carta circular (31-ago-2026): cronograma | Plazos máximos desde la publicación del cronograma (meses): portabilidad de consumo 8, hipotecario 16, comercial 24; características de productos de crédito 36, captación 48, seguros 60, inversión 72; **historial transaccional de créditos 84**; **de depósitos a la vista 96**; vinculación 108; CDT 120; **iniciación de pagos 132**. | [P] texto del proyecto |
+| Proyecto de decreto (URF, sep-2026) | Propone **6 meses más** para cada plazo de la SFC. | [P] documento técnico de la URF |
 
-**Lo que no se pudo confirmar:** si el cronograma definitivo ya se publicó y si conserva los 96 y 84 meses; si el decreto de
-prórroga ya se expidió; el detalle del consentimiento (la sección II de la CE 010, «tratamiento de datos», aún no se había
-publicado); y si existe un costo de inscripción en el directorio.
+**Sin confirmar:** si el cronograma definitivo ya salió y conserva los 84 y 96 meses; si el decreto de prórroga se expidió; el detalle
+del consentimiento (la sección II de la CE 010 no se había publicado); el costo de inscribirse en el directorio.
 
-**Qué implica para el FMS:**
-
-* El FMS es un proyecto personal, sin persona jurídica ni vigilancia de la SFC. No puede ser receptor vigilado. Para ser no
-  vigilado necesitaría una persona jurídica y un acuerdo bilateral con cada banco: inviable para una persona.
-* La ley de habeas data (Ley 1581 de 2012) sigue rigiendo el tratamiento de datos que hace el propio FMS: autorización,
-  finalidad y supresión. Eso ya lo cubren el flujo legal F9-13 y el *crypto-shredding*.
-* La vía regulada se vuelve a evaluar cuando se expida el estándar de historial transaccional (fase 5). El diseño de conectores
-  de §5 la admite sin rehacer nada.
+**Para el FMS:** no es receptor vigilado y, para ser no vigilado, necesitaría una persona jurídica y un acuerdo por banco. La Ley 1581
+de 2012 (habeas data) rige lo que el propio FMS trata. Eso ya lo cubren el flujo legal F9-13 y el *crypto-shredding*; el texto de
+privacidad se amplía para los correos (fase 0, S5).
 
 ## 3. Qué ofrece cada institución
 
-| Institución (productos) | API propia para personas | Finanzas abiertas | Agregadores | Correo de alerta | Notificación push | Extracto |
-|---|---|---|---|---|---|---|
-| **Bancolombia** (ahorros) | No. El portal es para empresas y aliados; la API de validación de cuentas **excluye** saldos y movimientos [S] | Bancolombia es proveedor y receptor (función «Tus Bancos» en su app) [S]; nada abierto a una persona | Belvo [S], Floid [S], Prometeo [S] (con credenciales) | **Sí**: alertas por correo o SMS, con montos mínimos configurables y Clave Dinámica para inscribirse [P] (página de ayuda) | Sí (app) [?] | Sucursal Virtual: extractos descargables [P]; formato por confirmar [?] |
-| **AV Villas** (ahorros, TC, crédito) | No; el Aval API Market (jul-2026) es para empresas [S] | Grupo Aval anuncia más funciones «hacia fin de año o el 1T-2027» [S] | Belvo [S] | Probable (SMS o correo con los datos registrados) [?] | Sí (app) [?] | Banca virtual [?] |
-| **Nequi** (ahorros, crédito) | No: Nequi Conecta es de cobros (push, QR, suscripciones) [S] | Primer acuerdo bilateral regulado con Belvo (feb-2024) [S]: es para empresas | Belvo [S], Floid [S] | Poco probable [?] | **Sí**: canal principal [?] | Extracto o certificado desde la app [?] |
-| **Nu Colombia** (ahorros, TC) | No [S] | «Se prepara» [S] | Sin evidencia [?] | Su política de datos prevé correo, SMS, WhatsApp y push [P]; las alertas de compra se activan en la app [S] | **Sí** [S] | Extracto de la TC en la app [?]; ya hay una pantalla de Extractos al estilo Nu en el FMS |
-| **ICETEX** (crédito educativo) | No | No es banco; no está claro que sea proveedor obligado [?] | No | Avisos de cobro [?] | No | «Mi Portal»: estado de cuenta en PDF e historial de pagos [S] |
-| **Pexto Capital** | No [?] | [?] | No | [?] | [?] | Hay que confirmar con el propietario qué entidad y qué producto es (la búsqueda solo lleva a Pexto/Cobre, de tesorería empresarial) [?] |
-| **Patrimonios autónomos** (fiducia) | No | Las fiduciarias son vigiladas; sin estándar de inversión antes de ~72 meses | No | Rara vez | No | **Extracto mensual** de la fiduciaria (PDF) [?] |
-
-### Los canales en sí
-
-| Canal | Disponibilidad | Costo | Fiabilidad | Riesgo de seguridad | Esfuerzo |
+| Institución (productos) | API para personas | Agregadores | Correo de alerta | Extracto | Fase 1 |
 |---|---|---|---|---|---|
-| Finanzas abiertas reguladas | No antes de ~2034 para movimientos; además exige ser persona jurídica | Gratis (datos) más el cumplimiento | Alta (estándar) | Bajo (OAuth, consentimiento) | Muy alto (legal) |
-| API propia del banco | No existe para personas | — | — | — | — |
-| Agregador con *widget* (Belvo) | Sí para Bancolombia, AV Villas y Nequi según la prensa; Nu sin evidencia | ≥ 1.000 USD/mes (plan Launch) más contrato | Media: el *scraping* se rompe con cada cambio del banco y con la MFA | Medio: un tercero con las credenciales del usuario; lo mitiga ISO 27001 [S] | Medio |
-| Agregador con credenciales por API (Prometeo) | Sí (83 % de cuentas en Colombia, según su perfil [S]) | Precio a consultar | Media | **Inaceptable**: la contraseña del banco pasaría por nuestro servidor | Medio |
-| Correo de alerta | Bancolombia sí; AV Villas y Nu probable; Nequi dudoso | 0 (el buzón ya está en el VPS con Virtualmin, o un buzón dedicado) | Media: casi en tiempo real, pero **incompleto** (topes mínimos, no todo genera alerta) y el formato cambia sin aviso | Medio: suplantación (se mitiga con DKIM, §4.4) | Bajo a medio: un analizador por banco |
-| Notificación de Android | Todo banco con app y push | 0 | Media-baja: depende del teléfono, del ahorro de batería y de que la notificación no se descarte; texto truncado | Medio-alto: el permiso permite leer **todas** las notificaciones (§4.5) | Medio: módulo nativo en el *prebuild* de Expo |
-| SMS | Bancolombia (alertas SMS) y otros | Costo del SMS para el banco, no para nosotros | Media | Alto: el permiso `READ_SMS` lee también los códigos OTP | Medio |
-| Extracto (CSV, XLSX u OFX; PDF) | Todos, con mayor o menor esfuerzo | 0 | **Alta**: es lo que el banco certifica | Bajo: ya se trata como archivo hostil | Bajo para CSV, XLSX y OFX (existe); medio para PDF (un analizador por formato) |
+| **Bancolombia** (ahorros) | No: portal para empresas; la API de validación de cuentas excluye saldos y movimientos [S] | Belvo, Floid, Prometeo [S] | **Sí**, por correo o SMS, con **montos mínimos configurables** y Clave Dinámica para inscribirse [P] | Sucursal Virtual [P]; formato [?] | **Sí**: alertas más extracto adjunto si llega por correo |
+| **AV Villas** (ahorros, TC, crédito) | No: el Aval API Market es para empresas [S] | Belvo [S] | Probable [?] | Banca virtual [?] | Sí, si S1 lo confirma |
+| **Nequi** (ahorros, crédito) | No: Nequi Conecta es de cobros [S] | Belvo, Floid [S] | **No consta**: los movimientos se avisan por **SMS** (85954) y push [S] | **Extracto en PDF al correo** desde la app («Enviar al correo») [S] | Solo **extractos** por correo, activado desde la app (§5.6) |
+| **Nu Colombia** (ahorros, TC) | No [S] | Sin evidencia | Su política de datos prevé correo, SMS, WhatsApp y push [P] | Extracto de la TC en la app [?] | Alertas o extractos por correo según S1, activado desde la app (§5.6) |
+| **ICETEX** (crédito educativo) | No | No | Avisos de cobro [?] | «Mi Portal»: estado de cuenta en PDF [S] | Extracto (subida manual o reenvío) |
+| **Pexto Capital**, **patrimonios autónomos** | — | — | — | — | Fuera de la fase 1 (el propietario no los tiene identificados) |
 
-## 4. Diseño de seguridad
+### 3.1 El monto mínimo de las alertas (texto para los usuarios)
 
-### 4.1 Reglas que no se negocian
+> Los bancos solo te mandan correo de una compra, un retiro o una transferencia si **supera un monto mínimo** que el banco trae por
+> defecto o que tú configuraste. Con un mínimo de, por ejemplo, $100.000, una compra de $30.000 no genera correo y el FMS no se entera
+> hasta el extracto. **Pon ese mínimo en $0 (o en el valor más bajo que el banco permita)** para que **cada** movimiento te llegue por
+> correo. El FMS solo lee los correos que tu filtro le reenvía; el resto de tu correo nunca sale de tu buzón.
 
-1. **Solo lectura, por construcción.** Ningún conector implementa operaciones que muevan dinero. Con un agregador se piden
-   solo productos de lectura (cuentas, saldos, movimientos) y la cuenta del agregador se contrata **sin** pagos. Una prueba de
-   arquitectura (`import-linter` o un test de *registry*) falla si un conector expone un método de escritura hacia el banco.
-2. **Nunca guardamos ni vemos la contraseña del banco.** Si un agregador la necesita, la persona la escribe en el *widget* del
-   agregador, servido por su dominio (iframe o redirección). Nuestro servidor solo recibe un identificador de enlace (`link_id`)
-   o un token. Un agregador que exija credenciales por nuestra API queda descartado.
-3. **Lo que sí guardamos va cifrado con la DEK del ámbito** (personal u Hogar; AES-256-GCM, datos asociados
-   `modelo|campo|fila`, como el resto del FMS): tokens y `link_id` del agregador, la contraseña del buzón IMAP si se usa, los
-   «últimos 4» que identifican la cuenta en un correo (además como HMAC ciego para buscar), y todos los campos de un evento
-   (monto, descripción, comercio).
-4. **Nada de montos ni descripciones en registros, métricas, URLs o analítica.** Un *run* registra conteos y códigos de error
-   estables, nunca contenido. Una prueba con `caplog` lo comprueba para cada conector.
-5. **Revocable.** Cada fuente se puede pausar y borrar. Borrarla elimina los tokens (y, con un agregador, llama a su API para
-   borrar el enlace), sin tocar los movimientos ya creados; deshacerlos es el «deshacer lote» del importador. Al borrar la cuenta
-   del FMS, el *crypto-shredding* deja ilegible todo lo guardado.
-6. **Nada se autoconfirma por defecto.** Un correo o una notificación crean una **propuesta** (pendiente con origen «sync»).
-   Se confirma a mano o con una regla que el usuario elige por fuente (análoga a la autoconfirmación de recurrencias de
-   [owner-rules](owner-rules.md), respuesta 4). El extracto concilia.
-7. **MFA y reautenticación** para crear, ver la configuración o borrar una fuente (el mismo `403 reauthentication_required`
-   del FMS).
+Dónde se cambia, por banco:
 
-### 4.2 Bordes nuevos (nginx y Django)
+* **Bancolombia** [P]: en la **Sucursal Virtual Personas**, en la Sucursal Telefónica o en una oficina, en el servicio «Alertas y
+  Notificaciones». Ahí se elige el canal (correo o SMS) y los **montos o topes mínimos**. Hace falta la **Clave Dinámica** activa. Si no
+  personalizas los topes, se aplican los del banco.
+* **AV Villas, Nu, Nequi** [?]: no hay una página pública que lo explique. El *spike* S1 lo confirma en la app y en la banca virtual de
+  cada uno; la pantalla de «Conectar banco» muestra la ruta exacta cuando se conozca. Nequi, según la prensa, no avisa por correo:
+  ahí se usa el extracto.
 
-* Las rutas autenticadas (`/api/fms/v1/sync/...`) caben en el `location ^~ /api/fms/` actual: sin compresión y con
-  `limit_req zone=cv_fms`.
-* **Webhooks de un agregador** (fase 4): `location = /api/fms/v1/sync/hooks/<proveedor>` propio, solo `POST`, cuerpo de
-  64 KB como máximo, su propia `limit_req`, la IP real según `CV_EDGE`, y lista de IP del proveedor si la publica. En Django:
-  sin sesión, exento de CSRF solo en esa vista, y **firma HMAC verificada en tiempo constante**, con marca de tiempo y una
-  ventana anti-repetición de 5 minutos más un registro de ids ya vistos. Si el proveedor no firma, el webhook es solo un aviso:
-  no se confía en su cuerpo y se consulta la API del proveedor con nuestro token.
-* Toda ruta nueva pasa por `manage.py check_attack_terms` (que `sync`, `hooks` o el nombre del proveedor no choquen con
-  `COMMON_ATTACK_TERMS`) y va a `deploy/nginx/cv-locations.conf.template` (bloque `@FMS`) y a la tabla de rutas de
-  `backend/tests/deploy/test_nginx.py`. Se comprueba con `deploy/nginx/test/run.sh check` (nginx 1.24).
-* El canal de correo **no añade rutas HTTP**: el servidor lee el buzón (IMAP sobre TLS, saliente). Si el buzón vive en el mismo
-  VPS (Virtualmin), la conexión va a `localhost:993` o al socket, sin abrir puertos.
-* Las notificaciones de Android llegan por la API autenticada existente (token de sesión de la app, `Idempotency-Key`).
+## 4. Decisiones técnicas difíciles
 
-### 4.3 Auditoría
+### 4.1 Cómo leer el correo del usuario
 
-Se registra cada alta, pausa, reanudación y borrado de una fuente, cada consentimiento con un agregador, cada *run* (inicio,
-fin, conteos, código de error) y cada decisión sobre un evento (propuesto, confirmado, descartado, cruzado con...). Va al
-registro de auditoría del FMS (regla 3), con quién y cuándo y sin contenido en claro. El admin de Django muestra solo conteos
-por fuente y estado, como el resto del FMS.
+| Opción | Qué ve el FMS | Credencial guardada | Costo | Para quién | Veredicto |
+|---|---|---|---|---|---|
+| **A. API de Gmail con OAuth** (`gmail.readonly`) | Todo el buzón | *Refresh token* (cifrado) | Alcance **restringido** [P]: verificación de Google más **CASA cada 12 meses** [P]; los laboratorios cotizan de ~500 a ~5.400 USD/año [S]. Sin verificar: aviso de app no verificada, tope de usuarios y solo personas «conocidas personalmente» [P] | Gmail | **No** (excede el presupuesto y ve demasiado) |
+| **B. Microsoft Graph** (`Mail.Read`, delegado) | Todo el buzón | *Refresh token* (cifrado) | Cuentas personales de Microsoft pueden consentir [P]; la verificación de editor no tiene costo [S] (exige una cuenta del Microsoft Partner Program y un dominio). En cuentas de trabajo sin verificar se pide aprobación del administrador [S] | Outlook | **Fase 2, opcional**, para quien no pueda reenviar |
+| **C. IMAP con contraseña de aplicación** (o XOAUTH2) | Todo el buzón | **Una contraseña que abre todo el buzón**, también para enviar (SMTP). XOAUTH2 en Gmail cae en el mismo alcance restringido que A | 0 | Casi todos | **No**: es guardar una credencial con más poder del necesario |
+| **D. Reenvío filtrado a una dirección única por conexión** | **Solo** los correos que el filtro del usuario reenvía | **Ninguna** (la dirección es un identificador, no una clave; se rota) | 0 (correo entrante en el VPS) | Gmail, Outlook.com, Yahoo y todo proveedor con filtros; algunas cuentas de trabajo de Microsoft 365 **bloquean** el reenvío externo [S] | **Recomendada** |
 
-### 4.4 Modelo de amenazas
+**¿Choca D con «nada de buzón de alertas compartido»?** No en lo que importa. El usuario conecta **su** correo: la regla vive en su
+buzón y él decide qué sale. La dirección es **suya y única por conexión**, sin nada en común con otros usuarios. El FMS no guarda el
+buzón: cada mensaje se procesa, su original se cifra con la DEK del usuario o del Hogar, y se **borra del servidor de correo en el
+mismo paso**. Por dentro sí hay un único servidor de recepción (el del VPS), con una cuenta de servicio desde la que el *worker* lee.
+Esa cuenta es del FMS, no del usuario, y nadie la consulta. Si el propietario prefiere evitar incluso eso, la alternativa es B
+(o A cuando haya presupuesto), con las contras de la tabla.
 
-| Amenaza | Canal | Mitigación |
-|---|---|---|
-| **Suplantación de correo**: alguien escribe al buzón con `From:` del banco y mete movimientos falsos | Correo | Se exige una **firma DKIM válida** con `d=` alineado a un dominio de la lista del banco (datos con vigencia, no código). Si el correo llega reenviado y la firma original se rompe, se acepta solo un **ARC** sellado por el reenviador que el usuario declaró (p. ej. `google.com`) que diga `dkim=pass` para el dominio del banco. Todo lo demás se descarta y se cuenta. Además: nunca se autoconfirma sin regla explícita; el extracto concilia; la dirección de ingesta lleva un sufijo aleatorio por usuario (`alertas+<token>@...`), rotable |
-| *Phishing* dentro de un correo legítimo (enlaces) | Correo | No se sigue ningún enlace ni se cargan recursos remotos; se analiza el texto con un lector HTML sin red; solo se extraen campos con patrones estrictos por banco |
-| Correo hostil (bombas, adjuntos, codificaciones raras) | Correo | Tope de tamaño (256 KB), adjuntos ignorados (salvo PDF de extracto en una fase posterior, con el tratamiento de archivos hostiles del importador), sin `eval` de nada, tiempos máximos por mensaje |
-| Repetición (el mismo correo dos veces, o reenviado) | Correo | Idempotencia por HMAC de `Message-ID` más un HMAC del contenido normalizado; huella ciega por fila (la del importador) |
-| Robo de la contraseña IMAP | Correo | Buzón **dedicado** que solo recibe alertas (no es el correo personal); contraseña de aplicación cifrada con la DEK; solo lectura y borrado de lo procesado; revocable |
-| Una app maliciosa publica una notificación con la apariencia del banco | Android | Filtro por **nombre de paquete** de la lista blanca **y** firma del instalador del paquete (`PackageManager`, certificado esperado) [?]; el servidor trata el evento como propuesta |
-| Fuga de notificaciones ajenas (chats, OTP) | Android | Filtro **en el dispositivo** antes de salir: solo paquetes de la lista blanca; se descartan textos con forma de OTP; nada se guarda en disco (regla de la app móvil); Android 15 ya oculta las notificaciones sensibles a los *listeners* no confiables |
-| Webhook falsificado o repetido | Agregador | HMAC, marca de tiempo, ids vistos, IP; cuerpo no confiable (§4.2) |
-| El agregador es comprometido | Agregador | Solo productos de lectura; ningún dato nuestro va hacia él; tokens revocables; un tercero que no acepte borrar el enlace queda descartado |
-| Inyección de fórmulas o de texto en las descripciones | Todos | Lo mismo que el importador: celdas como texto, neutralización al exportar, longitudes máximas |
-| Desbordar el libro (miles de eventos) | Todos | Tope de eventos por fuente y día; la cola de propuestas se pagina; alerta al propietario si se supera |
-| Root del VPS con la KEK | Todos | Límite honesto ya documentado en el plan técnico §2: puede descifrar; no hay contraseñas del banco que robar |
+**Detalles de D que hay que resolver (spike S2):**
 
-### 4.5 Privacidad del lector de notificaciones
+* **Confirmación del reenvío:** Gmail manda un correo de verificación a la dirección de destino antes de permitir el filtro [S], y pide
+  un segundo factor al crear o cambiar filtros y al añadir una dirección de reenvío [S]. El FMS reconoce ese correo (DKIM de
+  `google.com`) y muestra **solo el código** en la pantalla de la conexión. No hace clic en el enlace por el usuario: así el usuario
+  sigue en control y el FMS no actúa en su cuenta. Outlook.com no pide confirmación [?].
+* **DKIM tras el reenvío:** el reenvío de un filtro de Gmail conserva el mensaje y la firma del banco, y añade ARC [?]. Se acepta
+  `dkim=pass` del dominio del banco; si la firma se rompió, solo un ARC sellado por el proveedor que el usuario declaró (`google.com`,
+  `outlook.com`...) con `dkim=pass` para el banco. Cualquier otro correo se rechaza.
+* **«Ir al correo»:** se guarda el `Message-ID` (cifrado). En Gmail el enlace es una búsqueda `rfc822msgid:` en la web de Gmail [?].
+  En Outlook no hay un enlace equivalente confirmado [?]: si S2 no lo encuentra, «Ir al correo» abre el buzón con la búsqueda por
+  remitente y fecha. Con la opción B, Graph da el `webLink` del mensaje.
 
-`NotificationListenerService` lo concede la persona en Ajustes, y da acceso a **todas** las notificaciones del teléfono. Aunque
-el APK se instala fuera de Play (su política no aplica), el FMS se impone las mismas reglas: opt-in explícito con pantalla
-propia, lista blanca de paquetes visible y editable, filtrado en el dispositivo, un contador de «enviadas hoy», un botón de
-apagado, y nada se guarda en disco. Si la app muere sin red, los eventos en memoria se pierden; lo recupera el extracto. Si el
-propietario prefiere no perder nada, la alternativa (una cola en disco cifrada con una llave del Keystore) **rompe una regla
-de la app móvil** y necesita su decisión (pregunta Q6).
+### 4.2 Recibir correo en el VPS
 
-## 5. Arquitectura
+* Un **subdominio de ingesta** dedicado (p. ej. `ingesta.<dominio>`), con su MX, servido por el correo de Virtualmin que ya existe.
+  No mezcla nada con el correo del propietario. Tiene una dirección comodín hacia **un buzón de servicio** y límites de tamaño
+  (256 KB por mensaje y 10 MB con adjuntos de extracto).
+* El *worker* de Celery lo lee por **IMAP sobre TLS al host** (sin abrir puertos nuevos al exterior; el MX ya escucha en el 25). La
+  credencial de esa cuenta de servicio va en `/srv/cv/.env` (`make-env.sh`), no en la base.
+* **Sin rutas HTTP nuevas**, así que no cambian nginx ni `COMMON_ATTACK_TERMS`. Si en la fase 2 entra Graph, la ruta de *callback* de
+  OAuth va bajo `/api/fms/v1/sync/oauth/microsoft/callback`, con `check_attack_terms`, `cv-locations.conf.template` y `test_nginx.py`.
+* Los agentes no tocan el VPS: el registro MX, el subdominio en Virtualmin y la cuenta de servicio los aplica el propietario con un
+  procedimiento nuevo en `DEPLOYMENT.md` (ticket T15). Si el VPS no pudiera recibir correo (bloqueo del puerto 25 entrante, reputación),
+  el plan B es un servicio de correo entrante gestionado que entregue por webhook firmado. Ese servicio se cotiza dentro de los 20 USD.
 
-### 5.1 Una app nueva: `apps/finance_sync` (backend del CV) más `domain/finance/sync/`
+### 4.3 Agregadores dentro del presupuesto
+
+| Agregador | Cobertura en Colombia | *Widget* propio | Precio | Seguridad | Veredicto |
+|---|---|---|---|---|---|
+| Belvo | Bancolombia, AV Villas, Nequi y otros (prensa 2023) [S] | Sí (Connect Widget) [P] | **1.000 USD/mes** (Launch) [P] | ISO 27001 [P] | Fuera del presupuesto |
+| Floid | Bancolombia y Davivienda en su documentación [S] | Sí, según su documentación [S]; la API también acepta usuario y contraseña en el cuerpo [P] | Sin precio público; modelo SaaS más un cobro por llamada [S] | Sin certificación pública encontrada [?] | Pedir cotización (S4), solo con *widget* |
+| Prometeo | 83 % de cuentas [S] | No consta; `POST /login/` recibe usuario y contraseña [P] | A consultar [S] | [?] | **No** (credenciales por nuestro servidor) |
+| Fintoc, Pluggy | No operan en Colombia [S] | — | — | — | No |
+
+Condiciones del propietario para aceptar uno: (1) credenciales solo en la pantalla del agregador, nunca vistas ni guardadas por el FMS;
+(2) **segundo factor** como mínimo; (3) certificaciones mínimas (ISO 27001 o SOC 2 y, si toca tarjetas, PCI-DSS); (4) dentro de los
+**20 USD/mes**. Hoy ninguno cumple (4) de forma publicada.
+
+### 4.4 Descartados y por qué
+
+* **Lector de notificaciones de Android:** el propietario no quiere permisos adicionales. Además, ese permiso da acceso a todas las
+  notificaciones del teléfono.
+* **SMS:** mismo motivo; además, leer SMS expone los códigos OTP.
+* **API de Gmail (A) e IMAP con contraseña (C):** costo y exceso de privilegios (§4.1).
+* **Prometeo y toda API que reciba la contraseña del banco:** viola la regla de no ver credenciales.
+* **Finanzas abiertas reguladas:** no disponibles en un plazo útil (§2); se reevalúan con cada circular.
+
+## 5. Diseño
+
+### 5.1 Reglas que no se negocian
+
+1. **Solo lectura por construcción**: ningún conector tiene operaciones que muevan dinero, y una prueba de arquitectura lo verifica.
+2. **El FMS nunca ve ni guarda credenciales** del banco ni del correo del usuario (en D no existe ninguna).
+3. **La plataforma nunca muestra el correo completo.** La API no tiene ningún endpoint que devuelva el original. Solo se muestran los
+   campos extraídos (fecha, monto, tipo, comercio o contraparte, últimos 4) y el enlace «Ir al correo».
+4. **Original cifrado solo para depurar**: AES-256-GCM con la DEK del ámbito, datos asociados `sync-original|fuente|evento`; **30 días**
+   y se borra. Lo lee únicamente una orden de depuración del servicio (`manage.py fms_sync_debug <evento>`, clasificada en
+   `apps/ops/registry.py` como restringida), que muestra el resultado del analizador y las líneas que no encajaron, **sin montos**.
+   Los eventos descartados también se borran a los 30 días.
+5. **Nada de montos ni descripciones** en registros, métricas, URLs, asuntos de aviso por correo o push (salvo que el usuario active
+   `show_amounts_outside_app`).
+6. **Nada se confirma solo** sin una regla de autoconfirmación aceptada por el usuario (§5.5). El extracto concilia.
+7. **Revocable**: pausar, borrar y **rotar la dirección** de una conexión. Una dirección rotada o borrada rechaza todo lo que le llegue.
+8. **MFA y reautenticación** para crear, rotar o borrar una conexión y para crear una regla de autoconfirmación.
+
+### 5.2 Modelo de amenazas
+
+| Amenaza | Mitigación |
+|---|---|
+| **Suplantación**: alguien que conoce la dirección envía un correo con `From:` del banco | **DKIM** con `d=` alineado a la lista de dominios del banco (datos con vigencia), o ARC del reenviador declarado; si no, `rejected_auth`. La dirección lleva 128 bits al azar y se rota. Propuestas, no confirmaciones, salvo regla. Conciliación con el extracto |
+| Una regla de autoconfirmación abusada con un correo falso | Las reglas solo se evalúan sobre eventos con DKIM o ARC válidos **y** de la institución de la conexión; el monto tiene un rango obligatorio en reglas de ingreso |
+| Contenido hostil (HTML, adjuntos, bombas) | Tope de tamaño; texto extraído con un lector HTML sin red (no se sigue ningún enlace, no se carga nada remoto); adjuntos aceptados solo PDF, CSV, XLSX u OFX hacia el importador (archivo hostil); todo lo demás se ignora |
+| Repetición o reenvíos duplicados | HMAC del `Message-ID` más HMAC del contenido normalizado; huella ciega por fila del importador |
+| Lectura del buzón de servicio | Cada mensaje se borra del servidor al procesarlo; el *worker* es el único cliente; la credencial va en `.env`; alerta si el buzón acumula más de N mensajes |
+| Fuga entre usuarios u Hogares | El token resuelve **una** conexión, la conexión resuelve **un** ámbito; las celdas se cifran con la DEK de ese ámbito; la prueba de aislamiento con dos usuarios y dos Hogares cubre `sync` |
+| Patrones de usuario peligrosos (ReDoS, plantillas) | Las reglas **no aceptan expresiones regulares**: solo «contiene», «empieza por» o «es igual», sobre texto normalizado y con tope de longitud; sin `eval` (como `finance_automation`) |
+| Root del VPS con la KEK | Límite honesto ya documentado: descifra; pero no hay credenciales que robar |
+
+### 5.3 Arquitectura
 
 ```
-domain/finance/sync/            (Python puro, sin Django: import-linter)
-  events.py      Observation: fecha, monto Decimal, signo, descripción, comercio, últimos4, institución, canal, ref
-  email/         un analizador por banco (bancolombia.py, avvillas.py, nu.py...), versionado; entrada: texto ya verificado
-  push/          un analizador por paquete Android
-  normalize.py   Observation -> domain.finance.importing.Row (el mismo Row del importador)
+domain/finance/sync/               (Python puro, sin Django)
+  events.py     Observation (fecha, monto Decimal, tipo, contraparte, últimos4, institución, ref)
+  parsers/      un analizador por banco y versión de plantilla (bancolombia.py, avvillas.py, nu.py)
+  patterns.py   detección de patrones para sugerir reglas (nómina, suscripciones)
+  normalize.py  Observation -> domain.finance.importing.Row
 apps/finance_sync/
-  models.py      SyncSource, SyncEvent, SyncRun (OwnerScopedModel; con ámbito personal u Hogar)
-  connectors/    base.py (Protocol), imap.py, android.py, aggregator_belvo.py (fase 4), openfinance.py (fase 5)
-  dkim.py        verificación DKIM y ARC (nueva dependencia: dkimpy, con ≥ 2 semanas publicada)
-  services.py    ingest(observations) -> classify -> propuesta / cruce; decide(evento)
-  tasks.py       poll_imap (beat cada 5 min), refresh_aggregator (diaria), purge_events (retención)
-  fms_views.py   sources CRUD, events (lista y decisión), android/ingest
+  models.py     SyncConnection, SyncEvent, SyncOriginal, SyncRun
+  mail.py       MIME seguro, DKIM/ARC (dkimpy), confirmación de reenvío
+  ingest.py     token -> conexión -> verificar -> analizar -> evento -> propuesta
+  tasks.py      poll_ingest (cada 2 min), purge (diaria), health (diaria)
+  fms_views.py  connections, events (aprobar, modificar, descartar), deep links
 ```
 
-**Interfaz de conector** (lectura pura):
+* **`SyncConnection`**: dueño, **ámbito** (personal u Hogar), institución, cuenta destino (o «últimos 4 → cuenta», con un HMAC ciego),
+  token de dirección (HMAC; el token en claro se muestra solo al crearla o rotarla), proveedor de correo declarado (para ARC y el enlace),
+  estado, si incluye extractos, `last_event_at`.
+* **`SyncEvent`**: campos cifrados, HMAC de idempotencia, estado (`proposed`, `auto_confirmed`, `approved`, `modified`, `discarded`,
+  `rejected_auth`, `parse_error`), enlace al movimiento y al `ImportBatch`, `Message-ID` cifrado.
+* **`SyncOriginal`**: el original cifrado, con `expires_at` a 30 días.
+* **Importador reutilizado**: `finance_import.commit_rows(owner, account, rows, origin="sync")` comparte el núcleo de `commit` (candado,
+  todo o nada, huellas, `ImportBatch kind="sync"`). `classify` decide `new`, `matches_pending` (p. ej. una recurrencia, que así se
+  paga), `matches_confirmed` (un movimiento manual: se enlaza sin cambiarlo) o duplicado. Deshacer, conciliar y la inmutabilidad de lo
+  conciliado vienen del importador.
+* **Extractos adjuntos**: van a `finance_import.analyze` como si se subieran (mismo tratamiento hostil) y producen una **propuesta de
+  importación** que el usuario confirma. Si el PDF tiene contraseña, se pide en el momento y no se guarda [Q3]. El lector de PDF es
+  nuevo (dependencia con ≥ 2 semanas publicada) y depende de S3.
+* **Cruce entre canales**: la fila del extracto cruza con la propuesta o el movimiento creado desde el correo (`matches_pending` o
+  `matches_confirmed`): **no duplica**.
 
-```python
-class Connector(Protocol):
-    kind: str                                  # "imap" | "android" | "aggregator" | "openfinance"
-    def fetch(self, source: SyncSource, cursor: str | None) -> tuple[list[Observation], str | None]: ...
-    def revoke(self, source: SyncSource) -> None: ...
-    # Sin pay/transfer/write: una prueba falla si aparece un método así.
-```
+### 5.4 Flujo para el usuario
 
-**Modelos** (todo campo con contenido va cifrado; en claro solo ids, fechas, estado, tipo y versión de llave):
+1. **Conectar** (web o app): elige institución, cuenta y ámbito → el FMS da la dirección única y los pasos para **su** proveedor (crear el
+   filtro por remitente del banco, reenviar a la dirección, y el código de confirmación que el FMS muestra) → explica el monto mínimo
+   (§3.1) → «Probar»: el usuario reenvía un correo del banco y ve que llegó.
+2. **Aviso**: «Nuevo movimiento propuesto en <cuenta>», sin monto fuera de la app salvo preferencia.
+3. **Movimiento propuesto**: los campos extraídos y la categoría sugerida (por historial) → **Aprobar** | **Modificar** (fecha,
+   categoría, contraparte, nota; el monto se puede corregir, y queda auditado) | **«Ir al correo»** | descartar.
+4. **Reglas**: tras aprobar 3 o más veces algo con el mismo patrón, el FMS sugiere «¿Confirmar siempre así?».
 
-* `SyncSource`: dueño y ámbito, `kind`, institución (código), cuenta del libro destino (o reglas «últimos4 → cuenta»), estado
-  (`active`, `paused`, `error`, `revoked`), regla de autoconfirmación, configuración cifrada (token, dirección de ingesta,
-  contraseña IMAP), `last_success_at`, cursor.
-* `SyncEvent`: la observación normalizada y cifrada, HMAC ciego para idempotencia, estado (`received`, `proposed`, `matched`,
-  `confirmed`, `discarded`, `rejected_auth`, `parse_error`), enlace al movimiento creado o cruzado y al `ImportBatch`.
-* `SyncRun`: conteos por estado, duración y código de error. Sin contenido.
+### 5.5 Reglas de autoconfirmación (sobre `finance_automation`)
 
-### 5.2 Reutilizar el importador (no un segundo motor)
+`finance_automation` ya tiene reglas propias como datos: catálogo de disparadores, de 1 a 5 condiciones, cifrado, validación sin
+`eval` y «Probar ahora». **Encaja**. Hay que añadirle un disparador y una acción:
 
-* `normalize` produce el mismo `Row` que `domain/finance/statements` y `domain/finance/importing.classify(rows, candidates)`
-  decide `new`, `matches_pending`, `matches_confirmed`, `possible_duplicate` o `duplicate` con su ventana de días.
-* `apps/finance_import` gana una entrada `commit_rows(owner, account, rows, origin="sync", source_id=...)` que comparte el núcleo
-  de `commit` (candado del dueño, todo o nada, huellas, `ImportBatch` con `kind="sync"`). Así **deshacer**, la conciliación y la
-  inmutabilidad de lo conciliado salen gratis. Cada *run* que crea propuestas abre un lote; deshacerlo anula con reverso.
-* **Cruce entre canales:** el correo de una compra y la fila del extracto describen lo mismo con textos distintos. Cuando la fila
-  llega, `classify` la cruza por cuenta, monto exacto y ventana de fecha (la del correo es la del evento y la del extracto puede
-  ser la de aplicación), y la descripción se compara solo como desempate (`similar`). Resultado: `matches_pending`, de modo que el
-  extracto **confirma** la propuesta en vez de duplicarla. La huella de la fila del extracto queda enlazada al movimiento.
-* **Movimientos manuales:** si el usuario ya registró el gasto, el evento cruza con su pendiente o confirmado y queda enlazado,
-  **sin modificarlo**. Si el monto difiere (p. ej. una propina, o una compra en dólares), se muestra la diferencia y se ofrece un
-  ajuste; nunca se reescribe solo. Lo conciliado es inmutable (regla 5): una diferencia contra un conciliado genera una propuesta
-  de ajuste auditable.
-* **Tarjetas:** las alertas de compra con TC van a la cuenta de pasivo de la tarjeta. El importador de tarjetas
-  (`feat/fms-card-import`, en curso) define cómo cruzan con el extracto de la tarjeta; `finance_sync` se monta encima cuando
-  esté integrado.
+* **Disparador `sync_event`** con campos `institution` (opción), `kind` (ingreso, gasto, transferencia), `text` (operadores nuevos
+  `contains`, `starts_with`, `eq` sobre la descripción o contraparte normalizada; 3 a 60 caracteres; sin regex), `amount` (`gte`/`lte`)
+  y `day_of_month` (`gte`/`lte`).
+* **Acción `auto_confirm`** con categoría y contraparte opcionales. Hoy las reglas solo avisan; esta es la primera que **escribe**, y por
+  eso: solo sobre eventos autenticados (§5.2), con aviso «Confirmado por la regla X» y deshacer con un toque (reverso), y auditada.
+* **Sugerencias** (`domain/finance/sync/patterns.py`): 3 o más eventos aprobados con texto similar, el mismo tipo, montos a ±10 % y día
+  del mes a ±3 → propone la regla ya llena (p. ej. nómina: ingreso, contiene «NOMINA <EMPRESA>», entre X y Y, días 13 a 17). El usuario
+  la acepta, la edita o la descarta (no se vuelve a sugerir).
+* **Pantalla «Reglas de autoconfirmación»** (web y app): tabla con nombre, condición legible, veces aplicada y última vez, activa o
+  pausada; crear la propia; «Probar» contra los eventos de los últimos 90 días, sin efectos.
 
-### 5.3 Celery
+### 5.6 Nequi y Nu desde la app móvil
 
-* `finance_sync.poll_imap`: *beat* cada 5 minutos. Lee los no procesados, verifica DKIM/ARC, analiza, ingiere, marca o borra el
-  mensaje. Es idempotente (HMAC de `Message-ID`) y tiene un candado por fuente para no ejecutarse dos veces a la vez.
-* `finance_sync.refresh_aggregator` (fase 4): diaria, con reintentos exponenciales; si el webhook avisa, se adelanta.
-* `finance_sync.purge_events`: borra los `SyncEvent` descartados o rechazados a los 30 días (retención, a confirmar).
-* `finance_sync.health`: si una fuente activa no produce nada en N días (configurable por banco), avisa al dueño. Así se
-  detecta que el banco cambió el formato del correo o que el *listener* se apagó.
-* Todo con America/Bogotá para las fechas de negocio y UTC para los instantes.
+Interpretación: estas dos instituciones **no aparecen en la web** hasta que el usuario las **activa en la app** (Más → Conexiones →
+Nequi / Nu). Activarlas crea la conexión del **mismo canal de correo**: alertas de Nu si llegan por correo y extractos en PDF de Nequi
+enviados con «Enviar al correo». **No** lee notificaciones del teléfono ni pide permisos nuevos. **Ambigüedad** (pregunta Q1): el
+propietario puede haber querido decir que se activen desde la app porque espera que la app lea algo del teléfono. Eso está descartado
+por su propia decisión 3.
 
-### 5.4 Hogar
+### 5.7 Hogar
 
-* Una fuente pertenece a **un** ámbito: el personal de su dueño o un Hogar del que es miembro con rol que permita escribir.
-  Sus eventos se cifran con la DEK del ámbito (la del Hogar, envuelta por miembro: `finance_household`).
-* Los correos y notificaciones son de una persona: la fuente es suya aunque deposite en una cuenta del Hogar. Al salir del Hogar
-  o al ser expulsado, sus fuentes hacia el Hogar se **pausan** (no se borran los movimientos ya creados).
-* Cada miembro tiene su propia dirección de ingesta; nadie ve la configuración de la fuente de otro (solo «miembro X tiene una
-  fuente activa hacia esta cuenta»).
-
-### 5.5 Frontend y móvil
-
-* Web (`/finanzas`): «Conexiones» en Configuración (alta guiada por banco, estado, última lectura, pausar o borrar) y una
-  bandeja **«Por revisar»** (propuestas con confirmar, descartar o editar categoría), integrada al Resumen como contador.
-* Android: el *listener* como módulo nativo propio con un *config plugin* de Expo en `mobile/plugins/` (el *prebuild* ya existe),
-  aislado en un único módulo como las demás API sensibles (`src/sync/notification-listener.ts`), con su prueba en
-  `guards.test.ts`. Pantalla de activación con la explicación de §4.5.
-* Dinero como cadenas decimales de punta a punta (`core/money.ts`). El analizador de push manda la **cadena** tal como aparece;
-  el servidor la convierte a `Decimal`. Nunca `Number`.
+Cada conexión pertenece a **un** ámbito. Una conexión hacia una cuenta del Hogar cifra con la DEK del Hogar y la crea un miembro con
+permiso de escritura. Los demás miembros ven las propuestas de esa cuenta y pueden aprobarlas según su rol, pero no ven la dirección de
+la conexión ni su configuración. Si el miembro sale del Hogar, sus conexiones hacia él se pausan. Las reglas de autoconfirmación son por
+ámbito.
 
 ## 6. Hoja de ruta
 
-### Fase 0: *spikes* (1 a 2 semanas; sin código de producción)
+### Fase 0: *spikes* (sin código de producción)
 
 | # | Spike | Sale con |
 |---|---|---|
-| S1 | Correos reales de **Bancolombia, AV Villas y Nu** (y Nequi si manda): qué operaciones generan correo, con qué topes, remitente, dominio DKIM, si sobrevive al reenvío de Gmail o de Virtualmin, y el formato | Por banco: lista de dominios `d=`, 3 o más ejemplos **sintéticos** (montos y comercios inventados) para las pruebas, y un sí o no |
-| S2 | *Listener* en el teléfono del propietario (versión de Android, ahorro de batería del fabricante, texto que muestran Nequi y Nu, si truncan) | APK de prueba, texto de ejemplo **sintético**, tasa de pérdida observada en una semana |
-| S3 | Extractos de cada institución: formato (CSV, XLSX, OFX o PDF), si el PDF tiene contraseña, si es texto o imagen | Tabla de formatos; decide si hace falta un lector PDF (dependencia nueva: `pypdf` o `pdfplumber`) |
-| S4 | Cotización real de Belvo y Floid (y Prometeo solo si ofrece *widget*): cobertura de estas instituciones, método (credenciales u Open Finance), precio para un usuario, residencia de datos, términos para uso personal | Solo si el propietario lo autoriza (Q2) |
-| S5 | Legal: el texto de privacidad del FMS cubre el tratamiento de correos y notificaciones | Borrador para el flujo F9-13 |
-| S6 | Confirmar el estado regulatorio (cronograma definitivo, decreto de prórroga, sección II de la CE 010) | Nota de actualización de §2 |
+| S1 | Correos de Bancolombia, AV Villas y Nu, y extractos de Nequi: remitentes, dominios DKIM, plantillas, qué genera correo, dónde se configura el monto mínimo | Por banco: lista de dominios, 3 o más ejemplos **sintéticos** y la ruta del monto mínimo |
+| S2 | Reenvío desde Gmail y Outlook.com a un subdominio de prueba: confirmación, conservación de DKIM o ARC, enlace «Ir al correo» | Qué verifica `mail.py` y cómo se arma el enlace por proveedor |
+| S3 | Formatos de extracto (PDF con contraseña o no, texto o imagen) | Si hace falta lector de PDF y cuál |
+| S4 | Cotización de Floid (y Belvo por si hay un plan menor) con *widget*, 2FA y certificaciones, dentro de 20 USD/mes | Sí o no a la fase 4 |
+| S5 | Texto de privacidad del FMS para el canal de correo | Borrador para F9-13 |
+| S6 | El VPS recibe correo en un subdominio nuevo (puerto 25 entrante, reputación) | Sí, o el plan B gestionado (§4.2) |
 
-### Fase 1: MVP del canal de correo y de la bandeja «Por revisar»
+### Fase 1: canal de correo para cualquier usuario y Hogar (tickets en §7)
 
-Alcance: `finance_sync` con `imap`, analizadores de los bancos que pasaron S1 (se espera Bancolombia y AV Villas), la bandeja
-«Por revisar» en la web y el cruce con el extracto vía `commit_rows`.
+Hecho cuando:
 
-Criterios de aceptación:
+* un correo de alerta de Bancolombia (y de AV Villas y Nu si S1 los confirma) reenviado por un filtro de Gmail produce **una** propuesta
+  en menos de 5 minutos;
+* el mismo correo dos veces produce 0 propuestas;
+* un correo falsificado se rechaza;
+* un extracto adjunto produce una propuesta de importación que, al confirmarse, cruza sin duplicar;
+* una regla de nómina autoconfirma y se puede deshacer;
+* «Ir al correo» abre el mensaje en Gmail;
+* el original desaparece a los 30 días;
+* ningún endpoint devuelve el original;
+* otro usuario y otro Hogar reciben 404.
 
-1. Un correo de alerta válido produce **una** propuesta en la cuenta correcta (por «últimos 4») en menos de 10 minutos.
-2. El mismo correo procesado dos veces, o reenviado, produce **0** propuestas nuevas.
-3. Un correo con `From:` del banco **sin** DKIM válido alineado (ni ARC del reenviador declarado) se rechaza
-   (`rejected_auth`) y no toca el libro.
-4. Importar después el extracto del mes **confirma** las propuestas en lugar de duplicarlas; las que el extracto no trae quedan
-   señaladas.
-5. «Deshacer» el lote de un *run* anula con reverso lo que creó; si algo ya está conciliado, se niega (`immutable_entry`) y no
-   queda nada a medias.
-6. Un movimiento manual previo cruza y queda enlazado sin cambiar su monto.
-7. Ningún monto ni descripción aparece en registros, en métricas ni en las respuestas de error.
-8. Otro usuario no ve ni la fuente ni los eventos (404), y la prueba que recorre todos los endpoints con dos usuarios incluye los
-   de `sync`.
-9. Una fuente que deja de producir eventos en N días genera un aviso.
+### Fase 2: Microsoft Graph (opcional)
 
-Pruebas: analizadores con *fixtures* sintéticos y dorados por banco y versión; Hypothesis sobre el analizador (nunca lanza nada
-fuera de `ParseError`, nunca devuelve `float`); DKIM con claves de prueba (válido, inválido, dominio no alineado, ARC);
-idempotencia; `commit_rows` y `undo`; aislamiento; `caplog` sin contenido; `import-linter` (dominio sin Django; conectores sin
-escritura). Si se toca nginx: `uv run pytest tests/deploy` y `deploy/nginx/test/run.sh check`.
+Para quien no pueda reenviar. `Mail.Read` delegado, cuentas personales primero; *refresh token* cifrado con la DEK; filtro por remitente
+en el servidor de Microsoft (`$filter` por `from`) para leer solo los del banco; `webLink` para «Ir al correo»; revocar borra el token.
+Ruta de *callback* con su prueba de nginx. Solo si alguien la necesita.
 
-### Fase 2: notificaciones de Android (Nequi y Nu)
+### Fase 3: más formatos de extracto y créditos
 
-Alcance: módulo nativo más *config plugin*, pantalla de activación y lista blanca, `android/ingest` con `Idempotency-Key`.
-Criterios: solo salen eventos de los paquetes de la lista; un texto con forma de OTP nunca sale; al apagar el permiso, nada se
-envía; nada se escribe en disco (`guards.test.ts`); la propuesta cruza con el correo del mismo movimiento (si ambos llegan, hay
-**una** sola propuesta).
+PDF de ICETEX y del crédito de AV Villas para conciliar saldo y cuota con `finance_credit`.
 
-### Fase 3: extractos en PDF y créditos
+### Fase 4: agregador (condicionada)
 
-Alcance: lector PDF de texto (no OCR) para los formatos de S3, con el tratamiento de archivo hostil del importador; ICETEX y
-el crédito de AV Villas por extracto para conciliar saldo y cuota con `finance_credit`; patrimonios autónomos (extracto de la
-fiduciaria) como saldo de activo, sin movimientos detallados.
-Criterios: el mismo PDF dos veces importa 0; un PDF con JavaScript, adjuntos o cifrado desconocido se rechaza con código
-estable; los saldos del extracto concilian con el libro.
-
-### Fase 4 (opcional): agregador con *widget*
-
-Solo si el propietario acepta el costo y el tercero (Q1, Q2) y S4 encontró uno que cumpla §4.1. Conector `aggregator_<x>`,
-webhook con firma (§4.2), tokens cifrados y revocación que borra el enlace en el agregador. Criterios: ninguna petición de
-nuestro servidor lleva credenciales del banco (prueba sobre el cliente HTTP); revocar deja de recibir datos y borra el token;
-un webhook sin firma válida no cambia nada.
+Solo si S4 encuentra uno que cumpla las cuatro condiciones de §4.3. Conector de lectura, *widget* del agregador, webhook en ruta propia
+con firma HMAC, marca de tiempo y anti-repetición (`check_attack_terms`, `cv-locations.conf.template`, `test_nginx.py`), y tokens
+cifrados y revocables.
 
 ### Fase 5: finanzas abiertas reguladas
 
-Cuando la SFC expida los estándares de historial transaccional (y si para entonces existe una vía para un receptor como el
-FMS), un conector `openfinance` con OAuth y consentimiento del estándar. Se reevalúa con cada circular nueva.
+Cuando la SFC expida el estándar de historial transaccional y exista una vía para un receptor como el FMS.
 
-## 7. Preguntas para el propietario
+## 7. Tickets de la fase 1
 
-| # | Pregunta | Por qué importa |
+Cada ticket es un PR pequeño, con sus pruebas. **B** = backend del CV (`master`), **W** = web y **M** = app (repo del FMS, `main`). Las
+dependencias van entre paréntesis.
+
+| # | Ticket | Criterios de aceptación |
 |---|---|---|
-| Q1 | ¿Cuál es el presupuesto mensual para esto? (0, menos de 20 USD, del orden de 1.000 USD) | Decide si un agregador es siquiera opción (Belvo Launch: 1.000 USD/mes) |
-| Q2 | ¿Aceptas, en principio, que un tercero (agregador) tenga tus credenciales bancarias a través de su *widget*? | Sin esto, la fase 4 no existe y S4 no se hace |
-| Q3 | ¿Creamos un **buzón dedicado** para las alertas? ¿En el VPS (Virtualmin, dominio propio) o en un proveedor externo? ¿Y cómo llegan los correos: el banco escribe directo a ese buzón o reenvías con un filtro desde tu correo? | Define DKIM frente a ARC, la superficie de ataque y si hace falta la API de Gmail (alcance restringido, verificación de Google): se evita con un buzón propio |
-| Q4 | ¿Qué alertas tienes activas hoy en cada banco y con qué tope mínimo? ¿Estás dispuesto a bajar el tope a 0 para que todo genere correo? | Cobertura real del canal de correo |
-| Q5 | ¿Activamos el **lector de notificaciones** en tu Android? ¿Qué versión y fabricante es el teléfono? | Fase 2; ahorro de batería y Android 15 |
-| Q6 | Si la app muere sin red, ¿aceptas perder esos eventos (los recupera el extracto) o prefieres una cola en disco cifrada con el Keystore, lo que rompe la regla «nada financiero en disco»? | Regla de la app móvil |
-| Q7 | ¿Las propuestas se confirman siempre a mano, o quieres autoconfirmar alguna fuente (p. ej. compras con TC de Bancolombia)? | §4.1, punto 6 |
-| Q8 | ¿Qué es exactamente **Pexto Capital** para ti (qué producto, qué entidad) y qué recibes de los **patrimonios autónomos** (extracto mensual, certificado)? | No se pudo identificar con fuentes públicas |
-| Q9 | ¿Retención de eventos descartados: 30 días está bien? ¿Se guarda el correo original (cifrado) para depurar un analizador, o nunca? | Privacidad frente a depuración |
-| Q10 | ¿El SMS queda descartado? (Leer SMS da acceso a los OTP; se propone no hacerlo) | Superficie de riesgo |
-| Q11 | ¿Esto se abre a otros usuarios del FMS y del Hogar desde el inicio, o primero solo para ti? | Dirección de ingesta por usuario, texto legal y carga de soporte de los analizadores |
+| **B1** | `domain/finance/sync`: `Observation`, `normalize` a `Row` e interfaz y registro de analizadores | Sin Django (`lint-imports`); `Decimal` y nunca `float` (Hypothesis); un analizador desconocido da un error con código estable |
+| **B2** | Modelos `SyncConnection`, `SyncEvent`, `SyncOriginal` y `SyncRun` con ámbito, cifrado y migraciones (B1) | Celdas atadas a fila y ámbito (no abren en otro usuario ni en otro Hogar); el admin muestra solo conteos; la prueba de aislamiento recorre los endpoints nuevos con dos usuarios y dos Hogares |
+| **B3** | `mail.py`: MIME seguro, DKIM y ARC (dependencia `dkimpy`), extracción de texto sin red y de adjuntos permitidos | Con claves de prueba: DKIM válido pasa; inválido, no alineado o sin firma se rechaza; ARC solo del reenviador declarado; tamaño excedido rechazado; HTML con enlaces y recursos remotos no hace ninguna petición |
+| **B4** | API de conexiones: crear (dirección única de 128 bits), listar, pausar, rotar y borrar, con reautenticación (B2) | La dirección en claro sale solo en crear y rotar; rotar invalida la anterior; sin reautenticación da `403 reauthentication_required`; `Idempotency-Key` |
+| **B5** | `tasks.poll_ingest`: IMAP de la cuenta de servicio → token → conexión → B3 → analizador → evento; borra el mensaje (B3, B4) | Idempotente (mismo `Message-ID`: 0 eventos); token desconocido o rotado: descartado y contado; el buzón queda vacío tras el *run*; candado: dos *runs* a la vez no duplican; registros sin contenido (`caplog`) |
+| **B6** | Confirmación de reenvío: reconocer el correo de verificación del proveedor y exponer **solo el código** en la conexión (B5) | Un correo de confirmación de `google.com` con DKIM válido muestra el código; uno falso no; el código caduca a las 24 h |
+| **B7** | Propuestas: `finance_import.commit_rows(origin="sync")`; aprobar, modificar y descartar; deshacer por lote (B5) | Crea un pendiente con origen «sync»; cruza con una recurrencia o un manual sin duplicar ni cambiar el manual; modificar audita antes y después; deshacer anula con reverso; lo conciliado es inmutable |
+| **B8** | Analizador **Bancolombia** con *fixtures* sintéticos de S1 (B1) | Golden tests por plantilla (compra, retiro, transferencia recibida y enviada, pago); una plantilla desconocida da `parse_error` y guarda el original para depurar |
+| **B9** | Analizadores **AV Villas** y **Nu** (según S1) (B1) | Igual que B8 |
+| **B10** | Extractos adjuntos → `finance_import.analyze` → propuesta de importación (B5, B7) | CSV, XLSX y OFX adjuntos producen una propuesta que el usuario confirma; las filas cruzan con las propuestas del correo sin duplicar; un adjunto de otro tipo se ignora |
+| **B11** | Retención y salud: `purge` (originales y descartados a 30 días) y `health` (conexión sin eventos en N días: aviso) (B2) | Con el reloj adelantado se borra lo vencido y nada más; el aviso de salud sale una vez por ventana |
+| **B12** | Orden `fms_sync_debug` (clasificada en `apps/ops/registry.py`) que muestra el resultado del analizador sin montos (B2) | Solo el servicio la ejecuta; la salida no contiene ningún monto ni descripción (prueba); queda auditada |
+| **B13** | Reglas de autoconfirmación: disparador `sync_event`, operadores de texto, acción `auto_confirm`, y sugerencias por patrón en `finance_automation` y `domain/finance/sync/patterns.py` (B7) | Sin regex ni `eval` (las pruebas con `{{7*7}}` y `.*` salen literales); solo sobre eventos autenticados de la institución de la conexión; «Probar» sin efectos; 3 nóminas aprobadas sugieren una regla; deshacer una autoconfirmación anula con reverso |
+| **B14** | Avisos «movimiento propuesto» y «confirmado por regla» en `finance_planning` y enlace «Ir al correo» por proveedor (B7) | Sin montos fuera de la app salvo preferencia; el enlace de Gmail usa el `Message-ID`; el original nunca sale por la API (prueba que recorre el esquema) |
+| **B15** | OpenAPI (`openapi-fms.yaml`) y procedimiento en `DEPLOYMENT.md`: subdominio de ingesta, MX, comodín de Virtualmin, cuenta de servicio y variables `FMS_SYNC_IMAP_*` en `make-env.sh` | `uv run pytest tests/deploy` pasa; `make-env.sh` genera las variables; sin valores reales en el repo |
+| **W1** | Web: «Conexiones» (Configuración): asistente por proveedor con la dirección, el filtro paso a paso, el código de confirmación, el monto mínimo (§3.1) y «Probar» (B4, B6) | La dirección se puede copiar y no queda en la URL ni en `localStorage`; rotar y borrar piden reautenticación; Nequi y Nu no aparecen hasta activarlos en la app; axe sin errores |
+| **W2** | Web: bandeja «Por revisar» con Aprobar, Modificar, Ir al correo y descartar; contador en el Resumen (B7, B14) | Montos como cadenas decimales (`core/money.ts`); sin monto en rutas; el enlace abre en una pestaña nueva con `noopener` |
+| **W3** | Web: «Reglas de autoconfirmación»: tabla, sugerencias, crear la propia y probar (B13) | La condición se muestra legible; «Probar» lista los casos sin efectos; pausar y borrar |
+| **M1** | App: Conexiones con el interruptor por institución para **Nequi y Nu** (crea la conexión de correo) y el mismo asistente que W1 (B4) | Sin permisos nuevos de Android (prueba del *manifest*); nada en disco (`guards.test.ts`) |
+| **M2** | App: «Por revisar» y reglas, aviso FCM «movimiento propuesto», e «Ir al correo» que abre la app o la web del proveedor (B7, B13, B14) | Mismas reglas que W2 y W3; el enlace pasa por la lista blanca de `src/nav/deeplink.ts` |
+| **E1** | E2E: correo simulado (firmado con una clave de prueba) → propuesta → aprobar → extracto que cruza → deshacer (todo lo anterior) | Pasa en CI con un servidor de correo de prueba |
 
-## 8. Fuentes (consultadas el 2026-11-14)
+Orden sugerido: S1 a S6 → B1, B2, B3 → B4, B5, B6 → B7, B8 → W1, W2, M1 → B10, B11, B12, B14, B15 → B9, B13, W3, M2 → E1.
+
+## 8. Preguntas abiertas para el propietario
+
+| # | Pregunta | Por qué |
+|---|---|---|
+| Q1 | Nequi y Nu «solo desde la app»: ¿quieres decir que **aparecen** solo si las activas en la app (y siguen usando el correo), o esperabas que la app leyera algo del teléfono (descartado por tu decisión 3)? | §5.6 |
+| Q2 | ¿Aceptas el canal D (reenvío filtrado a una dirección única por conexión, procesada en el servidor del FMS y borrada en el acto) como forma de «conectar tu correo»? ¿O prefieres esperar a B (Microsoft) y A (Google, de pago anual)? | §4.1 |
+| Q3 | Si un extracto en PDF trae contraseña (en Colombia suele ser el número de documento), ¿se pide cada vez o se guarda cifrada por institución? | Una contraseña de PDF no es la del banco, pero es un secreto |
+| Q4 | En una regla de autoconfirmación de **gasto** (no solo ingresos), ¿se exige siempre un rango de monto? | Limita el abuso con correos raros |
+| Q5 | ¿Se puede corregir el **monto** al «Modificar» una propuesta, o solo categoría, fecha y nota (y el monto lo corrige el extracto)? | Integridad frente a comodidad |
+| Q6 | ¿Autorizas pedir cotizaciones a Floid y Belvo (S4) en nombre del proyecto, sin datos personales? | Fase 4 |
+| Q7 | ¿Puede el VPS recibir correo en un subdominio nuevo? (Lo aplicas tú; si no, ¿aceptas un servicio de correo entrante gestionado dentro de los 20 USD?) | §4.2, S6 |
+
+## 9. Fuentes (consultadas el 2026-11-14)
 
 Regulación:
 
-* SFC, Proyecto de carta circular, 31-ago-2026: «Cronograma para la expedición de estándares de intercambio de información en el
-  sistema de finanzas abiertas» (página y documento adjunto) [P]:
+* SFC, Proyecto de carta circular, 31-ago-2026, cronograma de estándares [P]:
   https://www.superfinanciera.gov.co/publicaciones/10116237/proyecto-de-carta-circular-agosto-31-de-2026/
-* URF, «Ajustes en los plazos de implementación del sistema de finanzas abiertas obligatorio», documento técnico, sep-2026 [P]:
+* URF, «Ajustes en los plazos de implementación del sistema de finanzas abiertas obligatorio», sep-2026 [P]:
   https://www.urf.gov.co/documents/283253/3555757/003_Documento_Tecnico.pdf
-* Presidencia, Decreto 0368 del 7 de abril de 2026 (PDF; no se pudo descargar en esta sesión) [P no leído]:
+* Presidencia, Decreto 0368 de 2026 (no se pudo descargar) [P no leído]:
   https://dapre.presidencia.gov.co/normativa/normativa/DECRETO%20No.%200368%20DEL%2007%20DE%20ABRIL%20DE%202026.pdf
-* Holland & Knight, «SFC propone nuevas reglas para implementar el sistema de finanzas abiertas», jul-2026 [S]:
+* Holland & Knight, proyecto de CE 010 de 2026 [S]:
   https://www.hklaw.com/en/insights/publications/2026/07/sfc-propone-nuevas-reglas-para-implementar-el-sistema-de-finanzas
-* Pérez-Llorca, «Colombia issues Open Finance Decree and narrows the scope», 24-abr-2026 [S]:
+* Pérez-Llorca, Decreto 0368 de 2026 [S]:
   https://www.perezllorca.com/en-co/news/legal-guide/colombia-open-finance-decree-0368-2026-narrowed-scope/
-* Yarumo, «Open Finance: who is required and what data must be exposed» [S]:
-  https://www.yarumo.ai/en/blog/open-finance-who-is-required-and-what-data-to-expose
-* Fiskil, «Colombia open finance tracker» [S]: https://www.fiskil.com/open-finance-tracker/colombia
-* AFIC, sobre la Circular Externa 001 de 2026 [S]:
-  https://afic.com.co/sfc-ajusta-el-cronograma-de-finanzas-abiertas-en-colombia-conoce-las-nuevas-fechas-limite/
+* Yarumo, participantes y datos del Decreto 0368 [S]: https://www.yarumo.ai/en/blog/open-finance-who-is-required-and-what-data-to-expose
+* Fiskil, Colombia [S]: https://www.fiskil.com/open-finance-tracker/colombia
 
 Bancos:
 
-* Bancolombia, centro de ayuda para desarrolladores (catálogo: APIs de empresas y aliados) [P]:
-  https://soportedeveloper-portal.bancolombia.com/hc/es-419
-* Bancolombia, soporte: «¿Esta API me permite consultar información de una cuenta?» (alcance: solo titularidad) [P, vía resultado de búsqueda]:
+* Bancolombia, centro de ayuda para desarrolladores [P]: https://soportedeveloper-portal.bancolombia.com/hc/es-419
+* Bancolombia, alcance de la API de cuentas (solo titularidad) [P, vía resultado de búsqueda]:
   https://soportedevs.bancolombia.com/hc/es-419/articles/14564107863060--Esta-API-me-permite-consultar-informaci%C3%B3n-de-una-cuenta
-* Bancolombia, canales y alertas por correo o SMS [P]: https://bancolombia.com/centro-de-ayuda/canales/sucursal-telefonica
-* Portafolio, «Tus Bancos» en la app de Bancolombia, 6-may-2023 [S]:
-  https://www.portafolio.co/economia/finanzas/7-8-millones-de-clientes-de-app-bancolombia-con-open-banking-582443
+* Bancolombia, alertas por correo o SMS, topes mínimos y Clave Dinámica [P]: https://bancolombia.com/centro-de-ayuda/canales/sucursal-telefonica
+* Bancolombia, remitentes oficiales [P]: https://www.bancolombia.com/centro-de-ayuda/preguntas-frecuentes/correos-reales-nueva-imagen
 * La República, Aval API Market, jul-2026 [S]:
   https://www.larepublica.co/finanzas/grupo-aval-lanzo-aval-api-market-para-integrar-soluciones-financieras-y-tecnologicas-4442163
-* Valora Analitik, entrevista a Grupo Aval sobre finanzas abiertas [S]: https://www.valoraanalitik.com/grupo-aval-aprovechar-finanzas-abiertas/
-* LatamFintech, acuerdo Belvo–Nequi, 23-feb-2024 [S]:
-  https://www.latamfintech.co/articles/fintechs-belvo-y-nequi-realizan-el-primer-acuerdo-de-open-finance-en-colombia
-* EBANX, Nequi como medio de pago (push, QR) [S]:
-  https://docs.ebanx.com/docs/payments/guides/accept-payments/api/colombia/nequi
-* Nu Colombia, política de tratamiento de datos (canales de comunicación) [P]:
-  https://contracts.nu.com.co/legal-documents/nu-SA-data-policy-version-1.pdf
-* Colombia Tramita, consultar el estado de cuenta en ICETEX [S]: https://colombiatramita.co/educacion/consultar-saldo-icetex/
+* Infobae, extractos de Nequi («Enviar al correo»), 15-jul-2026 [S]:
+  https://www.infobae.com/tecno/2026/07/15/como-descargar-extractos-de-nequi-y-ver-los-movimientos-de-la-cuenta/
+* El Tiempo, SMS de Nequi desde el 85954 [S]:
+  https://www.eltiempo.com/economia/finanzas-personales/nequi-como-los-estafadores-roban-dinero-de-las-cuentas-de-los-usuarios-759125
+* Nu Colombia, política de tratamiento de datos [P]: https://contracts.nu.com.co/legal-documents/nu-SA-data-policy-version-1.pdf
+* Colombia Tramita, estado de cuenta de ICETEX [S]: https://colombiatramita.co/educacion/consultar-saldo-icetex/
+
+Correo:
+
+* Google, alcances de la API de Gmail (`gmail.readonly` y `gmail.metadata` restringidos) [P]:
+  https://developers.google.com/workspace/gmail/api/auth/scopes
+* Google, verificación de alcances restringidos (excepciones y evaluación cada 12 meses) [P]:
+  https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification
+* Secusy y DeepStrike, precios de la evaluación CASA (indicativos y contradictorios) [S]: https://www.secusy.ai/blog/google-casa-assessment-cost ·
+  https://deepstrike.io/blog/google-casa-security-assessment-2025
+* Microsoft, referencia de permisos de Graph (`Mail.Read` en cuentas personales) [P]: https://learn.microsoft.com/en-us/graph/permissions-reference
+* Microsoft, reenvío externo y directivas de correo no deseado saliente (Microsoft 365) [P]:
+  https://learn.microsoft.com/en-us/defender-office-365/outbound-spam-policies-external-email-forwarding
+* Google Workspace Updates, verificación de direcciones de reenvío [S]:
+  https://workspaceupdates.googleblog.com/2010/05/gmail-now-requires-verification-of.html
 
 Agregadores:
 
-* Belvo, planes y precios (Sandbox gratis; Launch 1.000 USD/mes; Growth a la medida) [P]: https://belvo.com/plans-and-pricing/
-* Belvo, objeto «Institution» (tipos de conexión: credenciales u Open Finance) [P]:
-  https://developers.belvo.com/apis/belvoopenapispec/institutions/institutionpublicapi
+* Belvo, planes y precios [P]: https://belvo.com/plans-and-pricing/
 * Belvo, ISO 27001 [P]: https://belvo.com/blog/belvo-doubles-down-commitment-security-achieves-iso-27001/
-* LatamFintech, Monet y Belvo (bancos colombianos cubiertos), 18-sep-2023 [S]:
+* Floid, referencia «Bancolombia Personas: Products» (usuario y contraseña en el cuerpo) [P]:
+  https://readme.floid.io/reference/bancolombia-personas-products
+* Floid, introducción a la API (*widget* o API) [S]: https://readme.floid.io/docs/somos-floid
+* Prometeo, `POST /login/` [P]: https://docs.prometeoapi.com/reference/login
+* LatamFintech, Belvo y bancos colombianos, 2023 [S]:
   https://www.latamfintech.co/articles/fintechs-monet-y-belvo-revolucionan-el-acceso-al-credito-en-colombia-a-traves-del-open-finance
-* Prometeo, `POST /login/` con usuario y contraseña del banco [P]: https://docs.prometeoapi.com/reference/login
-* Open Banking Tracker, Floid en Colombia (directorio, generado automáticamente) [S]: https://www.openbankingtracker.com/floid-io
-* TechCrunch, Fintoc (Chile y México), 25-abr-2024 [S]: https://techcrunch.com/2024/04/25/fintoc-a2a-payments-chile-mexico
-* LatamFintech, Minka Payments Hub (infraestructura de pagos Bre-B, no agregación) [S]:
-  https://www.latamfintech.co/articles/minka-lanza-payments-hub-en-colombia-para-convertir-la-conexion-a-bre-b-en-nuevas-lineas-de-negocio
-
-Canales sin tercero:
-
-* Android Authority, Android 15 y las notificaciones sensibles para *listeners* no confiables [S]:
-  https://androidauthority.com/android-15-sensitive-notifications-3416414
-* Google, preguntas frecuentes sobre la verificación de OAuth (alcances restringidos como `gmail.readonly`) [P]:
-  https://support.google.com/cloud/answer/13463817
 
 ---
 
 ## Apéndice A: ADR-020 propuesto: sincronización de solo lectura con entidades financieras
 
-*(Texto propuesto para el repo del CV, `docs/adr/`. Número a confirmar por quien dirige; lo aprueba el propietario.)*
+*(Texto propuesto para `docs/adr/` del repo del CV. Número a confirmar por quien dirige; lo aprueba el propietario.)*
 
-**Estado:** propuesto.
+**Estado:** propuesto (versión 2, con las decisiones del propietario del 2026-11-14).
 
-**Contexto.** El FMS (ADR-019) importa extractos (CSV, XLSX y OFX) con huella ciega, cruce y deshacer. El propietario pide leer
-movimientos de sus bancos de forma automática, **sin** iniciar pagos ni transferencias. En Colombia no hay hoy una vía regulada
-para que una app personal lea movimientos: el Decreto 0368 de 2026 deja a los no vigilados detrás de acuerdos bilaterales, y el
-cronograma propuesto por la SFC sitúa el estándar de historial transaccional a 84 y 96 meses. Los bancos no tienen APIs para
-personas. Los agregadores cuestan desde 1.000 USD/mes o exigen credenciales por API.
+**Contexto.** El FMS (ADR-019) importa extractos con huella ciega, cruce y deshacer. El propietario pide leer movimientos de sus bancos,
+**sin** iniciar pagos ni transferencias, para cualquier usuario y para el Hogar, con un presupuesto de 20 USD/mes. No hay vía regulada en
+un plazo útil ni API de banco para personas. Los agregadores publicados exceden el presupuesto o reciben las contraseñas por API. Leer el
+buzón con la API de Gmail exige una evaluación de seguridad anual de pago, y con IMAP, guardar una credencial de todo el buzón.
 
 **Decisión.**
 
-1. Se crea `apps/finance_sync` con conectores de **solo lectura** detrás de una interfaz sin operaciones de escritura hacia la
-   entidad. Todo evento entra por el flujo del importador (`classify` y `commit_rows`, `ImportBatch kind=sync`).
-2. Canales aprobados: correo de alerta (con DKIM o ARC obligatorios), notificaciones del Android propio (opt-in, filtradas en
-   el dispositivo) y extractos (incluido PDF de texto). Un agregador se añade solo con *widget* propio del agregador y con un
-   ADR o enmienda aparte.
-3. **El FMS nunca recibe, guarda ni transmite credenciales bancarias.** Se prohíbe un conector que las pida por nuestro servidor.
-4. Lo que se guarda (tokens, configuración, eventos) se cifra con la DEK del ámbito; nada de contenido en registros, URLs ni
-   métricas.
-5. Los eventos son **propuestas**; se confirman a mano o con una regla de autoconfirmación por fuente elegida por el usuario. El
-   extracto concilia. Lo conciliado sigue siendo inmutable.
-6. Los webhooks (si los hay) van en una ruta propia de nginx, con firma HMAC, marca de tiempo y anti-repetición; toda ruta nueva
-   pasa por `check_attack_terms` y por `test_nginx.py`.
-7. El SMS no se lee.
+1. Se crea `apps/finance_sync` con conectores de **solo lectura**; todo evento entra por el flujo del importador (`classify` y
+   `commit_rows`, `ImportBatch kind=sync`).
+2. **Canal principal: reenvío filtrado desde el correo del usuario a una dirección única por conexión** en un subdominio de ingesta del
+   FMS. Se exige DKIM del banco (o ARC del reenviador declarado). Cada mensaje se procesa y se borra del servidor de correo; el original se
+   guarda **cifrado con la DEK del ámbito durante 30 días, solo para depurar**, y nunca se muestra en la plataforma.
+3. El FMS **nunca ve ni guarda credenciales** del banco ni del correo. Un agregador solo se admite con *widget* propio, segundo factor,
+   certificación (ISO 27001 o SOC 2; PCI-DSS si toca tarjetas) y dentro del presupuesto, en un ADR o enmienda aparte.
+4. Los eventos son **propuestas** (Aprobar | Modificar | Ir al correo). Solo una **regla de autoconfirmación** aceptada por el usuario
+   (disparador `sync_event` y acción `auto_confirm` de `finance_automation`, sin expresiones regulares) confirma sola, y solo sobre eventos
+   autenticados. Todo es deshacible y auditado.
+5. **Descartados:** lector de notificaciones de Android, SMS, API de Gmail con `gmail.readonly` (por ahora) e IMAP con contraseña de
+   aplicación. Microsoft Graph `Mail.Read` queda como opción posterior para quien no pueda reenviar.
+6. Sin rutas HTTP nuevas en la fase 1. Toda ruta posterior (OAuth, webhooks) pasa por `check_attack_terms`, `cv-locations.conf.template`
+   y `test_nginx.py`, y un webhook exige firma HMAC con marca de tiempo y anti-repetición.
 
-**Consecuencias.** Cobertura parcial y dependiente de formatos que el banco cambia sin aviso (se vigila con la tarea `health` y
-con *fixtures* versionados). Sin costo de terceros. Riesgo nuevo: suplantación de correo (mitigado con DKIM o ARC, propuestas y
-conciliación) y la lectura de notificaciones en el teléfono (mitigada con opt-in y lista blanca). Dependencia nueva: `dkimpy`
-(y un lector PDF si la fase 3 lo confirma), con al menos dos semanas de publicadas. Se reevalúa cuando la SFC expida el estándar
-de historial transaccional.
-
-**Alternativas descartadas.** Prometeo u otro agregador que pida credenciales por API (viola el punto 3). La API de Gmail con
-`gmail.readonly` (alcance restringido, verificación de Google y CASA al superar el uso personal; se prefiere un buzón propio por
-IMAP). Lectura de SMS (acceso a OTP). Esperar al canal regulado (años).
+**Consecuencias.** Costo marginal 0. La cobertura depende de que el banco mande correo, del monto mínimo configurado y de que su
+plantilla no cambie: se vigila con la tarea `health` y con *fixtures* versionados. El extracto concilia. Riesgos nuevos: suplantación de
+correo (mitigada con DKIM o ARC, propuestas y conciliación) y una dirección filtrada (rotación). Dependencias nuevas: `dkimpy` y, si S3
+lo confirma, un lector de PDF, con ≥ 2 semanas de publicadas. El VPS recibe correo en un subdominio (lo configura el propietario). Se
+reevalúa cuando la SFC expida el estándar de historial transaccional o un agregador cotice dentro del presupuesto.

@@ -56,3 +56,22 @@ metas, activos y sus hijos, medios de pago, atributos personalizados, recurrenci
 
 Contrato: `GET deletions/preview`, `POST deletions`, `GET deletions`, `POST deletions/{id}/restore` y `POST deletions/export` (backend, `finance_trash`).
 Código: `core/trash.ts` (lógica y cliente compartidos), `src/features/finance/trash/` (web) y `mobile/src/features/trash/` (app).
+
+### 2026-11-14: integración con los bancos, solo lectura
+
+Respuestas del propietario a las preguntas del [plan de integración con los bancos](bank-integration-plan.md) (§7 de su primera versión):
+
+1. **Correo: el usuario conecta su propio correo** (uno o varios: un banco puede escribir a una dirección y otro a otra). No hay un buzón de
+   alertas compartido. El FMS lee de ahí los correos de alerta (movimientos, transferencias, cobros, ingresos) **y los extractos adjuntos**.
+   Vale para **cualquier usuario y para el Hogar** desde el inicio, no solo para el propietario.
+2. **La plataforma nunca muestra el correo completo.** Flujo: aviso → movimiento propuesto → **Aprobar | Modificar | «Ir al correo»** (enlace que
+   abre ese mensaje en el proveedor de correo del usuario). El correo original se guarda cifrado con la DEK del ámbito **solo para depurar un
+   analizador que falla**, con retención de **30 días**; los eventos descartados, igual.
+3. **Ni lector de notificaciones de Android ni SMS**: el propietario no quiere permisos adicionales.
+4. **Nequi y Nu** solo se activan **desde la app móvil**, cuando el usuario lo enciende ahí (interpretación en el plan, §5.6).
+5. **Presupuesto: 20 USD al mes** para este proyecto. **Se acepta un agregador** solo si las credenciales se escriben en la pantalla propia del
+   agregador y el FMS nunca las ve ni las guarda, exige como mínimo segundo factor, y cumple protocolos mínimos de seguridad (certificaciones).
+6. **Reglas de autoconfirmación**: p. ej. la nómina con un patrón concreto se confirma sola. Hay una tabla o pantalla de estas reglas: el sistema
+   **sugiere** una regla cuando detecta un patrón, y el usuario también puede **escribir la suya**.
+7. Pexto Capital y los patrimonios autónomos: el propietario no sabe qué son en detalle; quedan fuera de la fase 1.
+8. «¿Bajarías el monto mínimo a cero?»: el propietario pidió la explicación; está en el plan (§3.1, «El monto mínimo de las alertas»).

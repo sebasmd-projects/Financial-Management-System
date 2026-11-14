@@ -44,7 +44,6 @@ export const finSEn: typeof finSEs = {
       tooMany: "Too many attempts. Wait a few minutes.",
       error: "We could not confirm it. Try again.",
     },
-    nav: { reviewBadge: "{n} to review", reviewBadgeOne: "1 to review" },
     summary: { title: "Movements to review", body: "Your bank wrote to you and the FMS proposed movements that wait for your decision.", countOne: "1 movement to review", countOther: "{n} movements to review", open: "Review" },
     notif: { review: "Review", connection: "View the connection" },
     conn: {

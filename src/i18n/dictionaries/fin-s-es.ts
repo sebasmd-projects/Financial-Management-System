@@ -44,7 +44,6 @@ export const finSEs = {
       tooMany: "Demasiados intentos. Espera unos minutos.",
       error: "No pudimos confirmarlo. Inténtalo de nuevo.",
     },
-    nav: { reviewBadge: "{n} por revisar", reviewBadgeOne: "1 por revisar" },
     summary: { title: "Movimientos por revisar", body: "Tu banco te escribió y el FMS propuso movimientos que esperan tu decisión.", countOne: "1 movimiento por revisar", countOther: "{n} movimientos por revisar", open: "Revisar" },
     notif: { review: "Revisar", connection: "Ver la conexión" },
     conn: {

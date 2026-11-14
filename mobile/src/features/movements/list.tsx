@@ -9,14 +9,15 @@ import { useResource } from "@/features/common/use-resource";
 import { Keypad } from "@/features/quick-add/keypad";
 import { displayAmount, fromApiAmount, pressKey, toAmount } from "@/features/quick-add/keypad-logic";
 import { movementAccounts } from "@/features/quick-add/logic";
-import { scopedPath, scopeKey } from "@/features/scope/scope";
-import { useScope } from "@/features/scope/store";
+import { canWrite, scopedPath, scopeKey } from "@/features/scope/scope";
+import { useHouseholds, useScope } from "@/features/scope/store";
 import { es } from "@/i18n/es";
 import { radius, space, type } from "@/theme/tokens";
 import { useTheme } from "@/theme/use-theme";
 import { Money } from "@/ui/money";
 import { AppText, Button, Chip, Notice } from "@/ui/primitives";
 import { Sheet } from "@/ui/sheet";
+import { DeleteSheet } from "@/features/trash/delete-sheet";
 import { groupByDay, hasFilters, NO_FILTERS, searchBody, signedAmount, type Filters, type Movement, type StatusFilter, type TypeFilter } from "./logic";
 
 const t = es.movements;
@@ -37,6 +38,8 @@ export function MovementsList() {
   const [attempt, setAttempt] = useState(0);
   const [state, setState] = useState<{ key: string; items: Movement[]; page: number; count: number; failure: "network" | "server" | null }>({ key: "", items: [], page: 0, count: 0, failure: null });
   const [loadingMore, setLoadingMore] = useState(false);
+  const [deleting, setDeleting] = useState<Movement | null>(null);
+  const households = useHouseholds();
   const accounts = useResource<{ results: Account[] }>(scopedPath(paths.accounts, scope));
   // Cada cambio de filtros, ámbito o datos es una consulta nueva; mientras llega, `loading` es verdadero.
   const key = `${scopeKey(scope)}|${JSON.stringify(filters)}|${version}|${attempt}`;
@@ -111,18 +114,27 @@ export function MovementsList() {
               <Money value={group.net} kind="caption" tone="secondary" sign="always" />
             </View>
             {group.items.map((movement) => (
-              <MovementRow key={movement.id} movement={movement} />
+              <MovementRow key={movement.id} movement={movement} onDelete={() => setDeleting(movement)} />
             ))}
           </View>
         )}
         ListFooterComponent={more && !state.failure ? <Button label={t.more} kind="secondary" busy={loadingMore} onPress={() => void loadMore()} /> : undefined}
+      />
+      <DeleteSheet
+        open={deleting !== null}
+        kind="movement"
+        id={deleting?.id ?? ""}
+        name={deleting ? (deleting.counterparty?.name ?? deleting.description ?? deleting.category?.name ?? t.untitled) : ""}
+        canWrite={canWrite(scope, households)}
+        onClose={() => setDeleting(null)}
+        onDone={() => setDeleting(null)}
       />
       <FilterSheet open={open} onClose={() => setOpen(false)} filters={filters} onChange={setFilters} accounts={movementAccounts(accounts.data?.results ?? [])} />
     </View>
   );
 }
 
-function MovementRow({ movement }: { movement: Movement }) {
+function MovementRow({ movement, onDelete }: { movement: Movement; onDelete: () => void }) {
   const c = useTheme();
   const signed = signedAmount(movement);
   const title = movement.counterparty?.name ?? movement.description ?? movement.category?.name ?? t.untitled;
@@ -130,7 +142,7 @@ function MovementRow({ movement }: { movement: Movement }) {
   const pending = movement.status === "pendiente";
   const annulled = movement.status === "anulado" || movement.voided;
   return (
-    <View accessible style={[styles.row, { borderColor: c.border }]}>
+    <View style={[styles.row, { borderColor: c.border }]}>
       <View style={styles.rowMain}>
         <Text numberOfLines={1} style={[type.body, { color: c.textPrimary }]}>
           {title}
@@ -141,6 +153,7 @@ function MovementRow({ movement }: { movement: Movement }) {
         </Text>
       </View>
       <Money value={signed.value} sign={signed.sign} tone={pending || annulled ? "secondary" : "primary"} style={annulled ? { textDecorationLine: "line-through" } : undefined} />
+      <Chip label={t.delete} a11yLabel={t.deleteOf(title)} onPress={onDelete} />
     </View>
   );
 }

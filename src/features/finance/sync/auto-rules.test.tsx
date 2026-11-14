@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { byText, click, mountScreen, typeInto, wait, type Mounted } from "@/test/render";
+import { resetHouseholdState, setScope } from "../../household/scope-store";
 import { CATALOG, CATEGORIES, RULE, page } from "@/test/sync-fixtures";
 import { AutoRulesScreen } from "./auto-rules-screen";
 
@@ -39,6 +40,7 @@ let view: Mounted | null = null;
 afterEach(() => {
   view?.unmount();
   view = null;
+  resetHouseholdState();
 });
 const modal = () => document.querySelector("dialog[open]")!;
 
@@ -183,6 +185,54 @@ describe("reglas de autoconfirmación (W3)", () => {
     await wait();
     expect(view.mock.calls.find((c) => c.url.endsWith("/dismiss"))?.body).toEqual({ key: "s1" });
     expect(view.visible()).toContain("no se vuelve a ofrecer");
+  });
+});
+
+describe("reglas de autoconfirmación del hogar", () => {
+  const H = "h1";
+  const HOUSEHOLDS = (role: string) => ({ "GET /api/fms/v1/households": { status: 200, json: { households: [{ id: H, name: "Casa", role, members: 2, rotating: false }], invitations: [] } } });
+  const HH = {
+    ...HOUSEHOLDS("editor"),
+    "GET /api/fms/v1/sync/catalog": { status: 200, json: CATALOG },
+    [`GET /api/fms/v1/households/${H}/categories?page_size=200&archived=false`]: CATEGORIES,
+    [`GET /api/fms/v1/households/${H}/sync/rule-suggestions`]: { status: 200, json: { results: [SUGGESTION] } },
+  };
+  const HH_RULES = `GET /api/fms/v1/households/${H}/automation/rules?page_size=100`;
+
+  it("lee y escribe las reglas del hogar, no las personales (con el mismo Idempotency-Key y sin montos en la URL)", async () => {
+    setScope({ kind: "household", id: H });
+    view = await mountScreen(<AutoRulesScreen />, { ...HH, [HH_RULES]: page([RULE]), [`PATCH /api/fms/v1/households/${H}/automation/rules/r1`]: { status: 200, json: { ...RULE, enabled: false } }, [`POST /api/fms/v1/households/${H}/sync/rule-suggestions/dismiss`]: { status: 204 } });
+    expect(view.visible()).toContain("Nómina");
+    expect(view.visible()).toContain("Aprobaste 3 movimientos parecidos");
+    click(byText(view.host, "button", "Pausar"));
+    await wait();
+    click(byText(view.host, "button", "Descartar"));
+    await wait();
+    const calls = view.mock.calls.map((c) => `${c.method} ${c.url}`);
+    expect(calls).toContain(`PATCH /api/fms/v1/households/${H}/automation/rules/r1`);
+    expect(calls).toContain(`POST /api/fms/v1/households/${H}/sync/rule-suggestions/dismiss`);
+    expect(calls.some((c) => /\/api\/fms\/v1\/automation\/rules/.test(c))).toBe(false);
+    expect(view.mock.calls.every((c) => !/3000000|amount=/.test(c.url))).toBe(true);
+  });
+
+  it("crear y «Probar» en el hogar van a las rutas del hogar", async () => {
+    setScope({ kind: "household", id: H });
+    view = await mountScreen(<AutoRulesScreen />, { ...HH, [HH_RULES]: page([RULE]), [`POST /api/fms/v1/households/${H}/automation/rules/preview`]: { status: 200, json: DRY }, [`POST /api/fms/v1/households/${H}/automation/rules`]: { status: 201, json: RULE } });
+    click(byText(view.host, "button", "Probar"));
+    await wait();
+    click(byText(modal(), "button", "Probar"));
+    await wait();
+    expect(view.mock.calls.some((c) => c.method === "POST" && c.url.endsWith(`/households/${H}/automation/rules/preview`))).toBe(true);
+    expect(modal().textContent).toContain("Cumplen 2 de 4 correos");
+  });
+
+  it("un visor las ve de solo lectura: sin botones ni sugerencias", async () => {
+    setScope({ kind: "household", id: H });
+    view = await mountScreen(<AutoRulesScreen />, { ...HH, ...HOUSEHOLDS("viewer"), [HH_RULES]: page([RULE]) });
+    const text = view.visible();
+    expect(text).toContain("Nómina");
+    for (const label of ["Nueva regla", "Pausar", "Editar", "Borrar", "Probar", "Descartar"]) expect(byTextOrNull(view.host, "button", label)).toBeNull();
+    expect(text).not.toContain("Aprobaste 3 movimientos parecidos");
   });
 });
 

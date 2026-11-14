@@ -2030,6 +2030,124 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/households/{household_id}/automation/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lo que el constructor de reglas ofrece: disparadores, campos, operadores, opciones y canales
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsAutomationCatalog_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/automation/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tus reglas propias
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsCustomRules_2"];
+        put?: never;
+        /**
+         * Crear una regla: disparador + condiciones + canales. Sin código: todo se valida contra el catálogo
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsCustomRuleCreate_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/automation/rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Una regla propia
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsCustomRule_2"];
+        put?: never;
+        post?: never;
+        /**
+         * Eliminar una regla (borrado lógico: a la papelera 30 días; sus avisos ya creados se quedan)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsCustomRuleDelete_2"];
+        options?: never;
+        head?: never;
+        /**
+         * Cambiar una regla o apagarla (`enabled`)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        patch: operations["fmsCustomRulePatch_2"];
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/automation/rules/{id}/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * «Probar ahora»: evalúa la regla con tus datos de hoy y dice qué avisaría, sin efectos
+         * @description Solo lee. No guarda «última vez», no abre la espera entre avisos y no crea avisos reales. Con `send_notification` crea **un** aviso de prueba que sale por los canales de la regla (lleva `Idempotency-Key`).
+         */
+        post: operations["fmsCustomRuleTest_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/automation/rules/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Probar una definición sin guardarla: qué cumpliría hoy (sin ningún efecto)
+         * @description `POST` solo para llevar las condiciones —que pueden tener montos— en el cuerpo y no en la URL. No escribe nada.
+         */
+        post: operations["fmsCustomRulePreview_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/households/{household_id}/categories": {
         parameters: {
             query?: never;
@@ -3342,6 +3460,48 @@ export interface paths {
         get: operations["fmsSyncEventsSummary"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/sync/rule-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reglas de autoconfirmación sugeridas por las aprobaciones del ámbito (3 o más parecidas; en un hogar, las del hogar)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsSyncRuleSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/sync/rule-suggestions/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Descartar una sugerencia: no se vuelve a sugerir
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsSyncRuleSuggestionDismiss"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5764,11 +5924,11 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Reglas de autoconfirmación sugeridas por tus aprobaciones (3 o más parecidas)
+         * Reglas de autoconfirmación sugeridas por las aprobaciones del ámbito (3 o más parecidas; en un hogar, las del hogar)
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
-        get: operations["fmsSyncRuleSuggestions"];
+        get: operations["fmsSyncRuleSuggestions_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -5791,7 +5951,7 @@ export interface paths {
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
-        post: operations["fmsSyncRuleSuggestionDismiss"];
+        post: operations["fmsSyncRuleSuggestionDismiss_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -20251,6 +20411,479 @@ export interface operations {
             };
         };
     };
+    fmsAutomationCatalog_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Catalog"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCustomRules_2: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomRulePage"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCustomRuleCreate_2: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CustomRuleCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomRule"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomRule"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCustomRule_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomRule"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCustomRuleDelete_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Eliminada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCustomRulePatch_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedCustomRulePatch"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CustomRule"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCustomRuleTest_2: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RuleTestRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DryRun"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DryRun"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCustomRulePreview_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RulePreviewRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DryRun"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsCategories_2: {
         parameters: {
             query?: {
@@ -24894,6 +25527,105 @@ export interface operations {
             };
             /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncRuleSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncRuleSuggestions"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncRuleSuggestionDismiss: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncDismiss"];
+            };
+        };
+        responses: {
+            /** @description Descartada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -32942,7 +33674,7 @@ export interface operations {
             };
         };
     };
-    fmsSyncRuleSuggestions: {
+    fmsSyncRuleSuggestions_2: {
         parameters: {
             query?: never;
             header?: never;
@@ -32979,7 +33711,7 @@ export interface operations {
             };
         };
     };
-    fmsSyncRuleSuggestionDismiss: {
+    fmsSyncRuleSuggestionDismiss_2: {
         parameters: {
             query?: never;
             header?: never;

@@ -52,7 +52,7 @@ export const finHEs = {
   },
   personalOnly: {
     title: "Esto todavía es solo personal",
-    body: "«{screen}» trabaja únicamente con tus finanzas personales. En el Hogar hoy puedes usar Resumen, cuentas, movimientos, traslados, categorías, etiquetas e informes.",
+    body: "«{screen}» trabaja únicamente con tus finanzas personales. En el Hogar hoy puedes usar Resumen, cuentas, movimientos, traslados, categorías, etiquetas, informes, los bancos por correo y sus reglas de autoconfirmación.",
     action: "Ver mis finanzas personales",
     tag: "Solo personal",
     tagHint: "No está disponible en el ámbito del Hogar",

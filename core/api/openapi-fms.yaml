@@ -7085,6 +7085,473 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/automation/catalog:
+    get:
+      operationId: fmsAutomationCatalog_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Lo que el constructor de reglas ofrece: disparadores, campos, operadores,
+        opciones y canales'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Catalog'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/households/{household_id}/automation/rules:
+    get:
+      operationId: fmsCustomRules_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Tus reglas propias
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: page
+        schema:
+          type: integer
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomRulePage'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+    post:
+      operationId: fmsCustomRuleCreate_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Crear una regla: disparador + condiciones + canales. Sin código: todo
+        se valida contra el catálogo'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomRuleCreate'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomRule'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomRule'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/automation/rules/{id}:
+    get:
+      operationId: fmsCustomRule_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Una regla propia
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomRule'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    patch:
+      operationId: fmsCustomRulePatch_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Cambiar una regla o apagarla (`enabled`)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCustomRulePatch'
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomRule'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsCustomRuleDelete_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Eliminar una regla (borrado lógico: a la papelera 30 días; sus avisos
+        ya creados se quedan)'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: Eliminada.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/automation/rules/{id}/test:
+    post:
+      operationId: fmsCustomRuleTest_2
+      description: Solo lee. No guarda «última vez», no abre la espera entre avisos
+        y no crea avisos reales. Con `send_notification` crea **un** aviso de prueba
+        que sale por los canales de la regla (lleva `Idempotency-Key`).
+      summary: '«Probar ahora»: evalúa la regla con tus datos de hoy y dice qué avisaría,
+        sin efectos'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RuleTestRequest'
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DryRun'
+          description: ''
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DryRun'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/automation/rules/preview:
+    post:
+      operationId: fmsCustomRulePreview_2
+      description: '`POST` solo para llevar las condiciones —que pueden tener montos—
+        en el cuerpo y no en la URL. No escribe nada.'
+      summary: 'Probar una definición sin guardarla: qué cumpliría hoy (sin ningún
+        efecto)'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RulePreviewRequest'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DryRun'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/households/{household_id}/categories:
     get:
       operationId: fmsCategories_2
@@ -11802,6 +12269,99 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active`, `account_blocked` o
             `reauthentication_required`.'
+  /api/fms/v1/households/{household_id}/sync/rule-suggestions:
+    get:
+      operationId: fmsSyncRuleSuggestions
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Reglas de autoconfirmación sugeridas por las aprobaciones del ámbito
+        (3 o más parecidas; en un hogar, las del hogar)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncRuleSuggestions'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+  /api/fms/v1/households/{household_id}/sync/rule-suggestions/dismiss:
+    post:
+      operationId: fmsSyncRuleSuggestionDismiss
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Descartar una sugerencia: no se vuelve a sugerir'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncDismiss'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: Descartada.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/households/{household_id}/tags:
     get:
       operationId: fmsTags
@@ -19252,12 +19812,12 @@ paths:
             `reauthentication_required`.'
   /api/fms/v1/sync/rule-suggestions:
     get:
-      operationId: fmsSyncRuleSuggestions
+      operationId: fmsSyncRuleSuggestions_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: Reglas de autoconfirmación sugeridas por tus aprobaciones (3 o más
-        parecidas)
+      summary: Reglas de autoconfirmación sugeridas por las aprobaciones del ámbito
+        (3 o más parecidas; en un hogar, las del hogar)
       tags:
       - sync
       security:
@@ -19285,7 +19845,7 @@ paths:
             `reauthentication_required`.'
   /api/fms/v1/sync/rule-suggestions/dismiss:
     post:
-      operationId: fmsSyncRuleSuggestionDismiss
+      operationId: fmsSyncRuleSuggestionDismiss_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).

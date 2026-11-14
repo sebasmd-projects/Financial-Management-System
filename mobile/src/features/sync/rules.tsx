@@ -22,18 +22,18 @@ onMemoryWipe(() => intents.done());
 /**
  * Más → Reglas de autoconfirmación (M2, versión simple): la lista con la condición en lenguaje de persona, pausar, reactivar y borrar, y las
  * sugerencias (aceptar o descartar). Crear una regla a mano o editarla se hace en la web. Crear una regla —también aceptar una sugerencia— pide
- * reautenticación: la app abre el aviso sola y repite la petición. Son personales: en un hogar solo se avisa.
+ * reautenticación: la app abre el aviso sola y repite la petición. En un Hogar son las del hogar (se leen de `households/{id}/…`); quien no tiene
+ * rol de escritura las ve sin botones.
  */
 export function RulesScreen() {
   const api = useSyncApi();
   const scope = useScope();
   const households = useHouseholds();
-  const inHousehold = scope.kind === "household";
   const writable = canWrite(scope, households);
-  const rules = useResource<{ results: CustomRule[] }>(inHousehold ? null : syncPaths.rules);
-  const suggestions = useResource<{ results: SyncRuleSuggestion[] }>(inHousehold ? null : syncPaths.suggestions);
-  const catalog = useResource<SyncCatalog>(inHousehold ? null : "/sync/catalog");
-  const categories = useResource<{ results: { id: string; name: string }[] }>(inHousehold ? null : scopedPath(paths.categories, scope));
+  const rules = useResource<{ results: CustomRule[] }>(scopedPath(syncPaths.rules, scope));
+  const suggestions = useResource<{ results: SyncRuleSuggestion[] }>(scopedPath(syncPaths.suggestions, scope));
+  const catalog = useResource<SyncCatalog>("/sync/catalog");
+  const categories = useResource<{ results: { id: string; name: string }[] }>(scopedPath(paths.categories, scope));
   const [note, setNote] = useState<{ text: string; tone: "positive" | "negative" } | null>(null);
   const list = (rules.data?.results ?? []).filter(isAutoConfirmRule);
   const institutions = catalog.data?.institutions ?? [];
@@ -94,14 +94,6 @@ export function RulesScreen() {
     else setNote({ text: failureText(result), tone: "negative" });
   }
 
-  if (inHousehold) {
-    return (
-      <Screen>
-        <Title>{t.title}</Title>
-        <Notice tone="secondary">{t.personalOnly}</Notice>
-      </Screen>
-    );
-  }
   return (
     <Screen>
       <Title>{t.title}</Title>

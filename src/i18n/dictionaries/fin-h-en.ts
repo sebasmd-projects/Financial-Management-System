@@ -52,7 +52,7 @@ export const finHEn = {
   },
   personalOnly: {
     title: "This is still personal only",
-    body: "“{screen}” works only with your personal finances. In the Household today you can use the Summary, accounts, movements, transfers, categories, tags and reports.",
+    body: "“{screen}” works only with your personal finances. In the Household today you can use the Summary, accounts, movements, transfers, categories, tags, reports, the bank email connections and their auto-confirm rules.",
     action: "See my personal finances",
     tag: "Personal only",
     tagHint: "Not available in the Household scope",

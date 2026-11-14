@@ -20,7 +20,8 @@ export function scopeKey(scope: Scope): string {
 
 /**
  * Las raíces de la API que el hogar sabe servir bajo `households/{id}/…` (`HOUSEHOLD_DATA` del backend). Lo que no está aquí
- * (créditos, recurrencias, presupuestos, metas, importaciones, activos, reglas…) sigue siendo solo personal.
+ * (créditos, recurrencias, presupuestos, metas, importaciones, activos…) sigue siendo solo personal. De `automation` el hogar sirve las reglas de
+ * autoconfirmación (`sync_event`); las de avisos del libro son personales y su pantalla (`config-reglas`) sigue bloqueada en el hogar.
  */
 const HOUSEHOLD_ROOTS: ReadonlySet<string> = new Set([
   "accounts",
@@ -38,13 +39,14 @@ const HOUSEHOLD_ROOTS: ReadonlySet<string> = new Set([
   "summary",
   "deletions",
   "sync",
+  "automation",
 ]);
 
 /** `POST accounts/{id}/share` es personal aunque empiece por `accounts`: el hogar destino va en el cuerpo. */
 const ALWAYS_PERSONAL = /^\/accounts\/[^/?]+\/share(?:[/?]|$)/;
 
-/** De `sync` el hogar sirve solo las conexiones y los eventos («Por revisar»); el catálogo, las sugerencias y la cédula son personales. */
-const SYNC_IN_HOUSEHOLD = /^\/sync\/(?:connections|events)(?:[/?]|$)/;
+/** De `sync` el hogar sirve las conexiones, los eventos («Por revisar») y las sugerencias de reglas; el catálogo y la cédula son personales. */
+const SYNC_IN_HOUSEHOLD = /^\/sync\/(?:connections|events|rule-suggestions)(?:[/?]|$)/;
 
 /** La ruta de la API en el ámbito activo. En «Ambos» las listas siguen siendo personales (el consolidado es de Resumen e Informes). */
 export function scopedPath(path: string, scope: Scope): string {
@@ -85,6 +87,7 @@ const HOUSEHOLD_ROUTES: ReadonlySet<RouteId> = new Set<RouteId>([
   "config-categorias",
   "config-papelera",
   "config-conexiones",
+  "config-autoconfirmacion",
   "movimientos-por-revisar",
   "config-etiquetas",
   "notificaciones",

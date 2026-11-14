@@ -8,7 +8,9 @@ import { canWrite, scopedPath } from "@/features/scope/scope";
 import { useHouseholds, useScope } from "@/features/scope/store";
 import { es } from "@/i18n/es";
 import { space } from "@/theme/tokens";
-import { AppText, Button, Chip, Notice } from "@/ui/primitives";
+import { AppText, Button, Chip, Field, Notice } from "@/ui/primitives";
+import { findExisting } from "@core/categories";
+import { addDefaultCategories, cleanName, MAX_CATEGORY_NAME, pickOrCreateCategory } from "./category";
 import { Keypad } from "./keypad";
 import { displayAmount, pressKey, toAmount, type Key } from "./keypad-logic";
 import { defaultAccount, effectPhrase, movementAccounts, topByFrequency, warningText, type Account, type Category, type Movement } from "./logic";
@@ -36,13 +38,20 @@ export function QuickAddSheet({ onClose }: { onClose: () => void }) {
   const recents = useResource<Page<Movement>>(scopedPath(paths.recentMovements, scope));
   const [status, setStatus] = useState<Status>({ name: "idle" });
   const busy = useRef(false);
+  const categoryBusy = useRef(false);
+  // Lo recién creado se suma a la lista mientras llega la recarga; el borrador (monto, cuenta, descripción) no se toca.
+  const [addedCategories, setAddedCategories] = useState<Category[]>([]);
+  const [newName, setNewName] = useState("");
+  const [categoryNotice, setCategoryNotice] = useState<{ tone: "negative" | "positive"; text: string } | null>(null);
 
   const usable = movementAccounts(accounts.data?.results ?? []);
   const recentItems = (recents.data?.results ?? []).filter((m) => !m.voided && m.type !== "transfer");
   const accountId = draft.accountId && usable.some((a) => a.id === draft.accountId) ? draft.accountId : defaultAccount(usable, recentItems);
   const account = usable.find((a) => a.id === accountId) ?? null;
   const kind = draft.type === "income" ? "income" : "expense";
-  const allCategories = (categories.data?.results ?? []).filter((c) => c.kind === kind);
+  const loaded = categories.data?.results ?? [];
+  const knownCategories = [...loaded, ...addedCategories.filter((a) => !loaded.some((c) => c.id === a.id))];
+  const allCategories = knownCategories.filter((c) => c.kind === kind && !c.archived);
   const frequent = topByFrequency(
     recentItems.filter((m) => m.type === draft.type),
     (m) => m.category?.id ?? null,
@@ -56,6 +65,44 @@ export function QuickAddSheet({ onClose }: { onClose: () => void }) {
   const writable = canWrite(scope, households);
   const set = (patch: Partial<typeof draft>) => draftStore.set({ ...draft, ...patch });
   const ready = amount !== null && account !== null && writable && status.name !== "saving";
+
+  const typedName = cleanName(newName);
+  const sameName = typedName === "" ? null : findExisting(allCategories, typedName);
+
+  async function chooseOrCreateCategory() {
+    if (categoryBusy.current || typedName === "" || typedName.length > MAX_CATEGORY_NAME) return;
+    categoryBusy.current = true;
+    setCategoryNotice(null);
+    const result = await pickOrCreateCategory({ post: fms.post, scope }, knownCategories, kind, typedName);
+    categoryBusy.current = false;
+    if (result.ok) {
+      if (result.created) {
+        setAddedCategories((list) => [...list, result.category]);
+        categories.reload();
+        setCategoryNotice({ tone: "positive", text: t.categoryCreated(result.category.name) });
+      }
+      setNewName("");
+      set({ categoryId: result.category.id });
+    } else {
+      categories.reload();
+      setCategoryNotice({ tone: "negative", text: result.code === "name_taken" ? t.categoryTaken : result.network ? t.failedNetwork : t.categoryFailed });
+    }
+  }
+
+  async function addDefaults() {
+    if (categoryBusy.current) return;
+    categoryBusy.current = true;
+    setCategoryNotice(null);
+    const result = await addDefaultCategories({ post: fms.post, scope });
+    categoryBusy.current = false;
+    if (result.ok) {
+      setAddedCategories((list) => [...list, ...result.added.filter((c) => !list.some((a) => a.id === c.id))]);
+      categories.reload();
+      setCategoryNotice({ tone: "positive", text: result.added.length === 0 ? t.defaultsNone : t.defaultsAdded(result.added.length) });
+    } else {
+      setCategoryNotice({ tone: "negative", text: result.network ? t.failedNetwork : t.categoryFailed });
+    }
+  }
 
   async function save() {
     if (!ready || busy.current) return;
@@ -161,6 +208,14 @@ export function QuickAddSheet({ onClose }: { onClose: () => void }) {
                 <Chip key={c.id} label={c.name} selected={c.id === draft.categoryId} onPress={() => set({ categoryId: c.id === draft.categoryId ? null : c.id })} />
               ))}
             </ScrollView>
+          </View>
+        ) : null}
+        {writable ? (
+          <View style={styles.group}>
+            {allCategories.length === 0 && categories.data ? <Button label={t.addDefaults} kind="secondary" onPress={() => void addDefaults()} /> : null}
+            <Field label={t.newCategory} value={newName} onChangeText={(text) => { setNewName(text); setCategoryNotice(null); }} maxLength={MAX_CATEGORY_NAME} autoCapitalize="sentences" returnKeyType="done" onSubmitEditing={() => void chooseOrCreateCategory()} />
+            {typedName !== "" ? <Button label={sameName ? t.pickCategory(sameName.name) : t.createCategory(typedName)} kind="secondary" onPress={() => void chooseOrCreateCategory()} /> : null}
+            {categoryNotice ? <Notice tone={categoryNotice.tone}>{categoryNotice.text}</Notice> : null}
           </View>
         ) : null}
         <AppText kind="caption" tone="secondary">

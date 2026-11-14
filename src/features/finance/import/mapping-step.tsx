@@ -39,7 +39,7 @@ function Sample({ preview }: { preview: ImportPreview }) {
 }
 
 /** Paso 2 (diseño §3.6): qué columna es cada cosa, formato de fecha y separadores. El mapeo se guarda por banco. */
-export function MappingStep({ preview, onApply, onBack, busy, error }: { preview: ImportPreview; onApply: (mapping: ImportMapping, save: boolean) => void; onBack: () => void; busy: boolean; error: string | null }) {
+export function MappingStep({ preview, onApply, onBack, busy, error, isCard = false }: { preview: ImportPreview; onApply: (mapping: ImportMapping, save: boolean) => void; onBack: () => void; busy: boolean; error: string | null; isCard?: boolean }) {
   const { dict } = useI18n();
   const t = dict.fin.imp.mapping;
   const [form, setForm] = useState<MappingForm>(() => initialMapping(preview.headers, preview.mapping, preview.suggested_mapping));
@@ -80,6 +80,7 @@ export function MappingStep({ preview, onApply, onBack, busy, error }: { preview
         <SelectField label={t.reference} value={form.reference} onChange={(reference) => set({ reference })} options={optional} />
         <SelectField label={t.balance} value={form.balance} onChange={(balance) => set({ balance })} options={optional} />
       </div>
+      {isCard && <SelectField label={t.installments} hint={t.installmentsHint} value={form.installments} onChange={(installments) => set({ installments })} options={optional} />}
       <SelectField label={t.dateFormat} hint={t.dateFormatHint} value={form.dateFormat} onChange={(dateFormat) => set({ dateFormat: dateFormat as MappingForm["dateFormat"] })} options={DATE_FORMATS.map((f) => ({ value: f, label: t.formats[f] }))} placeholder={t.pickFormat} required error={has("date_format")} />
       <div className="fin-grid-2">
         <SelectField label={t.decimalSep} value={form.decimalSep} onChange={(decimalSep) => set({ decimalSep: decimalSep as MappingForm["decimalSep"] })} options={[{ value: ",", label: t.comma }, { value: ".", label: t.dot }]} error={has("same_separator")} />

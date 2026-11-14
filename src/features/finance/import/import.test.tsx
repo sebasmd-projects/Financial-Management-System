@@ -14,15 +14,15 @@ vi.mock("next/navigation", () => ({
 const page = (results: unknown[]) => ({ status: 200, json: { count: results.length, page: 1, page_size: 100, results } });
 const ACCOUNT = { id: "a-1", type: "asset", kind: "savings", system_key: "", name: "Ahorros Bancolombia", last4: null, institution: null, parent_id: null, currency: "COP", gmf_exempt: false, liquid: true, enforce_funds: false, status: "active", posted_balance: "3420000.00", projected_balance: "3420000.00" };
 const HEADERS = ["Fecha", "Descripción", "Valor", "Saldo"];
-const row = (number: number, match: ImportMatch, action: ImportAction, amount = "-182300.00", description = "ÉXITO CHAPINERO"): ImportPreviewRow => ({ number, date: "2026-11-02", amount, description, reference: "", match, candidate_id: null, action, counterparty: null, category_id: null });
+const row = (number: number, match: ImportMatch, action: ImportAction, amount = "-182300.00", description = "ÉXITO CHAPINERO"): ImportPreviewRow => ({ number, date: "2026-11-02", amount, description, reference: "", match, candidate_id: null, action, counterparty: null, category_id: null, kind: null, installments: null, period_start: null, period_end: null, refund_of_id: null, refund_of_row: null, counter_account: null, issue: "" });
 
-const NEEDS_MAPPING: ImportPreview = { kind: "csv", needs_mapping: true, headers: HEADERS, sample: [["02/11/2026", "ÉXITO", "-182.300,00", "1.000,00"]], mapping: null, mapping_source: "none", suggested_mapping: { date: "Fecha", description: "Descripción", amount: "Valor", balance: "Saldo", decimal_sep: ",", thousands_sep: "." }, rows: [], errors: [], notes: [], meta: {}, counts: {} };
+const NEEDS_MAPPING: ImportPreview = { kind: "csv", needs_mapping: true, headers: HEADERS, sample: [["02/11/2026", "ÉXITO", "-182.300,00", "1.000,00"]], mapping: null, mapping_source: "none", suggested_mapping: { date: "Fecha", description: "Descripción", amount: "Valor", balance: "Saldo", decimal_sep: ",", thousands_sep: "." }, rows: [], errors: [], notes: [], meta: {}, counts: {}, target: "account", card: null, sign_detected: null, sign_used: null, kind_counts: {} };
 const REVIEW: ImportPreview = {
   kind: "xlsx",
   needs_mapping: false,
   headers: HEADERS,
   sample: [],
-  mapping: { date: "Fecha", description: "Descripción", amount: "Valor", debit: "", credit: "", reference: "", balance: "", date_format: "%d/%m/%Y", decimal_sep: ",", thousands_sep: ".", header_row: 0 },
+  mapping: { date: "Fecha", description: "Descripción", amount: "Valor", debit: "", credit: "", reference: "", balance: "", date_format: "%d/%m/%Y", decimal_sep: ",", thousands_sep: ".", header_row: 0, installments: "" },
   mapping_source: "provided",
   suggested_mapping: null,
   rows: [row(2, "new", "import"), row(3, "matches_pending", "confirm", "-45000.00", "NETFLIX"), row(4, "possible_duplicate", "skip", "-10000.00", "TIENDA"), row(5, "duplicate", "skip", "-5000.00", "=HYPERLINK(\"http://x\")")],
@@ -30,6 +30,11 @@ const REVIEW: ImportPreview = {
   notes: ["formulas_ignored"],
   meta: {},
   counts: { new: 1, matches_pending: 1, possible_duplicate: 1, duplicate: 1 },
+  target: "account",
+  card: null,
+  sign_detected: null,
+  sign_used: null,
+  kind_counts: {},
 };
 const BATCH = { id: "b-1", account_id: "a-1", kind: "xlsx", filename: "extracto.xlsx", status: "committed", rows_total: 4, created_count: 1, confirmed_count: 1, skipped_count: 2, created_at: "2026-11-11T15:00:00Z", undone_at: null };
 
@@ -190,6 +195,71 @@ describe("importar extracto", () => {
     click(byText(view.host, "button", "Olvidar"));
     await wait();
     expect(view.mock.calls.some((c) => c.method === "DELETE" && c.url.endsWith("/import-mappings/m-1"))).toBe(true);
+  });
+
+  it("tarjeta: muestra clase, cuotas y extracto de cada fila, pide la cuenta del pago y recalcula la vista previa con lo que cambias", async () => {
+    const CARD = { ...ACCOUNT, id: "c-1", type: "liability", kind: "credit_card", name: "Visa Sintética" };
+    const cardRow = (number: number, patch: Partial<ImportPreviewRow>): ImportPreviewRow => ({ ...row(number, "new", "import"), kind: "purchase", installments: 1, period_start: "2026-10-31", period_end: "2026-11-30", ...patch });
+    const base2: ImportPreview = {
+      ...REVIEW,
+      kind: "csv",
+      target: "card",
+      card: { cut_day: 30, pay_day: 16 },
+      sign_detected: "charges_negative",
+      sign_used: "charges_negative",
+      kind_counts: { purchase: 1, payment: 1 },
+      rows: [cardRow(2, {}), cardRow(3, { amount: "400000.00", description: "ABONO", kind: "payment", action: "skip", issue: "payment_source_required" })],
+      errors: [],
+      notes: [],
+      counts: { new: 2 },
+    };
+    let last: FormData | null = null;
+    view = await mountScreen(<ImportScreen />, {
+      ...base,
+      "GET /api/fms/v1/accounts?page_size=100": page([ACCOUNT, CARD]),
+      "POST /api/fms/v1/imports/preview": () => {
+        last = view!.mock.calls.filter((c) => c.method === "POST" && c.url.endsWith("/imports/preview")).at(-1)!.body as FormData;
+        const sent: FormData = last;
+        const edits = sent.get("edits") ? (JSON.parse(String(sent.get("edits"))) as Record<string, { installments?: number; counter_account?: string }>) : {};
+        const rows = base2.rows.map((r) => {
+          const e = edits[String(r.number)];
+          if (!e) return r;
+          return { ...r, installments: e.installments ?? r.installments, counter_account: e.counter_account ?? r.counter_account, issue: e.counter_account ? "" : r.issue, action: e.counter_account ? ("import" as const) : r.action };
+        });
+        return { status: 200, json: { ...base2, rows } };
+      },
+    });
+    const picker = [...view.host.querySelectorAll<HTMLSelectElement>("select")][0];
+    typeInto(picker, "c-1");
+    chooseFile(view.host, csv());
+    await wait();
+    click(byText(view.host, "button", "Analizar archivo"));
+    await wait();
+    expect(view.host.querySelector("[data-testid=kind-summary]")!.textContent).toContain("Compra: 1");
+    expect(view.host.querySelector("[data-testid=sign-detected]")!.textContent).toContain("Compras en negativo");
+    expect(view.visible()).toContain("Extracto: 31/10/2026 a 30/11/2026");
+    // El pago sin cuenta: no se puede incluir, dice por qué y pide la cuenta.
+    expect(view.host.querySelector("[data-testid=issue-3]")!.textContent).toContain("Falta la cuenta que pagó");
+    const boxes = [...view.host.querySelectorAll<HTMLInputElement>("li.imp-row input[type=checkbox]")];
+    expect(boxes.map((b) => b.disabled)).toEqual([false, true]);
+    // Cambiar las cuotas de la compra recalcula con `edits`.
+    const installments = [...view.host.querySelectorAll<HTMLSelectElement>("select")].find((s) => s.getAttribute("id") && s.closest("[data-testid=card-row-2]") !== null && [...s.options].some((o) => o.value === "48"))!;
+    typeInto(installments, "6");
+    await wait();
+    expect(JSON.parse(String(last!.get("edits")))).toEqual({ "2": { installments: 6 } });
+    expect(view.visible()).toContain("6 cuotas");
+    // Elegir «pago desde una cuenta que no llevo» deja el pago listo.
+    const paidFrom = [...view.host.querySelectorAll<HTMLSelectElement>("[data-testid=card-row-3] select")].find((s) => [...s.options].some((o) => o.value === "unregistered"))!;
+    expect([...paidFrom.options].some((o) => o.value === "c-1")).toBe(false); // una tarjeta no paga a otra tarjeta aquí
+    typeInto(paidFrom, "unregistered");
+    await wait();
+    expect(view.host.querySelector("[data-testid=issue-3]")).toBeNull();
+    expect([...view.host.querySelectorAll<HTMLInputElement>("li.imp-row input[type=checkbox]")].map((b) => b.disabled)).toEqual([false, false]);
+    // Forzar el signo recalcula y se reenvía al confirmar junto con lo editado.
+    click(byText(view.host, "label", "Compras en positivo").querySelector("input")!);
+    await wait();
+    expect(last!.get("sign")).toBe("charges_positive");
+    expect(JSON.parse(String(last!.get("edits")))).toEqual({ "2": { installments: 6 }, "3": { counter_account: "unregistered" } });
   });
 
   it("en inglés", async () => {

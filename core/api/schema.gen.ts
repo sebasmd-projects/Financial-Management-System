@@ -7578,6 +7578,11 @@ export interface components {
              * @default 0
              */
             header_row: number;
+            /**
+             * @description Solo tarjetas: título de la columna con las cuotas de cada compra (vacío: una cuota).
+             * @default
+             */
+            installments: string;
         };
         ImportMappingPage: {
             count: number;
@@ -7623,6 +7628,24 @@ export interface components {
             counts: {
                 [key: string]: number;
             };
+            target: components["schemas"]["TargetEnum"];
+            /** @description Solo tarjetas: `cut_day` y `pay_day`. */
+            card: {
+                [key: string]: number;
+            } | null;
+            /**
+             * @description Solo tarjetas: el signo que dice el archivo. `ambiguous`: no se pudo decidir, elígelo.
+             *
+             *     * `charges_negative` - charges_negative
+             *     * `charges_positive` - charges_positive
+             *     * `ambiguous` - ambiguous
+             */
+            sign_detected: components["schemas"]["SignDetectedEnum"] | components["schemas"]["NullEnum"];
+            sign_used: components["schemas"]["SignUsedEnum"] | components["schemas"]["NullEnum"];
+            /** @description Solo tarjetas: cuántas filas hay de cada clase. */
+            kind_counts: {
+                [key: string]: number;
+            };
         };
         ImportPreviewRow: {
             /** @description La fila en el archivo. */
@@ -7657,7 +7680,55 @@ export interface components {
              * @description Categoría sugerida por su contraparte (solo se propone).
              */
             category_id: string | null;
+            /**
+             * @description Solo tarjetas: qué es la fila (compra, pago, avance, interés, cuota de manejo, seguro, reembolso o ajuste).
+             *
+             *     * `purchase` - purchase
+             *     * `advance` - advance
+             *     * `interest` - interest
+             *     * `fee` - fee
+             *     * `insurance` - insurance
+             *     * `payment` - payment
+             *     * `refund` - refund
+             *     * `adjustment` - adjustment
+             */
+            kind: components["schemas"]["ImportPreviewRowKindEnum"] | components["schemas"]["NullEnum"];
+            /** @description Solo tarjetas y compras: cuántas cuotas (1 a 48). */
+            installments: number | null;
+            /**
+             * Format: date
+             * @description Solo tarjetas: primer día del extracto en que cae la fila.
+             */
+            period_start: string | null;
+            /**
+             * Format: date
+             * @description Solo tarjetas: el corte del extracto en que cae la fila.
+             */
+            period_end: string | null;
+            /**
+             * Format: uuid
+             * @description Solo un reembolso: la compra que reembolsa, si ya existe.
+             */
+            refund_of_id: string | null;
+            /** @description Solo un reembolso: la fila de este archivo cuya compra reembolsa. */
+            refund_of_row: number | null;
+            /** @description Pago o avance: el id de la cuenta que pagó o recibió, o `unregistered` (un pago desde una cuenta que no llevas). */
+            counter_account: string | null;
+            /** @description Código de lo que falta decidir o conviene saber (p. ej. `payment_source_required`); vacío si nada. */
+            issue: string;
         };
+        /**
+         * @description * `purchase` - purchase
+         *     * `advance` - advance
+         *     * `interest` - interest
+         *     * `fee` - fee
+         *     * `insurance` - insurance
+         *     * `payment` - payment
+         *     * `refund` - refund
+         *     * `adjustment` - adjustment
+         * @enum {string}
+         */
+        ImportPreviewRowKindEnum: "purchase" | "advance" | "interest" | "fee" | "insurance" | "payment" | "refund" | "adjustment";
         ImportRowError: {
             row: number;
             code: string;
@@ -7685,6 +7756,17 @@ export interface components {
             overrides?: string;
             /** @default true */
             save_mapping: boolean;
+            /**
+             * @description Solo tarjetas: `charges_negative` (la compra viene en negativo, como en una cuenta), `charges_positive` o `auto`.
+             *
+             *     * `auto` - auto
+             *     * `charges_negative` - charges_negative
+             *     * `charges_positive` - charges_positive
+             * @default auto
+             */
+            sign: components["schemas"]["SignEnum"];
+            /** @description Solo tarjetas: JSON `{"fila": {"kind", "installments", "counter_account"}}` con lo que cambiaste de cada fila. */
+            edits?: string;
         };
         Independence: {
             /**
@@ -10539,6 +10621,26 @@ export interface components {
          * @enum {string}
          */
         SideEnum: "debit" | "credit";
+        /**
+         * @description * `charges_negative` - charges_negative
+         *     * `charges_positive` - charges_positive
+         *     * `ambiguous` - ambiguous
+         * @enum {string}
+         */
+        SignDetectedEnum: "charges_negative" | "charges_positive" | "ambiguous";
+        /**
+         * @description * `auto` - auto
+         *     * `charges_negative` - charges_negative
+         *     * `charges_positive` - charges_positive
+         * @enum {string}
+         */
+        SignEnum: "auto" | "charges_negative" | "charges_positive";
+        /**
+         * @description * `charges_negative` - charges_negative
+         *     * `charges_positive` - charges_positive
+         * @enum {string}
+         */
+        SignUsedEnum: "charges_negative" | "charges_positive";
         SimRow: {
             number: number;
             /** Format: date */
@@ -10774,6 +10876,12 @@ export interface components {
             /** @description La suma de las filas mostradas. */
             totals: (string | null)[] | null;
         };
+        /**
+         * @description * `account` - account
+         *     * `card` - card
+         * @enum {string}
+         */
+        TargetEnum: "account" | "card";
         /**
          * @description * `` -
          *     * `.` - .

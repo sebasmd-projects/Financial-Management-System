@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { ImportPreviewRow } from "@/api/models";
-import { buildUpload, effectiveAction, fileProblem, initialMapping, mappingProblems, mappingToApi, overridesBody, tally, toggleRow, uploadFingerprint, EMPTY_MAPPING, MAX_UPLOAD_BYTES } from "./logic";
+import { buildUpload, editsBody, kindsForAmount, isBlocked, withEdit, effectiveAction, fileProblem, initialMapping, mappingProblems, mappingToApi, overridesBody, tally, toggleRow, uploadFingerprint, EMPTY_MAPPING, MAX_UPLOAD_BYTES } from "./logic";
 
-const row = (number: number, match: ImportPreviewRow["match"], action: ImportPreviewRow["action"]): ImportPreviewRow => ({ number, date: "2026-11-02", amount: "-182300.00", description: "ÉXITO", reference: "", match, candidate_id: null, action, counterparty: null, category_id: null });
+const row = (number: number, match: ImportPreviewRow["match"], action: ImportPreviewRow["action"]): ImportPreviewRow => ({ number, date: "2026-11-02", amount: "-182300.00", description: "ÉXITO", reference: "", match, candidate_id: null, action, counterparty: null, category_id: null, kind: null, installments: null, period_start: null, period_end: null, refund_of_id: null, refund_of_row: null, counter_account: null, issue: "" });
 const HEADERS = ["Fecha", "Descripción", "Valor", "Saldo"];
 
 describe("archivo", () => {
@@ -29,7 +29,7 @@ describe("mapeo", () => {
   });
   it("un mapeo completo viaja con solo lo del modo elegido", () => {
     const form = { ...EMPTY_MAPPING, date: "Fecha", amount: "Valor", debit: "Sobra", dateFormat: "%d/%m/%Y" as const };
-    expect(mappingToApi(form)).toEqual({ date: "Fecha", description: "", amount: "Valor", debit: "", credit: "", reference: "", balance: "", date_format: "%d/%m/%Y", decimal_sep: ",", thousands_sep: ".", header_row: 0 });
+    expect(mappingToApi(form)).toEqual({ date: "Fecha", description: "", amount: "Valor", debit: "", credit: "", reference: "", balance: "", date_format: "%d/%m/%Y", decimal_sep: ",", thousands_sep: ".", header_row: 0, installments: "" });
   });
   it("faltas: fecha, valor, formato, fila de títulos y separadores iguales", () => {
     expect(mappingProblems(EMPTY_MAPPING)).toEqual(["date", "amount", "date_format"]);
@@ -37,7 +37,7 @@ describe("mapeo", () => {
     expect(mappingProblems({ ...EMPTY_MAPPING, date: "F", amount: "V", dateFormat: "serial", thousandsSep: "," })).toEqual(["same_separator"]);
   });
   it("el mapeo guardado se vuelve a mostrar con sus columnas", () => {
-    const form = initialMapping(HEADERS, { date: "fecha", description: "Descripción", amount: "Valor", debit: "", credit: "", reference: "", balance: "", date_format: "%d/%m/%Y", decimal_sep: ",", thousands_sep: ".", header_row: 0 }, null);
+    const form = initialMapping(HEADERS, { date: "fecha", description: "Descripción", amount: "Valor", debit: "", credit: "", reference: "", balance: "", date_format: "%d/%m/%Y", decimal_sep: ",", thousands_sep: ".", header_row: 0, installments: "" }, null);
     expect(form).toMatchObject({ date: "Fecha", amount: "Valor", dateFormat: "%d/%m/%Y" });
   });
 });
@@ -84,5 +84,40 @@ describe("carga multipart", () => {
     expect(a).toContain("extracto.csv");
     expect(JSON.stringify(uploadFingerprint({ file, accountId: "a-2", mapping: null }))).not.toBe(a);
     expect(a).not.toContain("fecha;valor");
+  });
+});
+
+describe("tarjeta de crédito", () => {
+  const file = new File(["x"], "t.csv", { lastModified: 1 });
+  it("las clases que caben con el signo: un cargo no es un pago", () => {
+    expect(kindsForAmount("-50000.00")).toEqual(["purchase", "advance", "interest", "fee", "insurance", "adjustment"]);
+    expect(kindsForAmount("60000.00")).toEqual(["payment", "refund", "adjustment"]);
+  });
+  it("cambiar de clase olvida la cuenta y las cuotas; un cambio vacío saca la fila de las ediciones", () => {
+    let edits = withEdit(new Map(), 4, { kind: "payment", counterAccount: "unregistered" });
+    expect(editsBody(edits)).toEqual({ "4": { kind: "payment", counter_account: "unregistered" } });
+    edits = withEdit(edits, 4, { kind: "refund" });
+    expect(editsBody(edits)).toEqual({ "4": { kind: "refund" } });
+    edits = withEdit(new Map(), 2, { installments: 6 });
+    expect(editsBody(edits)).toEqual({ "2": { installments: 6 } });
+    expect(editsBody(new Map())).toBeNull();
+  });
+  it("el multipart lleva el signo y las ediciones solo cuando cambian algo, y la huella de la intención los incluye", () => {
+    const plain = buildUpload({ file, accountId: "c-1", mapping: null });
+    expect(plain.get("sign")).toBeNull();
+    expect(plain.get("edits")).toBeNull();
+    const form = buildUpload({ file, accountId: "c-1", mapping: null, sign: "charges_positive", edits: new Map([[3, { installments: 12 }]]) });
+    expect(form.get("sign")).toBe("charges_positive");
+    expect(JSON.parse(String(form.get("edits")))).toEqual({ "3": { installments: 12 } });
+    expect(uploadFingerprint({ file, accountId: "c-1", mapping: null, sign: "charges_positive" })).not.toEqual(uploadFingerprint({ file, accountId: "c-1", mapping: null }));
+  });
+  it("el mapeo lleva la columna de cuotas y la propuesta la reconoce", () => {
+    const form = initialMapping(["Fecha", "Valor", "Cuotas"], null, { date: "Fecha", amount: "Valor", installments: "cuotas" });
+    expect(form.installments).toBe("Cuotas");
+    expect(mappingToApi({ ...form, dateFormat: "%d/%m/%Y" })?.installments).toBe("Cuotas");
+  });
+  it("lo que impide importar una fila se reconoce por su código", () => {
+    expect(isBlocked({ issue: "payment_source_required" })).toBe(true);
+    expect(isBlocked({ issue: "" })).toBe(false);
   });
 });

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import type { ImportMatch, ImportPreview, ImportPreviewRow } from "@/api/models";
+import type { Account, ImportMatch, ImportPreview, ImportPreviewRow } from "@/api/models";
 import { formatDate } from "@/lib/dates";
 import { formatCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { fill } from "../helpers";
 import { Badge, Banner, Money, Pager, Section, Segmented } from "../kit";
-import { effectiveAction, tally } from "./logic";
+import { CardRowFields, KindSummary, SignControl } from "./card-rows";
+import { effectiveAction, isBlocked, tally, type RowEdit, type SignChoice } from "./logic";
 
 const PAGE = 25;
 const MATCH_TONE: Record<ImportMatch, "neutral" | "info" | "positive" | "warning" | "negative"> = {
@@ -46,7 +47,26 @@ export function IgnoredNotes({ preview }: { preview: ImportPreview }) {
 }
 
 /** Paso 3 (diseño §3.6): fila por fila, con el cruce y la decisión por defecto; la persona puede incluir u omitir. */
-export function ReviewStep({ preview, choices, onToggle }: { preview: ImportPreview; choices: ReadonlyMap<number, "import" | "skip">; onToggle: (row: ImportPreviewRow, include: boolean) => void }) {
+export function ReviewStep({
+  preview,
+  choices,
+  onToggle,
+  accounts = [],
+  sign = "auto",
+  onSign,
+  onEdit,
+  busy = false,
+}: {
+  preview: ImportPreview;
+  choices: ReadonlyMap<number, "import" | "skip">;
+  onToggle: (row: ImportPreviewRow, include: boolean) => void;
+  /** Solo tarjetas: las cuentas que pueden pagar o recibir un avance. */
+  accounts?: readonly Account[];
+  sign?: SignChoice;
+  onSign?: (sign: SignChoice) => void;
+  onEdit?: (row: ImportPreviewRow, patch: RowEdit) => void;
+  busy?: boolean;
+}) {
   const { dict } = useI18n();
   const t = dict.fin.imp.review;
   const [filter, setFilter] = useState<"all" | ImportMatch>("all");
@@ -55,10 +75,12 @@ export function ReviewStep({ preview, choices, onToggle }: { preview: ImportPrev
   const shown = preview.rows.filter((row) => filter === "all" || row.match === filter);
   const visible = shown.slice((page - 1) * PAGE, page * PAGE);
   const present = MATCHES.filter((match) => (preview.counts[match] ?? 0) > 0);
+  const isCard = preview.target === "card";
 
   return (
     <div className="fin-stack">
       <IgnoredNotes preview={preview} />
+      {isCard && onSign && <SignControl preview={preview} sign={sign} onChange={onSign} busy={busy} />}
       <Section title={t.summaryTitle}>
         <ul className="fin-list imp-summary" data-testid="import-summary">
           <li>{fill(t.willImport, { count: String(counts.import) })}</li>
@@ -66,6 +88,7 @@ export function ReviewStep({ preview, choices, onToggle }: { preview: ImportPrev
           <li>{fill(t.willLink, { count: String(counts.link) })}</li>
           <li>{fill(t.willSkip, { count: String(counts.skip) })}</li>
         </ul>
+        {isCard && <KindSummary preview={preview} />}
         {preview.meta.ledger_balance && <p className="hint">{fill(t.ofxBalance, { balance: formatCop(preview.meta.ledger_balance) })}</p>}
       </Section>
       {present.length > 1 && (
@@ -85,7 +108,7 @@ export function ReviewStep({ preview, choices, onToggle }: { preview: ImportPrev
           return (
             <li key={row.number} className={`fin-row fin-row--static imp-row${included ? "" : " imp-row--skipped"}`}>
               <label className="imp-row__check">
-                <input type="checkbox" checked={included} disabled={row.match === "duplicate"} onChange={(event) => onToggle(row, event.target.checked)} />
+                <input type="checkbox" checked={included} disabled={row.match === "duplicate" || (isCard && isBlocked(row))} onChange={(event) => onToggle(row, event.target.checked)} />
                 <span className="visually-hidden">{fill(t.include, { number: String(row.number) })}</span>
               </label>
               <span className="fin-row__main">
@@ -101,6 +124,7 @@ export function ReviewStep({ preview, choices, onToggle }: { preview: ImportPrev
                   {row.counterparty && <Badge>{row.counterparty}</Badge>}
                 </span>
                 <span className="fin-row__sub muted">{t.matchHints[row.match]}</span>
+                {isCard && onEdit && <CardRowFields row={row} accounts={accounts} onEdit={onEdit} busy={busy} />}
               </span>
               <Money value={row.amount} sign="always" kind={row.amount.startsWith("-") ? "egreso" : "ingreso"} />
             </li>

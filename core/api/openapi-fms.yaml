@@ -22335,6 +22335,12 @@ components:
           minimum: 0
           default: 0
           description: Filas antes de los títulos.
+        installments:
+          type: string
+          default: ''
+          description: 'Solo tarjetas: título de la columna con las cuotas de cada
+            compra (vacío: una cuota).'
+          maxLength: 120
       required:
       - date
       - date_format
@@ -22434,11 +22440,41 @@ components:
           type: object
           additionalProperties:
             type: integer
+        target:
+          $ref: '#/components/schemas/TargetEnum'
+        card:
+          type:
+          - object
+          - 'null'
+          additionalProperties:
+            type: integer
+          description: 'Solo tarjetas: `cut_day` y `pay_day`.'
+        sign_detected:
+          description: |-
+            Solo tarjetas: el signo que dice el archivo. `ambiguous`: no se pudo decidir, elígelo.
+
+            * `charges_negative` - charges_negative
+            * `charges_positive` - charges_positive
+            * `ambiguous` - ambiguous
+          oneOf:
+          - $ref: '#/components/schemas/SignDetectedEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        sign_used:
+          oneOf:
+          - $ref: '#/components/schemas/SignUsedEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        kind_counts:
+          type: object
+          additionalProperties:
+            type: integer
+          description: 'Solo tarjetas: cuántas filas hay de cada clase.'
       required:
+      - card
       - counts
       - errors
       - headers
       - kind
+      - kind_counts
       - mapping
       - mapping_source
       - meta
@@ -22446,7 +22482,10 @@ components:
       - notes
       - rows
       - sample
+      - sign_detected
+      - sign_used
       - suggested_mapping
+      - target
     ImportPreviewRow:
       type: object
       properties:
@@ -22493,17 +22532,98 @@ components:
           - 'null'
           format: uuid
           description: Categoría sugerida por su contraparte (solo se propone).
+        kind:
+          description: |-
+            Solo tarjetas: qué es la fila (compra, pago, avance, interés, cuota de manejo, seguro, reembolso o ajuste).
+
+            * `purchase` - purchase
+            * `advance` - advance
+            * `interest` - interest
+            * `fee` - fee
+            * `insurance` - insurance
+            * `payment` - payment
+            * `refund` - refund
+            * `adjustment` - adjustment
+          oneOf:
+          - $ref: '#/components/schemas/ImportPreviewRowKindEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        installments:
+          type:
+          - integer
+          - 'null'
+          description: 'Solo tarjetas y compras: cuántas cuotas (1 a 48).'
+        period_start:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: 'Solo tarjetas: primer día del extracto en que cae la fila.'
+        period_end:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: 'Solo tarjetas: el corte del extracto en que cae la fila.'
+        refund_of_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: 'Solo un reembolso: la compra que reembolsa, si ya existe.'
+        refund_of_row:
+          type:
+          - integer
+          - 'null'
+          description: 'Solo un reembolso: la fila de este archivo cuya compra reembolsa.'
+        counter_account:
+          type:
+          - string
+          - 'null'
+          description: 'Pago o avance: el id de la cuenta que pagó o recibió, o `unregistered`
+            (un pago desde una cuenta que no llevas).'
+        issue:
+          type: string
+          description: Código de lo que falta decidir o conviene saber (p. ej. `payment_source_required`);
+            vacío si nada.
       required:
       - action
       - amount
       - candidate_id
       - category_id
+      - counter_account
       - counterparty
       - date
       - description
+      - installments
+      - issue
+      - kind
       - match
       - number
+      - period_end
+      - period_start
       - reference
+      - refund_of_id
+      - refund_of_row
+    ImportPreviewRowKindEnum:
+      enum:
+      - purchase
+      - advance
+      - interest
+      - fee
+      - insurance
+      - payment
+      - refund
+      - adjustment
+      type: string
+      description: |-
+        * `purchase` - purchase
+        * `advance` - advance
+        * `interest` - interest
+        * `fee` - fee
+        * `insurance` - insurance
+        * `payment` - payment
+        * `refund` - refund
+        * `adjustment` - adjustment
     ImportRowError:
       type: object
       properties:
@@ -22558,6 +22678,20 @@ components:
         save_mapping:
           type: boolean
           default: true
+        sign:
+          allOf:
+          - $ref: '#/components/schemas/SignEnum'
+          default: auto
+          description: |-
+            Solo tarjetas: `charges_negative` (la compra viene en negativo, como en una cuenta), `charges_positive` o `auto`.
+
+            * `auto` - auto
+            * `charges_negative` - charges_negative
+            * `charges_positive` - charges_positive
+        edits:
+          type: string
+          description: 'Solo tarjetas: JSON `{"fila": {"kind", "installments", "counter_account"}}`
+            con lo que cambiaste de cada fila.'
       required:
       - account_id
       - file
@@ -28370,6 +28504,34 @@ components:
       description: |-
         * `debit` - debit
         * `credit` - credit
+    SignDetectedEnum:
+      enum:
+      - charges_negative
+      - charges_positive
+      - ambiguous
+      type: string
+      description: |-
+        * `charges_negative` - charges_negative
+        * `charges_positive` - charges_positive
+        * `ambiguous` - ambiguous
+    SignEnum:
+      enum:
+      - auto
+      - charges_negative
+      - charges_positive
+      type: string
+      description: |-
+        * `auto` - auto
+        * `charges_negative` - charges_negative
+        * `charges_positive` - charges_positive
+    SignUsedEnum:
+      enum:
+      - charges_negative
+      - charges_positive
+      type: string
+      description: |-
+        * `charges_negative` - charges_negative
+        * `charges_positive` - charges_positive
     SimRow:
       type: object
       properties:
@@ -28867,6 +29029,14 @@ components:
       - rows
       - title
       - totals
+    TargetEnum:
+      enum:
+      - account
+      - card
+      type: string
+      description: |-
+        * `account` - account
+        * `card` - card
     ThousandsSepEnum:
       enum:
       - .

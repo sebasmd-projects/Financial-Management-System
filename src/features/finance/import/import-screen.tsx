@@ -11,7 +11,7 @@ import { useI18n } from "@/i18n/provider";
 import { fill, movementAccounts } from "../helpers";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { Badge, Banner, Empty, ErrorState, FormActions, Loading, Modal, Pager, ScreenHeader, Section, SelectField } from "../kit";
-import { buildUpload, fileProblem, overridesBody, tally, toggleRow, uploadFingerprint, ACCEPTED_EXTENSIONS } from "./logic";
+import { buildUpload, fileProblem, overridesBody, tally, toggleRow, uploadFingerprint, withEdit, ACCEPTED_EXTENSIONS, type RowEdit, type SignChoice } from "./logic";
 import { MappingStep } from "./mapping-step";
 import { ReviewStep } from "./review-step";
 
@@ -44,6 +44,9 @@ export function ImportScreen() {
   const [mapping, setMapping] = useState<ImportMapping | null>(null);
   const [save, setSave] = useState(true);
   const [choices, setChoices] = useState<Map<number, "import" | "skip">>(new Map());
+  // Solo tarjetas: el signo que se pidió y lo que la persona cambió de cada fila. Viajan en cada vista previa y en la confirmación.
+  const [sign, setSign] = useState<SignChoice>("auto");
+  const [edits, setEdits] = useState<Map<number, RowEdit>>(new Map());
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ImportBatch | null>(null);
@@ -53,6 +56,8 @@ export function ImportScreen() {
 
   const usable = movementAccounts(accounts.items);
   const account = usable.find((a) => a.id === accountId) ?? usable[0] ?? null;
+  const isCard = account?.kind === "credit_card";
+  const counterAccounts = usable.filter((a) => a.kind !== "credit_card");
   const steps: { id: Stage; label: string }[] = [
     { id: "file", label: t.steps.file },
     { id: "mapping", label: t.steps.mapping },
@@ -65,6 +70,8 @@ export function ImportScreen() {
     setPreview(null);
     setMapping(null);
     setChoices(new Map());
+    setSign("auto");
+    setEdits(new Map());
     setResult(null);
     setError(null);
     setFileError(null);
@@ -87,12 +94,20 @@ export function ImportScreen() {
     setFile(next);
   }
 
-  async function analyze(chosen: ImportMapping | null, remember = save) {
+  /** El mapeo que se manda: el que se definió en esta sesión; el guardado del banco o el del OFX los pone el servidor. */
+  function sentMapping(): ImportMapping | null {
+    return preview && preview.mapping_source === "provided" ? (mapping ?? preview.mapping) : null;
+  }
+
+  /** `again`: recalcular la vista previa tras cambiar el signo o una fila (se conservan las decisiones de incluir u omitir). */
+  async function analyze(chosen: ImportMapping | null, remember = save, again?: { sign: SignChoice; edits: Map<number, RowEdit> }) {
     if (!file || !account) return;
     setAnalyzing(true);
     setError(null);
     try {
-      const response = await api.post<ImportPreview>(paths.importPreview(), buildUpload({ file, accountId: account.id, mapping: chosen }), { locale });
+      const nextSign = again?.sign ?? "auto";
+      const nextEdits = again?.edits ?? new Map<number, RowEdit>();
+      const response = await api.post<ImportPreview>(paths.importPreview(), buildUpload({ file, accountId: account.id, mapping: chosen, sign: nextSign, edits: nextEdits }), { locale });
       if (!response.ok) {
         setError(errorText(response, dict.fin.errors));
         return;
@@ -100,18 +115,28 @@ export function ImportScreen() {
       setPreview(response.data);
       setMapping(response.data.mapping_source === "provided" ? chosen : null);
       setSave(remember);
-      setChoices(new Map());
+      setSign(nextSign);
+      setEdits(nextEdits);
+      if (!again) setChoices(new Map());
       setStage(response.data.needs_mapping ? "mapping" : "review");
     } finally {
       setAnalyzing(false);
     }
   }
 
+  function changeSign(next: SignChoice) {
+    void analyze(sentMapping(), save, { sign: next, edits });
+  }
+
+  function changeRow(row: ImportPreviewRow, patch: RowEdit) {
+    void analyze(sentMapping(), save, { sign, edits: withEdit(edits, row.number, patch) });
+  }
+
   async function commit() {
     if (!file || !account || !preview) return;
     // El mapeo que se usó en la vista previa es el que se reenvía; el guardado del banco o el del OFX los pone el servidor.
-    const sent = preview.mapping_source === "provided" ? (mapping ?? preview.mapping) : null;
-    const input = { file, accountId: account.id, mapping: sent, overrides: overridesBody(choices), saveMapping: sent ? save : undefined };
+    const sent = sentMapping();
+    const input = { file, accountId: account.id, mapping: sent, overrides: overridesBody(choices), saveMapping: sent ? save : undefined, sign, edits };
     const outcome = await submit.run(uploadFingerprint(input), (key) => api.post<ImportBatch>(roots.imports, buildUpload(input), { idempotencyKey: key, locale }));
     if (outcome.ok) {
       setResult(outcome.data);
@@ -179,7 +204,7 @@ export function ImportScreen() {
       )}
 
       {stage === "mapping" && preview && (
-        <MappingStep preview={preview} busy={analyzing} error={error} onBack={reset} onApply={(chosen, remember) => void analyze(chosen, remember)} />
+        <MappingStep preview={preview} isCard={preview.target === "card" || isCard} busy={analyzing} error={error} onBack={reset} onApply={(chosen, remember) => void analyze(chosen, remember)} />
       )}
 
       {stage === "review" && preview && (
@@ -195,7 +220,16 @@ export function ImportScreen() {
               </button>
             </p>
           )}
-          <ReviewStep preview={preview} choices={choices} onToggle={(row: ImportPreviewRow, include) => setChoices((current) => toggleRow(row, include, current))} />
+          <ReviewStep
+            preview={preview}
+            choices={choices}
+            onToggle={(row: ImportPreviewRow, include) => setChoices((current) => toggleRow(row, include, current))}
+            accounts={counterAccounts}
+            sign={sign}
+            onSign={changeSign}
+            onEdit={changeRow}
+            busy={analyzing}
+          />
           {nothing && <p className="hint">{t.review.nothing}</p>}
           <p className="hint">{t.review.commitHint}</p>
           {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}

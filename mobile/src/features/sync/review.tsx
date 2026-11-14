@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import type { components } from "@core/api/schema.gen";
 import { formatDate, formatTime } from "@core/dates";
 import { absAmount, negateAmount } from "@core/money";
-import { buildModify, canUndo, draftFromEvent, editableFields, eventMoneyType, isProposed, syncPaths, type ModifyDraft, type ModifyProblem, type SyncConnectionPage, type SyncEvent, type SyncEventPage } from "@core/sync";
+import { buildModify, canUndo, mailHostsFrom, draftFromEvent, editableFields, eventMoneyType, isProposed, syncPaths, type ModifyDraft, type ModifyProblem, type MailHosts, type SyncCatalog, type SyncConnectionPage, type SyncEvent, type SyncEventPage } from "@core/sync";
 import { createIntents } from "@/api/ids";
 import { bumpData } from "@/features/common/invalidate";
 import { onMemoryWipe } from "@/features/common/memory";
@@ -48,6 +48,9 @@ export function ReviewScreen() {
   const [tab, setTab] = useState<Tab>("pending");
   const events = useResource<SyncEventPage>(useScopedPath(syncPaths.events(tab === "pending" ? "proposed" : "all")));
   const connections = useResource<SyncConnectionPage>(useScopedPath("/sync/connections?page_size=100"));
+  // Los hosts de «Ir al correo» los da el servidor (`sync/catalog`); si no llegan, la lista incorporada.
+  const catalog = useResource<SyncCatalog>("/sync/catalog");
+  const mailHosts = useMemo(() => mailHostsFrom(catalog.data), [catalog.data]);
   const [recent, setRecent] = useState<SyncEvent[]>([]);
   const [modifying, setModifying] = useState<SyncEvent | null>(null);
   const [note, setNote] = useState<{ text: string; tone: "positive" | "negative" } | null>(null);
@@ -85,7 +88,7 @@ export function ReviewScreen() {
   const recentIds = new Set(recent.map((row) => row.id));
   const rows = (events.data?.results ?? []).filter((event) => !recentIds.has(event.id));
   const noConnections = connections.data !== null && connections.data.results.length === 0;
-  const card = (event: SyncEvent) => <EventCard key={event.id} event={event} where={where.get(event.connection_id) ?? null} writable={writable} focused={event.id === focusId} busy={busy === event.id} onApprove={() => void decide(event, "approved")} onDiscard={() => void decide(event, "discarded")} onUndo={() => void decide(event, "undone")} onModify={() => setModifying(event)} />;
+  const card = (event: SyncEvent) => <EventCard key={event.id} event={event} mailHosts={mailHosts} where={where.get(event.connection_id) ?? null} writable={writable} focused={event.id === focusId} busy={busy === event.id} onApprove={() => void decide(event, "approved")} onDiscard={() => void decide(event, "discarded")} onUndo={() => void decide(event, "undone")} onModify={() => setModifying(event)} />;
 
   return (
     <Screen>
@@ -118,19 +121,19 @@ export function ReviewScreen() {
   );
 }
 
-function EventCard({ event, where, writable, focused, busy, onApprove, onDiscard, onUndo, onModify }: { event: SyncEvent; where: string | null; writable: boolean; focused: boolean; busy: boolean; onApprove: () => void; onDiscard: () => void; onUndo: () => void; onModify: () => void }) {
+function EventCard({ event, mailHosts, where, writable, focused, busy, onApprove, onDiscard, onUndo, onModify }: { event: SyncEvent; mailHosts: MailHosts; where: string | null; writable: boolean; focused: boolean; busy: boolean; onApprove: () => void; onDiscard: () => void; onUndo: () => void; onModify: () => void }) {
   const c = useTheme();
   const [mailFailed, setMailFailed] = useState(false);
   const type = eventMoneyType(event.kind);
   const title = event.counterparty || t.untitled;
   const fields = editableFields(event);
   const hint = event.mail_link?.search_hint ?? "";
-  const mail = sanitizeMailLink(event.mail_link);
+  const mail = sanitizeMailLink(event.mail_link, mailHosts);
   const magnitude = event.amount === null ? null : absAmount(event.amount);
   const amount = magnitude === null ? null : type === "expense" ? { value: negateAmount(magnitude), sign: "auto" as const } : { value: magnitude, sign: type === "income" ? ("always" as const) : ("auto" as const) };
   const match = event.match ? t.match[event.match] : undefined;
   async function goToMail() {
-    setMailFailed(!(await openMail(event.mail_link)));
+    setMailFailed(!(await openMail(event.mail_link, mailHosts)));
   }
   return (
     <View style={[styles.card, { backgroundColor: c.surface, borderColor: focused ? c.primary : c.border, borderWidth: focused ? 2 : 1 }]}>

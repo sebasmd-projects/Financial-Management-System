@@ -8,7 +8,7 @@ import { useHref, useResource } from "../hooks";
 import { Empty, ErrorState, Loading, Modal, Pager, ScreenHeader, Tabs } from "../kit";
 import { ReadOnlyBanner } from "../../household/notices";
 import { useCanWrite } from "../../household/scope-store";
-import { syncPaths, type SyncConnectionPage, type SyncEvent, type SyncEventPage } from "../../../../core/sync";
+import { mailHostsFrom, syncPaths, type SyncCatalog, type SyncConnectionPage, type SyncEvent, type SyncEventPage } from "../../../../core/sync";
 import { EventCard, type Decision } from "./event-card";
 import { ModifyForm } from "./modify-form";
 import { useReviewCount } from "./review-count";
@@ -29,6 +29,9 @@ export function ReviewScreen() {
   const [page, setPage] = useState(1);
   const events = useResource<SyncEventPage>(syncPaths.events(tab === "pending" ? "proposed" : "all", page));
   const connections = useResource<SyncConnectionPage>("/sync/connections?page_size=100");
+  // Los hosts de «Ir al correo» los da el servidor (`sync/catalog`); si no llegan, la lista incorporada.
+  const catalog = useResource<SyncCatalog>("/sync/catalog");
+  const mailHosts = useMemo(() => mailHostsFrom(catalog.data), [catalog.data]);
   const [recent, setRecent] = useState<{ event: SyncEvent; decision: Decision }[]>([]);
   const [modifying, setModifying] = useState<SyncEvent | null>(null);
   const [note, setNote] = useState<string | null>(null);
@@ -50,7 +53,7 @@ export function ReviewScreen() {
   const recentIds = new Set(recent.map((row) => row.event.id));
   const rows = (events.data?.results ?? []).filter((event) => !recentIds.has(event.id));
   const noConnections = connections.data !== null && connections.data.results.length === 0;
-  const render = (event: SyncEvent) => <EventCard key={event.id} event={event} where={where.get(event.connection_id) ?? null} canWrite={canWrite} onDecided={decided} onModify={setModifying} />;
+  const render = (event: SyncEvent) => <EventCard key={event.id} event={event} mailHosts={mailHosts} where={where.get(event.connection_id) ?? null} canWrite={canWrite} onDecided={decided} onModify={setModifying} />;
 
   return (
     <div className="screen">
@@ -64,7 +67,7 @@ export function ReviewScreen() {
         {recent.length > 0 && (
           <ul className="fin-list" aria-label={t.status.approved}>
             {recent.map((row) => (
-              <EventCard key={row.event.id} event={row.event} where={where.get(row.event.connection_id) ?? null} canWrite={canWrite} onDecided={decided} onModify={setModifying} />
+              <EventCard key={row.event.id} event={row.event} mailHosts={mailHosts} where={where.get(row.event.connection_id) ?? null} canWrite={canWrite} onDecided={decided} onModify={setModifying} />
             ))}
           </ul>
         )}

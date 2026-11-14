@@ -20,6 +20,7 @@ type S = components["schemas"];
 export type SyncCatalog = S["SyncCatalog"];
 export type SyncInstitution = S["SyncInstitution"];
 export type SyncConnection = S["SyncConnection"];
+export type SyncConnectionHealth = S["SyncConnectionHealth"];
 export type SyncConnectionCreate = S["SyncConnectionCreate"];
 export type SyncConnectionPatch = S["PatchedSyncConnectionPatch"];
 export type SyncConnectionPage = S["SyncConnectionPage"];
@@ -53,6 +54,7 @@ export const syncPaths = {
   connections: "/sync/connections",
   connection: (connectionId: string) => `/sync/connections/${id(connectionId)}`,
   rotate: (connectionId: string) => `/sync/connections/${id(connectionId)}/rotate`,
+  health: (connectionId: string) => `/sync/connections/${id(connectionId)}/health`,
   events: (status: "proposed" | "all", page = 1) => `/sync/events?status=${status}&page=${page}&page_size=50`,
   summary: "/sync/events/summary",
   event: (eventId: string) => `/sync/events/${id(eventId)}`,
@@ -88,6 +90,7 @@ export function syncApi(client: SyncClient) {
     connection: (connectionId: string, options?: RequestOptions) => client.get<SyncConnection>(syncPaths.connection(connectionId), options),
     createConnection: (body: SyncConnectionCreate, key: string, options?: RequestOptions) => client.post<SyncConnection>(syncPaths.connections, body, keyed(key, options)),
     patchConnection: (connectionId: string, body: SyncConnectionPatch, options?: RequestOptions) => client.patch<SyncConnection>(syncPaths.connection(connectionId), body, options),
+    health: (connectionId: string, options?: RequestOptions) => client.get<SyncConnectionHealth>(syncPaths.health(connectionId), options),
     rotate: (connectionId: string, key: string, options?: RequestOptions) => client.post<SyncConnection>(syncPaths.rotate(connectionId), undefined, keyed(key, options)),
     deleteConnection: (connectionId: string, options?: RequestOptions) => client.delete<void>(syncPaths.connection(connectionId), options),
     events: (status: "proposed" | "all", options?: RequestOptions) => client.get<SyncEventPage>(syncPaths.events(status), options),
@@ -109,27 +112,21 @@ export function syncApi(client: SyncClient) {
 
 // --- conexiones ---------------------------------------------------------------------------------------------------------------------
 
-/** Cuántos días sin un solo correo hacen que una conexión «parezca caída» (el servidor avisa por su cuenta con su propia ventana). */
-export const QUIET_DAYS = 14;
-
-export type Health = "paused" | "waiting" | "ok" | "quiet";
-
-/** Cuántos días enteros pasaron desde un instante (nunca negativo). Aritmética de marcas de tiempo: no hay dinero aquí. */
-export function daysSince(instant: string, now: Date): number {
-  const then = Date.parse(instant);
-  if (Number.isNaN(then)) return 0;
-  return Math.max(0, Math.floor((now.getTime() - then) / 86_400_000));
-}
+export type Health = "paused" | "waiting" | "ok" | "quiet" | "error" | "unknown";
 
 /**
- * La salud que se le muestra a la persona: pausada, esperando el primer correo, al día o callada hace tiempo (revisar el filtro o el monto
- * mínimo de las alertas, plan §3.1). Lo decide la fecha del último correo: el servidor no manda un estado de salud.
+ * La salud que se le muestra a la persona. **La decide el servidor** (`GET sync/connections/{id}/health`: su último evento, el código del último
+ * error y su umbral de silencio `quiet_days`): aquí ya no hay una regla de días. Una conexión pausada se ve pausada aunque la salud aún no haya
+ * llegado; sin respuesta del servidor (cargando o con error) el estado es `unknown` y la pantalla no afirma nada. `days` son los días desde el
+ * último correo y `code` el código del último error (nunca su contenido).
  */
-export function connectionHealth(connection: Pick<SyncConnection, "status" | "last_event_at">, now: Date = new Date()): { state: Health; days: number } {
-  if (connection.status === "paused") return { state: "paused", days: 0 };
-  if (!connection.last_event_at) return { state: "waiting", days: 0 };
-  const days = daysSince(connection.last_event_at, now);
-  return { state: days >= QUIET_DAYS ? "quiet" : "ok", days };
+export function connectionHealth(
+  connection: Pick<SyncConnection, "status">,
+  health: Pick<SyncConnectionHealth, "state" | "days_since_last_event" | "last_error_code"> | null | undefined,
+): { state: Health; days: number; code: string | null } {
+  if (connection.status === "paused") return { state: "paused", days: 0, code: null };
+  if (!health || health.state === "paused") return { state: "unknown", days: 0, code: null };
+  return { state: health.state, days: health.days_since_last_event, code: health.last_error_code };
 }
 
 /** ¿Hay un código de confirmación de reenvío vigente (Gmail)? El servidor ya no lo manda pasadas las 24 h; se cuida igual la hora. */
@@ -174,15 +171,37 @@ export function createConnectionBody(input: { institutionId: number; accountId: 
 
 // --- «Ir al correo» -----------------------------------------------------------------------------------------------------------------
 
-/**
- * Los únicos sitios a los que «Ir al correo» puede llevar. La URL viene del servidor, pero nunca se abre sin comprobarla: HTTPS, sin usuario ni
- * contraseña y un servidor de correo conocido. Cualquier otra cosa (un esquema `javascript:`, otro dominio) se descarta y solo queda la pista.
- */
-export const MAIL_HOSTS: readonly string[] = ["mail.google.com", "outlook.live.com", "outlook.office.com", "outlook.office365.com"];
+/** Los hosts de «Ir al correo» por proveedor: lo que publica `sync/catalog` (`mail_link_hosts`). */
+export type MailHosts = Readonly<Record<string, readonly string[]>>;
 
-export function safeMailUrl(link: Pick<MailLink, "url"> | null | undefined): string | null {
+/** La lista incorporada, la misma que hoy genera el servidor: se usa mientras el catálogo no llega o si falla. */
+export const DEFAULT_MAIL_HOSTS: MailHosts = { gmail: ["mail.google.com"], outlook: ["outlook.live.com"], other: [] };
+
+const HOSTNAME = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/;
+
+/**
+ * Los hosts permitidos según el catálogo del servidor. Solo se aceptan nombres de host planos (sin esquema, ruta, puerto ni comodines); si el
+ * catálogo no llegó o no trae ninguno válido, la lista incorporada. Nunca se amplía la lista con algo que no sea un host.
+ */
+export function mailHostsFrom(catalog: Partial<Pick<SyncCatalog, "mail_link_hosts">> | null | undefined): MailHosts {
+  const raw = catalog?.mail_link_hosts;
+  if (!raw || typeof raw !== "object") return DEFAULT_MAIL_HOSTS;
+  const out: Record<string, string[]> = {};
+  for (const [provider, hosts] of Object.entries(raw)) {
+    if (!Array.isArray(hosts)) continue;
+    out[provider] = hosts.filter((h): h is string => typeof h === "string" && HOSTNAME.test(h));
+  }
+  return Object.values(out).some((hosts) => hosts.length > 0) ? out : DEFAULT_MAIL_HOSTS;
+}
+
+/**
+ * «Ir al correo» solo lleva a un servidor de correo de la lista del servidor (o la incorporada). La URL viene del servidor, pero nunca se abre sin
+ * comprobarla: HTTPS, sin usuario, contraseña ni puerto, y el host de ESE proveedor. Cualquier otra cosa (un esquema `javascript:`, otro dominio)
+ * se descarta y solo queda la pista. Quien la abre lo hace con `noopener noreferrer`.
+ */
+export function safeMailUrl(link: Pick<MailLink, "url" | "provider"> | null | undefined, hosts: MailHosts = DEFAULT_MAIL_HOSTS): string | null {
   const raw = link?.url;
-  if (!raw || raw.length > 2048) return null;
+  if (!link || !raw || raw.length > 2048) return null;
   let parsed: URL;
   try {
     parsed = new URL(raw);
@@ -190,7 +209,8 @@ export function safeMailUrl(link: Pick<MailLink, "url"> | null | undefined): str
     return null;
   }
   if (parsed.protocol !== "https:" || parsed.username !== "" || parsed.password !== "" || parsed.port !== "") return null;
-  return MAIL_HOSTS.includes(parsed.hostname) ? parsed.toString() : null;
+  const allowed = Object.prototype.hasOwnProperty.call(hosts, link.provider) ? hosts[link.provider] : [];
+  return allowed.includes(parsed.hostname) ? parsed.toString() : null;
 }
 
 // --- propuestas («Por revisar») -----------------------------------------------------------------------------------------------------
@@ -239,8 +259,8 @@ export function draftFromEvent(event: SyncEvent): ModifyDraft {
     accountId: event.account_id,
     categoryId: event.suggested_category_id ?? "",
     counterparty: event.counterparty ?? "",
-    description: "",
-    notes: "",
+    description: event.description ?? "",
+    notes: event.notes ?? "",
   };
 }
 
@@ -253,7 +273,7 @@ const LIMITS = { counterparty: 120, description: 200, notes: 280 } as const;
 /**
  * El cuerpo de «Modificar»: SOLO lo que cambió (el servidor audita antes y después, y `modify` sin cambios es un error). El monto se lee con
  * `core/amount-input` (texto, hasta 2 decimales, nunca se redondea) y tiene que ser positivo; la fecha, una fecha de negocio. Descripción y
- * nota no vienen en el evento: se envían solo si la persona las escribió.
+ * nota vienen en el evento (lo actual): se envían solo si cambiaron, y vaciarlas las borra (`null`).
  */
 export function buildModify(event: SyncEvent, draft: ModifyDraft): ModifyResult {
   const fields = editableFields(event);
@@ -280,11 +300,11 @@ export function buildModify(event: SyncEvent, draft: ModifyDraft): ModifyResult 
 
   const description = draft.description.trim();
   if (description.length > LIMITS.description) problems.push("description");
-  else if (description) body.description = description;
+  else if (description !== (event.description ?? "")) body.description = description || null;
 
   const notes = draft.notes.trim();
   if (notes.length > LIMITS.notes) problems.push("notes");
-  else if (notes) body.notes = notes;
+  else if (notes !== (event.notes ?? "")) body.notes = notes || null;
 
   if (problems.length > 0) return { ok: false, problems };
   if (Object.keys(body).length === 0) return { ok: false, problems: ["no_changes"] };

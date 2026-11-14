@@ -66,6 +66,7 @@ export const finSEs = {
         waiting: "Esperando el primer correo del banco.",
         quiet: "Sin correos desde hace {n} días (último el {date}). Revisa el filtro de reenvío y el monto mínimo de las alertas de tu banco.",
         paused: "Pausada: no se lee ningún correo de esta conexión.",
+        error: "El último correo no se pudo leer o no venía firmado por el banco. Revisa el filtro de reenvío.",
       },
       rejected: "Se rechazaron {n} correos por no venir firmados por el banco.",
       statements: "Incluye los extractos adjuntos",

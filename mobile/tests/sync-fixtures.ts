@@ -10,6 +10,7 @@ export const catalog = {
   ],
   providers: ["gmail", "outlook", "other"],
   ingest_domains: { es: "recibir.example.test", default: "ingest.example.test" },
+  mail_link_hosts: { gmail: ["mail.google.com"], outlook: ["outlook.live.com"], other: [] as string[] },
 };
 
 export const accounts = {
@@ -57,6 +58,8 @@ export const event = {
   amount: "180000.00",
   kind: "expense",
   counterparty: "Exito",
+  description: "Compra Éxito",
+  notes: null as string | null,
   last4: "1234",
   reference: null,
   match: "new",
@@ -109,3 +112,18 @@ export const suggestion = {
     { field: "amount", op: "lte", value: "3200000.00" },
   ],
 };
+
+/** La salud que calcula el servidor (`GET sync/connections/{id}/health`). */
+export const health = (state: "ok" | "quiet" | "paused" | "error" | "waiting", days = 0, id = "c1") => ({
+  connection_id: id,
+  state,
+  status: state === "paused" ? "paused" : "active",
+  last_event_at: null,
+  last_event_status: null,
+  last_error_code: state === "error" ? "not_authenticated" : null,
+  last_error_at: null,
+  rejected_count: 0,
+  quiet_days: 14,
+  days_since_last_event: days,
+  quiet: state === "quiet",
+});

@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import { ReviewScreen } from "@/features/sync/review";
 import { openFromTap, pendingStore } from "@/features/notifications/pending";
 import { scopeStore } from "@/features/scope/store";
-import { accounts, categories, connection, event, page } from "./sync-fixtures";
+import { accounts, catalog, categories, connection, event, page } from "./sync-fixtures";
 
 let mockKey = 0;
 jest.mock("expo-crypto", () => ({ randomUUID: () => `key-${++mockKey}` }));
@@ -111,6 +111,34 @@ describe("Por revisar (M2)", () => {
     await fireEvent.press(await screen.findByRole("button", { name: "Ir al correo" }));
     expect(open).toHaveBeenCalledWith(expect.stringMatching(/^https:\/\/mail\.google\.com\//));
     open.mockRestore();
+  });
+
+  const OFFICE = { exact: false, provider: "outlook", search_hint: "from:banco.test", url: "https://outlook.office.com/mail/" };
+
+  it("sin el catálogo del servidor rige la lista incorporada de hosts de «Ir al correo»", async () => {
+    proposed = [{ ...event, mail_link: OFFICE }];
+    await render(<ReviewScreen />);
+    await screen.findByText("Exito");
+    expect(screen.queryByRole("button", { name: "Ir al correo" })).toBeNull();
+  });
+
+  it("los hosts de «Ir al correo» vienen del catálogo del servidor (siempre https)", async () => {
+    const open = jest.spyOn(Linking, "openURL").mockResolvedValue(undefined);
+    proposed = [{ ...event, mail_link: OFFICE }];
+    const base = mockGet.getMockImplementation()!;
+    mockGet.mockImplementation(async (path: string) => (path === "/sync/catalog" ? { ok: true, status: 200, data: { ...catalog, mail_link_hosts: { gmail: ["mail.google.com"], outlook: ["outlook.live.com", "outlook.office.com"], other: [] } } } : base(path)));
+    await render(<ReviewScreen />);
+    await fireEvent.press(await screen.findByRole("button", { name: "Ir al correo" }));
+    expect(open).toHaveBeenCalledWith("https://outlook.office.com/mail/");
+    open.mockRestore();
+  });
+
+  it("Modificar muestra la descripción y la nota actuales", async () => {
+    proposed = [{ ...event, description: "Compra Éxito", notes: "con la tarjeta" }];
+    await render(<ReviewScreen />);
+    await fireEvent.press(await screen.findByRole("button", { name: "Modificar" }));
+    expect(screen.getByLabelText("Descripción").props.value).toBe("Compra Éxito");
+    expect(screen.getByLabelText("Nota").props.value).toBe("con la tarjeta");
   });
 
   it("un enlace ajeno NO se abre ni se pinta: solo queda la pista de búsqueda", async () => {

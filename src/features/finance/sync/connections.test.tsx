@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { byText, click, mountScreen, typeInto, wait, type Mounted } from "@/test/render";
-import { ACCOUNTS, CATALOG, CONNECTION, page } from "@/test/sync-fixtures";
+import { ACCOUNTS, CATALOG, CONNECTION, HEALTH, page } from "@/test/sync-fixtures";
 import { ConnectionsScreen } from "./connections-screen";
 import { ReauthDialog } from "./reauth-dialog";
 
@@ -28,10 +28,21 @@ describe("conexiones de correo (W1)", () => {
     const quiet = { ...CONNECTION, id: "c2", institution_name: "Davivienda", last_event_at: "2026-10-01T10:00:00Z" };
     const paused = { ...CONNECTION, id: "c3", institution_name: "AV Villas", status: "paused" };
     const waiting = { ...CONNECTION, id: "c4", institution_name: "Nu", last_event_at: null };
-    view = await mountScreen(<ConnectionsScreen />, { ...BASE, [LIST]: page([CONNECTION, quiet, paused, waiting]) });
+    const failed = { ...CONNECTION, id: "c5", institution_name: "Scotiabank" };
+    view = await mountScreen(<ConnectionsScreen />, {
+      ...BASE,
+      [LIST]: page([CONNECTION, quiet, paused, waiting, failed]),
+      // La salud la decide el servidor: aquí no hay una regla de días (con 40 días «al día» o con 2 «sin correos», se muestra lo del servidor).
+      "GET /api/fms/v1/sync/connections/c1/health": HEALTH("ok", 40, "c1"),
+      "GET /api/fms/v1/sync/connections/c2/health": HEALTH("quiet", 2, "c2"),
+      "GET /api/fms/v1/sync/connections/c3/health": HEALTH("paused", 0, "c3"),
+      "GET /api/fms/v1/sync/connections/c4/health": HEALTH("waiting", 0, "c4"),
+      "GET /api/fms/v1/sync/connections/c5/health": HEALTH("error", 0, "c5"),
+    });
     const text = view.visible();
     expect(text).toContain("Al día: último correo el");
-    expect(text).toContain("Sin correos desde hace");
+    expect(text).toContain("Sin correos desde hace 2 días");
+    expect(text).toContain("no venía firmado por el banco");
     expect(text).toContain("monto mínimo de las alertas");
     expect(text).toContain("Pausada: no se lee ningún correo");
     expect(text).toContain("Esperando el primer correo del banco");

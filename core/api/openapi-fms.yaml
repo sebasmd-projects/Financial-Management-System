@@ -11225,6 +11225,58 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/sync/connections/{id}/health:
+    get:
+      operationId: fmsSyncConnectionHealth
+      description: 'El estado lo calcula el servidor (la ventana `quiet_days` es `FMS_SYNC_HEALTH_DAYS`);
+        el cliente no repite la regla. Solo códigos y fechas: nunca el contenido de
+        un correo.'
+      summary: 'La salud de una conexión según el servidor: último evento, último
+        código de error y el umbral de silencio'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnectionHealth'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
   /api/fms/v1/households/{household_id}/sync/connections/{id}/rotate:
     post:
       operationId: fmsSyncConnectionRotate
@@ -18657,6 +18709,52 @@ paths:
       responses:
         '204':
           description: Borrada.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/sync/connections/{id}/health:
+    get:
+      operationId: fmsSyncConnectionHealth_2
+      description: 'El estado lo calcula el servidor (la ventana `quiet_days` es `FMS_SYNC_HEALTH_DAYS`);
+        el cliente no repite la regla. Solo códigos y fechas: nunca el contenido de
+        un correo.'
+      summary: 'La salud de una conexión según el servidor: último evento, último
+        código de error y el umbral de silencio'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - sync
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncConnectionHealth'
+          description: ''
         '401':
           content:
             application/json:
@@ -32184,10 +32282,20 @@ components:
           additionalProperties:
             type: string
           description: El subdominio de ingesta por idioma (`es`, `en`...) y `default`.
+        mail_link_hosts:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          description: Los hosts permitidos para «Ir al correo», por proveedor (`gmail`,
+            `outlook`, `other`; https siempre). El cliente solo abre un `mail_link.url`
+            cuyo host esté aquí (con `noopener noreferrer`).
       required:
       - configured
       - ingest_domains
       - institutions
+      - mail_link_hosts
       - providers
     SyncConnection:
       type: object
@@ -32316,6 +32424,95 @@ components:
       - account_id
       - institution_id
       - provider
+    SyncConnectionHealth:
+      type: object
+      properties:
+        connection_id:
+          type: string
+          format: uuid
+        state:
+          allOf:
+          - $ref: '#/components/schemas/SyncConnectionHealthStateEnum'
+          description: |-
+            `paused`: la pausaste. `quiet`: activa y sin correos hace `quiet_days` o más. `error`: el último evento fue rechazado o ilegible. `waiting`: activa y sin ningún correo todavía, aún dentro de la ventana. `ok`: lo demás.
+
+            * `ok` - ok
+            * `quiet` - quiet
+            * `paused` - paused
+            * `error` - error
+            * `waiting` - waiting
+        status:
+          $ref: '#/components/schemas/StatusB9bEnum'
+        last_event_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        last_event_status:
+          description: |-
+            `null` si aún no llegó ningún correo.
+
+            * `proposed` - Proposed
+            * `auto_confirmed` - Confirmed by a rule
+            * `approved` - Approved
+            * `modified` - Approved with changes
+            * `discarded` - Discarded
+            * `undone` - Undone
+            * `rejected_auth` - Rejected: not authenticated
+            * `parse_error` - Could not be read
+          oneOf:
+          - $ref: '#/components/schemas/SyncEventStatusEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        last_error_code:
+          type:
+          - string
+          - 'null'
+          description: El código del último evento rechazado o ilegible (`not_authenticated`,
+            `no_template`...). Nunca su contenido.
+        last_error_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        rejected_count:
+          type: integer
+        quiet_days:
+          type: integer
+          description: 'El umbral del servidor (`FMS_SYNC_HEALTH_DAYS`): días sin
+            correos para avisar.'
+        days_since_last_event:
+          type: integer
+          description: Días desde el último correo (o desde que se creó la conexión
+            si no llegó ninguno).
+        quiet:
+          type: boolean
+          description: '`true` si la conexión está activa y callada.'
+      required:
+      - connection_id
+      - days_since_last_event
+      - last_error_at
+      - last_error_code
+      - last_event_at
+      - last_event_status
+      - quiet
+      - quiet_days
+      - rejected_count
+      - state
+      - status
+    SyncConnectionHealthStateEnum:
+      enum:
+      - ok
+      - quiet
+      - paused
+      - error
+      - waiting
+      type: string
+      description: |-
+        * `ok` - ok
+        * `quiet` - quiet
+        * `paused` - paused
+        * `error` - error
+        * `waiting` - waiting
     SyncConnectionPage:
       type: object
       properties:
@@ -32400,6 +32597,18 @@ components:
           type:
           - string
           - 'null'
+        description:
+          type:
+          - string
+          - 'null'
+          description: 'La descripción **actual** del movimiento propuesto (o del
+            pendiente con el que cruzó): lo que «Modificar» muestra y edita. Solo
+            para el dueño o los miembros del hogar; nunca el correo.'
+        notes:
+          type:
+          - string
+          - 'null'
+          description: La nota actual del movimiento propuesto (como `description`).
         last4:
           type:
           - string
@@ -32457,6 +32666,7 @@ components:
       - counterparty
       - date
       - decided_at
+      - description
       - error_code
       - id
       - institution_code
@@ -32465,6 +32675,7 @@ components:
       - mail_link
       - match
       - movement_id
+      - notes
       - received_at
       - reference
       - rule_id

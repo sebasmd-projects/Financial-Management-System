@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/api";
 import type { Budget, BudgetHistory } from "@/api/models";
@@ -13,6 +14,7 @@ import { DrillLink } from "../drill-link";
 import { fill } from "../helpers";
 import { useHref, useResource, useSubmit } from "../hooks";
 import { Banner, ErrorState, Loading, Modal, Money, Progress, ScreenHeader, Section } from "../kit";
+import { RemoveDialog } from "../shared/remove";
 import { BudgetForm } from "./budget-form";
 import { BudgetState, stateTone } from "./budgets-screen";
 import { budgetName } from "./logic";
@@ -28,6 +30,8 @@ export function BudgetDetail({ id }: { id: string }) {
   const lookups = useLookups();
   const submit = useSubmit();
   const [editing, setEditing] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const router = useRouter();
   const back = { href: href("plan-presupuestos"), label: dict.screens["plan-presupuestos"] };
 
   if (budget.loading && !budget.data) return <div className="screen"><ScreenHeader title={dict.screens["plan-presupuesto"]} back={back} /><Loading /></div>;
@@ -84,9 +88,13 @@ export function BudgetDetail({ id }: { id: string }) {
           <button type="button" className="button button--ghost" disabled={submit.pending} onClick={() => void toggleActive()}>
             {b.active ? t.archive : t.restore}
           </button>
+          <button type="button" className="button button--ghost" onClick={() => setRemoving(true)}>
+            {dict.fin.own.delete}
+          </button>
         </div>
         {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
         <p className="hint">{t.executedNote}</p>
+        <RemoveDialog open={removing} kind="budget" id={b.id} name={name} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(back.href); }} />
       </section>
       <Section title={t.history}>
         {history.loading && !history.data && <Loading />}

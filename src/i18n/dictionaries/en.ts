@@ -66,6 +66,7 @@ export const en: Dictionary = {
       reglas: "Rules",
       parametros: "Colombia parameters",
       auditoria: "Audit",
+      papelera: "Trash",
     },
   },
   theme: {
@@ -219,6 +220,7 @@ export const en: Dictionary = {
     "config-reglas": "Rules",
     "config-parametros": "Colombia parameters",
     "config-auditoria": "Audit",
+    "config-papelera": "Trash",
     "movimientos-ingresos": "Income",
     "movimientos-egresos": "Expenses",
     "movimientos-transferencias": "Transfers",

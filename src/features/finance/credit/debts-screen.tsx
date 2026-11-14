@@ -83,7 +83,8 @@ export function DebtsScreen() {
       <RemoveDialog
         open={removing !== null}
         name={removing?.person ?? ""}
-        deletePath={removing ? paths.debt(removing.id) : ""}
+        kind="debt"
+        id={removing?.id ?? ""}
         onClose={() => setRemoving(null)}
         onDone={() => {
           setRemoving(null);

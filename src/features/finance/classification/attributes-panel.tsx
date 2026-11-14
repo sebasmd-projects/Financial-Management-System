@@ -7,6 +7,7 @@ import { paths, roots } from "@/api/paths";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
 import { fill } from "../helpers";
+import { RemoveDialog } from "../shared/remove";
 import { useResource, useSubmit } from "../hooks";
 import { Badge, Banner, Checkbox, Empty, ErrorState, FormActions, Loading, Modal, Segmented, TextArea, TextField } from "../kit";
 import { ATTRIBUTE_KINDS, ATTRIBUTE_TYPES, MAX_OPTIONS, parseOptions } from "./logic";
@@ -17,6 +18,7 @@ export function AttributesPanel() {
   const t = dict.fin.cls.attributes;
   const list = useResource<Page<CustomAttribute>>(paths.customAttributes());
   const [editing, setEditing] = useState<CustomAttribute | "new" | null>(null);
+  const [removing, setRemoving] = useState<CustomAttribute | null>(null);
   const items = list.data?.results ?? [];
   return (
     <div className="fin-stack">
@@ -48,10 +50,25 @@ export function AttributesPanel() {
                 {t.edit}
                 <span className="visually-hidden"> {attr.name}</span>
               </button>
+              <button type="button" className="button button--ghost" onClick={() => setRemoving(attr)}>
+                {dict.fin.own.delete}
+                <span className="visually-hidden"> {attr.name}</span>
+              </button>
             </li>
           ))}
         </ul>
       )}
+      <RemoveDialog
+        open={removing !== null}
+        kind="custom_attribute"
+        id={removing?.id ?? ""}
+        name={removing?.name ?? ""}
+        onClose={() => setRemoving(null)}
+        onDone={() => {
+          setRemoving(null);
+          list.reload();
+        }}
+      />
       <Modal open={editing !== null} title={editing === "new" || editing === null ? t.newTitle : t.editTitle} onClose={() => setEditing(null)}>
         {editing !== null && (
           <AttributeForm

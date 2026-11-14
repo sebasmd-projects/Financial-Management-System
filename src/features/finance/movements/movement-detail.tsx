@@ -19,6 +19,7 @@ import { AmountField, Badge, Banner, DefinitionList, Empty, ErrorState, FormActi
 import { AuthorLine, ReadOnlyBanner } from "../../household/notices";
 import { AnnulTransfer } from "../../household/cross-transfer";
 import { useCanWrite, useScope } from "../../household/scope-store";
+import { RemoveDialog } from "../shared/remove";
 import { EditPreviewPanel } from "./edit-preview";
 import { EntryTable } from "./entry-table";
 import { amountToInput } from "./movement-form";
@@ -38,6 +39,7 @@ export function MovementDetail({ id }: { id: string }) {
   const attributeDefs = useAll<CustomAttribute>(inHousehold ? null : paths.customAttributes());
   const [action, setAction] = useState<Action>(null);
   const [annullingTransfer, setAnnullingTransfer] = useState(false);
+  const [removing, setRemoving] = useState(false);
   const back = { href: href("movimientos"), label: dict.screens.movimientos };
 
   if (movement.loading && !movement.data) return <div className="screen"><ScreenHeader title={dict.screens.movimiento} back={back} /><Loading /></div>;
@@ -138,12 +140,18 @@ export function MovementDetail({ id }: { id: string }) {
           <button type="button" className="button button--ghost" onClick={() => setAction("annul")}>
             {pending ? t.discard : t.annul}
           </button>
+          <button type="button" className="button button--ghost" onClick={() => setRemoving(true)}>
+            {dict.fin.own.delete}
+          </button>
         </div>
       )}
-      {closed && canWrite && (
+      {closed && canWrite && !crossHalf && (
         <div className="actions">
           <button type="button" className="button button--ghost" onClick={duplicate}>
             {t.duplicate}
+          </button>
+          <button type="button" className="button button--ghost" onClick={() => setRemoving(true)}>
+            {dict.fin.own.delete}
           </button>
         </div>
       )}
@@ -202,6 +210,7 @@ export function MovementDetail({ id }: { id: string }) {
           }}
         />
       )}
+      <RemoveDialog open={removing} kind="movement" id={m.id} name={title} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(back.href); }} />
       <Modal open={action === "confirm"} title={t.confirm} onClose={() => setAction(null)}>
         <ConfirmForm movement={m} onDone={done} onCancel={() => setAction(null)} />
       </Modal>

@@ -18,8 +18,9 @@ import { paths, roots } from "@/api/paths";
 import { useI18n } from "@/i18n/provider";
 import { filterCategories, findExisting, ofKind, pathLabel } from "./category-search";
 import { fill } from "./helpers";
-import { useSubmit } from "./hooks";
+import { useResource, useSubmit } from "./hooks";
 import { FieldShell } from "./kit";
+import { hasTrashedCategories, type Deletion } from "../../../core/trash";
 
 type Item = { type: "none" } | { type: "category"; category: Category } | { type: "create"; name: string };
 
@@ -47,6 +48,10 @@ export function CategoryCombobox({ label, kind, categories, value, onChange, pla
   // Lo recién creado se suma a la lista mientras llega la recarga: la selección no depende de ella.
   const known = [...categories.items, ...added.filter((a) => !categories.items.some((c) => c.id === a.id))];
   const options = ofKind(known, kind);
+  // Sin categorías de este tipo solo se ofrecen las de por defecto si no hay categorías en la papelera (el servidor las cuenta como existentes).
+  const offerDefaults = options.length === 0 && !categories.loading;
+  const trash = useResource<Deletion[]>(offerDefaults ? "/deletions" : null);
+  const inTrash = hasTrashedCategories(trash.data);
   const selected = known.find((c) => c.id === value) ?? null;
   const text = query ?? "";
   const typed = text.replace(/\s+/g, " ").trim();
@@ -158,7 +163,8 @@ export function CategoryCombobox({ label, kind, categories, value, onChange, pla
         </ul>
         </div>
       </FieldShell>
-      {options.length === 0 && !categories.loading && (
+      {offerDefaults && inTrash && <p className="hint">{t.inTrash}</p>}
+      {offerDefaults && (trash.data !== null || trash.failure !== null) && !inTrash && (
         <button type="button" className="button button--ghost combobox__defaults" disabled={defaults.pending} onClick={() => void addDefaults()}>
           {defaults.pending ? dict.fin.common.saving : t.addDefaults}
         </button>

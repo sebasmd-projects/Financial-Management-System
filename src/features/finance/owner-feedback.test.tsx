@@ -12,7 +12,6 @@ import { LoanEditForm } from "./loans/loan-edit";
 import { LoansSection } from "./loans/loans-section";
 import { PrepaidInterestPanel } from "./loans/interest-panel";
 import { LoanForm } from "./loans/loan-form";
-import { RemoveDialog } from "./shared/remove";
 
 vi.mock("next/navigation", () => ({ useSearchParams: () => new URLSearchParams(), useRouter: () => ({ push: () => undefined, replace: () => undefined }), usePathname: () => "/es/finanzas" }));
 
@@ -48,47 +47,8 @@ describe("item 1: créditos en Cuentas", () => {
   });
 });
 
-describe("item 2: eliminar con las reglas del libro", () => {
-  it("pide confirmación y borra con DELETE", async () => {
-    const done = vi.fn();
-    mounted = await mountScreen(<RemoveDialog open name="Nequi" deletePath="/loans/loan-1" closePath="/loans/loan-1" onClose={() => undefined} onDone={done} />, { "DELETE /api/fms/v1/loans/loan-1": { status: 204 } });
-    expect(document.querySelector("dialog")?.textContent).toContain("¿Eliminar «Nequi»?");
-    click(byText(document.body, "button", "Sí, eliminar"));
-    await wait();
-    expect(mounted.mock.calls.map((c) => c.method)).toEqual(["DELETE"]);
-    expect(done).toHaveBeenCalled();
-  });
-  it("con historia (409 has_history) no borra: lo explica y ofrece Archivar / Cerrar", async () => {
-    const done = vi.fn();
-    mounted = await mountScreen(<RemoveDialog open name="Nequi" deletePath="/loans/loan-1" closePath="/loans/loan-1" onClose={() => undefined} onDone={done} />, {
-      "DELETE /api/fms/v1/loans/loan-1": { status: 409, json: { code: "has_history", detail: "x" } },
-      "PATCH /api/fms/v1/loans/loan-1": { status: 200, json: LOAN },
-    });
-    click(byText(document.body, "button", "Sí, eliminar"));
-    await wait();
-    const dialog = document.querySelector("dialog")?.textContent ?? "";
-    expect(dialog).toContain("No se puede eliminar");
-    expect(dialog).toContain("el libro no se borra");
-    expect(done).not.toHaveBeenCalled();
-    click(byText(document.body, "button", "Archivar / Cerrar"));
-    await wait();
-    const patch = mounted.mock.calls.find((c) => c.method === "PATCH");
-    expect(patch?.body).toEqual({ status: "closed" });
-    expect(patch?.headers.get("Idempotency-Key")).toBeTruthy();
-    expect(done).toHaveBeenCalled();
-  });
-  it("cerrar con saldo muestra por qué no se puede", async () => {
-    mounted = await mountScreen(<RemoveDialog open name="Nequi" deletePath="/loans/loan-1" closePath="/loans/loan-1" onClose={() => undefined} onDone={() => undefined} />, {
-      "DELETE /api/fms/v1/loans/loan-1": { status: 409, json: { code: "has_history" } },
-      "PATCH /api/fms/v1/loans/loan-1": { status: 409, json: { code: "balance_not_zero" } },
-    });
-    click(byText(document.body, "button", "Sí, eliminar"));
-    await wait();
-    click(byText(document.body, "button", "Archivar / Cerrar"));
-    await wait();
-    expect(document.querySelector("dialog")?.textContent).toContain("el saldo tiene que ser cero");
-  });
-});
+// «Eliminar» ya no «cierra» ni responde `409 has_history`: es un borrado lógico con vista previa y papelera (propietario, 2026-11-14).
+// Sus pruebas están en `trash/delete-dialog.test.tsx`.
 
 describe("item 2 y 3: editar el crédito y la cuota del banco", () => {
   it("edita el seguro y manda solo lo que cambió con Idempotency-Key", async () => {

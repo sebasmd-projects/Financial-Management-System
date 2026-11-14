@@ -28,6 +28,7 @@ export const CONFIG_SCREENS = [
   { slug: "reglas", en: "rules" },
   { slug: "parametros", en: "parameters" },
   { slug: "auditoria", en: "audit" },
+  { slug: "papelera", en: "trash" },
 ] as const;
 
 type Def = { id: string; section: SectionId | null; es: string; en: string };

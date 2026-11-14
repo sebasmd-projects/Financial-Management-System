@@ -101,7 +101,7 @@ export function RecurrenceDetail({ id }: { id: string }) {
         </div>
       )}
       {confirmCancel && <p className="hint">{t.cancelHint}</p>}
-      <RemoveDialog open={removing} name={r.name} deletePath={paths.recurrence(r.id)} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); recurrence.reload(); }} />
+      <RemoveDialog open={removing} kind="recurrence" id={r.id} name={r.name} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); recurrence.reload(); }} />
 
       <Section title={t.nextDates}>
         {r.next_dates.length === 0 ? (

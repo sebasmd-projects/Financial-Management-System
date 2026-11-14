@@ -83,8 +83,8 @@ export function LoansSection({ onChanged }: { onChanged?: () => void }) {
       <RemoveDialog
         open={removing !== null}
         name={removing?.name ?? ""}
-        deletePath={removing ? paths.loan(removing.id) : ""}
-        closePath={removing ? paths.loan(removing.id) : undefined}
+        kind="loan"
+        id={removing?.id ?? ""}
         onClose={() => setRemoving(null)}
         onDone={() => {
           setRemoving(null);

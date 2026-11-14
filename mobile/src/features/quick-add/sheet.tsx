@@ -10,6 +10,7 @@ import { es } from "@/i18n/es";
 import { space } from "@/theme/tokens";
 import { AppText, Button, Chip, Field, Notice } from "@/ui/primitives";
 import { findExisting } from "@core/categories";
+import { hasTrashedCategories, trashPaths, type Deletion } from "@core/trash";
 import { addDefaultCategories, cleanName, MAX_CATEGORY_NAME, pickOrCreateCategory } from "./category";
 import { Keypad } from "./keypad";
 import { displayAmount, pressKey, toAmount, type Key } from "./keypad-logic";
@@ -35,6 +36,8 @@ export function QuickAddSheet({ onClose }: { onClose: () => void }) {
   const draft = stored ?? EMPTY_DRAFT;
   const accounts = useResource<Page<Account>>(scopedPath(paths.accounts, scope));
   const categories = useResource<Page<Category>>(scopedPath(paths.categories, scope));
+  const trashed = useResource<Deletion[]>(categories.data && categories.data.results.length === 0 ? scopedPath(trashPaths.list, scope) : null);
+  const inTrash = hasTrashedCategories(trashed.data);
   const recents = useResource<Page<Movement>>(scopedPath(paths.recentMovements, scope));
   const [status, setStatus] = useState<Status>({ name: "idle" });
   const busy = useRef(false);
@@ -212,7 +215,8 @@ export function QuickAddSheet({ onClose }: { onClose: () => void }) {
         ) : null}
         {writable ? (
           <View style={styles.group}>
-            {allCategories.length === 0 && categories.data ? <Button label={t.addDefaults} kind="secondary" onPress={() => void addDefaults()} /> : null}
+            {allCategories.length === 0 && categories.data && inTrash ? <Notice tone="secondary">{t.categoriesInTrash}</Notice> : null}
+            {allCategories.length === 0 && categories.data && (trashed.data || trashed.failure) && !inTrash ? <Button label={t.addDefaults} kind="secondary" onPress={() => void addDefaults()} /> : null}
             <Field label={t.newCategory} value={newName} onChangeText={(text) => { setNewName(text); setCategoryNotice(null); }} maxLength={MAX_CATEGORY_NAME} autoCapitalize="sentences" returnKeyType="done" onSubmitEditing={() => void chooseOrCreateCategory()} />
             {typedName !== "" ? <Button label={sameName ? t.pickCategory(sameName.name) : t.createCategory(typedName)} kind="secondary" onPress={() => void chooseOrCreateCategory()} /> : null}
             {categoryNotice ? <Notice tone={categoryNotice.tone}>{categoryNotice.text}</Notice> : null}

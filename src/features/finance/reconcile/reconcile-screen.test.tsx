@@ -167,4 +167,14 @@ describe("conciliación", () => {
     expect(host.textContent).toContain("Solo se concilian cuentas de activo");
     expect(host.querySelector("form")).toBeNull();
   });
+
+  it("una conciliación «descuadrada» (se eliminó un movimiento conciliado) se muestra como tal y se puede reabrir", async () => {
+    const rec = { id: "r1", account_id: "acc-1", cutoff: "2026-10-31", statement_balance: "3512400.00", marked_balance: "3512400.00", entry_count: 3, status: "unbalanced", closed_at: "2026-11-01T10:00:00Z", reopened_at: null, reopen_reason: null };
+    mount({ "GET /api/fms/v1/reconciliations?account=acc-1&page_size=20": { status: 200, json: { count: 1, page: 1, page_size: 20, results: [rec] } } });
+    await wait();
+    const text = visible(host);
+    expect(text).toContain("Descuadrada");
+    expect(text).toContain("se eliminó un movimiento que ya estaba conciliado");
+    expect(button("Reabrir")).toBeTruthy();
+  });
 });

@@ -1,7 +1,6 @@
 /** Textos de los comentarios del propietario (2026-11-14): editar y eliminar, créditos en Cuentas, cuota del banco, intereses del periodo
  * inicial, mora en el préstamo y cuenta predeterminada. `fin-f-en.ts` cumple el mismo tipo. */
 export const errorsFEs = {
-  has_history: "Tiene movimientos en el libro y el libro no se borra: queda como historia. Puedes archivarla o cerrarla.",
   balance_not_zero: "Para cerrarla el saldo tiene que ser cero.",
   invalid_default_account: "Solo una cuenta o tarjeta abierta puede ser la predeterminada.",
   bank_installment_below_schedule: "La cuota del banco es menor que capital más interés: revisa la tasa y el plazo.",
@@ -25,18 +24,6 @@ export const finFEs = {
     moreActions: "Más acciones de {name}",
     closedBadge: "Cerrada",
     showClosed: "Mostrar cerradas",
-    remove: {
-      title: "¿Eliminar «{name}»?",
-      body: "Se anula lo que se cargó al crearla (el libro guarda el reverso) y deja de aparecer. No se puede deshacer.",
-      confirm: "Sí, eliminar",
-      working: "Eliminando…",
-      blockedTitle: "No se puede eliminar",
-      blockedBody: "Tiene movimientos registrados y el libro no se borra: lo ya registrado queda como historia. Puedes archivarla o cerrarla: deja de aparecer en las listas y conserva su historial.",
-      closeBody: "Para cerrarla el saldo tiene que ser cero.",
-      closing: "Cerrando…",
-      closed: "Cerrada: ya no aparece en las listas.",
-      deleted: "Eliminada.",
-    },
     default: {
       badge: "Predeterminada",
       toggle: "Usar como predeterminada",

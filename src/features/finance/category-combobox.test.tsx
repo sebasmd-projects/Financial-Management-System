@@ -145,6 +145,19 @@ describe("selector de categoría con alta en línea", () => {
     expect(options(view)).toEqual(["Sin categoría", "Alimentación", "Mercado"]);
   });
 
+  it("con categorías en la Papelera no empuja las de por defecto: avisa y no ofrece el botón", async () => {
+    const trashed = { id: "d1", kind: "category", object_id: "c9", label: "Mercado", deleted_at: "2026-11-14T10:00:00Z", purge_after: "2026-12-14T10:00:00Z", days_left: 30, affected: {}, deleted_by: null };
+    view = await mountScreen(<Harness />, { [LIST]: page([]), "GET /api/fms/v1/deletions": { status: 200, json: [trashed] } });
+    expect(view.host.textContent).toContain("Tienes categorías en la Papelera");
+    expect(view.host.textContent).not.toContain("Añadir categorías por defecto");
+  });
+
+  it("con la Papelera sin categorías sí ofrece las de por defecto", async () => {
+    view = await mountScreen(<Harness />, { [LIST]: page([]), "GET /api/fms/v1/deletions": { status: 200, json: [] } });
+    expect(view.host.textContent).toContain("Añadir categorías por defecto");
+    expect(view.host.textContent).not.toContain("Papelera");
+  });
+
   it("en inglés ofrece «Create “…”»", async () => {
     view = await mountScreen(<Harness />, { [LIST]: page([cat("1", ["Mercado"])]) }, "en");
     focus(box(view));

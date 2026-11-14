@@ -162,7 +162,7 @@ export function AccountDetail({ id }: { id: string }) {
         />
       )}
 
-      <RemoveDialog open={removing} name={a.name} deletePath={paths.account(a.id)} closePath={paths.account(a.id)} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(href("cuentas")); }} />
+      <RemoveDialog open={removing} kind="account" id={a.id} name={a.name} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(href("cuentas")); }} />
       <Modal open={renaming} title={dict.fin.own.account.editTitle} onClose={() => setRenaming(false)}>
         <RenameForm
           account={a}

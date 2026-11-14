@@ -36,5 +36,7 @@ describe("conciliación: cuentas", () => {
     expect(reopenable([r("1", "2026-10-31", "reopened"), r("2", "2026-09-30", "closed")])?.id).toBe("2");
     expect(reopenable([r("1", "2026-10-31", "reopened")])).toBeNull();
     expect(reopenable([])).toBeNull();
+    // «descuadrada» (se eliminó un movimiento conciliado): también se reabre, para volver a conciliar
+    expect(reopenable([r("1", "2026-09-30", "closed"), r("2", "2026-10-31", "unbalanced")])?.id).toBe("2");
   });
 });

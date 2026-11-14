@@ -18,7 +18,7 @@ export function sameScope(a: Scope, b: Scope): boolean {
  * Las raíces de la API que el hogar sabe servir bajo `households/{id}/…` (las mismas que la web). Lo que no está aquí sigue
  * siendo solo personal.
  */
-const HOUSEHOLD_ROOTS: ReadonlySet<string> = new Set(["accounts", "payment-methods", "entries", "movements", "transfers", "categories", "tags", "counterparties", "cost-centers", "reports", "liquidity", "dashboard", "summary"]);
+const HOUSEHOLD_ROOTS: ReadonlySet<string> = new Set(["accounts", "payment-methods", "entries", "movements", "transfers", "categories", "tags", "counterparties", "cost-centers", "reports", "liquidity", "dashboard", "summary", "deletions"]);
 
 /** Una clave estable del ámbito (para comparar y para claves de consulta). */
 export function scopeKey(scope: Scope): string {

@@ -151,8 +151,8 @@ export function AccountsScreen({ tab }: { tab: AccountsTab }) {
       <RemoveDialog
         open={removing !== null}
         name={removing?.name ?? ""}
-        deletePath={removing ? paths.account(removing.id) : ""}
-        closePath={removing ? paths.account(removing.id) : undefined}
+        kind="account"
+        id={removing?.id ?? ""}
         onClose={() => setRemoving(null)}
         onDone={() => {
           setRemoving(null);

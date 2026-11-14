@@ -33,6 +33,7 @@ export default function More() {
       </Card>
       <View style={{ gap: 8 }}>
         <Button label={t.statements} kind="secondary" onPress={() => router.push("/statements")} />
+        <Button label={t.trash} kind="secondary" onPress={() => router.push("/trash")} />
         <Button label={t.profile} kind="secondary" onPress={() => router.push("/security")} />
         <Button label={es.home.devices} kind="secondary" onPress={() => router.push("/devices")} />
         <Button label={es.home.signOut} kind="ghost" onPress={() => void session.logout()} />

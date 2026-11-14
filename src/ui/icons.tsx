@@ -31,6 +31,7 @@ const PATHS: Record<string, string> = {
   card: "M3 6.5h18v11H3zM3 10.5h18M6.5 14.5h4",
   transfer: "M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4",
   more: "M12 6h.01M12 12h.01M12 18h.01",
+  trash: "M4 7h16M10 7V4h4v3M6 7l1 13h10l1-13M10 11v6M14 11v6",
   star: "m12 3.5 2.7 5.5 6 .9-4.4 4.2 1 6-5.3-2.8L6.7 20l1-6L3.3 9.9l6-.9z",
   wallet: "M4 7.5h15a1 1 0 0 1 1 1V19H5a1 1 0 0 1-1-1zM4 7.5l12-3v3M16 13.5h.01",
 };

@@ -36,6 +36,7 @@ const HOUSEHOLD_ROOTS: ReadonlySet<string> = new Set([
   "liquidity",
   "dashboard",
   "summary",
+  "deletions",
 ]);
 
 /** `POST accounts/{id}/share` es personal aunque empiece por `accounts`: el hogar destino va en el cuerpo. */
@@ -77,6 +78,7 @@ const HOUSEHOLD_ROUTES: ReadonlySet<RouteId> = new Set<RouteId>([
   "informe",
   "informes-estadisticas",
   "config-categorias",
+  "config-papelera",
   "config-etiquetas",
   "notificaciones",
   "hogares",

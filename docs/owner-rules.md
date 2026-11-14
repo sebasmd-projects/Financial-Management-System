@@ -75,3 +75,18 @@ Respuestas del propietario a las preguntas del [plan de integración con los ban
    **sugiere** una regla cuando detecta un patrón, y el usuario también puede **escribir la suya**.
 7. Pexto Capital y los patrimonios autónomos: el propietario no sabe qué son en detalle; quedan fuera de la fase 1.
 8. «¿Bajarías el monto mínimo a cero?»: el propietario pidió la explicación; está en el plan (§3.1, «El monto mínimo de las alertas»).
+
+### 2026-11-14: integración con los bancos, segundas respuestas
+
+Respuestas del propietario a las preguntas abiertas del [plan de integración con los bancos](bank-integration-plan.md) (§8 de su versión 2):
+
+1. **Q2, canal**: se acepta el **reenvío filtrado a una dirección única por conexión** como forma de «conectar tu correo».
+2. **Q7, correo entrante**: el VPS puede recibir correo en `ingest.<dominio>`. Los usuarios en español reciben además una dirección en un subdominio con
+   nombre en español: se propone **`recibir.<dominio>`**. Los subdominios son una lista configurable (`FMS_SYNC_INGEST_DOMAINS`) con uno por defecto por
+   idioma; todos se enrutan igual.
+3. **Q3, contraseña de los PDF**: se **pide cada vez** por defecto. En Seguridad el usuario puede activar «guardar mi cédula»: se cifra con su DEK y la app
+   la prueba sola como contraseña del PDF. Nunca va a un registro; verla o cambiarla pide reautenticación.
+4. **Q4, reglas de autoconfirmación**: totalmente configurables. Una regla de **gasto no exige un rango de monto** (p. ej. un proveedor de montos variables
+   y nombre fijo). El rango de monto es opcional en toda regla.
+5. **Q5, «Modificar»**: **todos los campos** se pueden editar antes de aprobar, **el monto incluido** (queda auditado).
+6. **Q1, Nequi y Nu**: no se lee nada del teléfono salvo que sea estrictamente necesario; Nequi y Nu solo se **activan** en la app y se leen por correo.

@@ -29,3 +29,30 @@ Respuestas del propietario a las preguntas abiertas del diseño (2026-11-10):
 3. «Te queda»: ahorro primero (se restan los aportes planeados a metas).
 4. Autoconfirmación: solo las recurrencias que el propietario elija, con aviso al confirmarse.
 5. Pago de tarjeta por defecto en el Resumen: pago total del extracto (propuesta de diseño; no se preguntó, se puede cambiar).
+
+## Registro de decisiones
+
+### 2026-11-14: eliminar es un borrado lógico con papelera de 30 días
+
+Decisión del propietario, sobre todo lo que la persona puede crear (movimientos, cuentas, tarjetas, créditos, deudas, categorías, presupuestos,
+metas, activos y sus hijos, medios de pago, atributos personalizados, recurrencias, escenarios, reglas):
+
+1. **Eliminar = borrado lógico y, a los 30 días, borrado de verdad.** Lo eliminado desaparece de listas, saldos, informes, paneles, calendario,
+   exportaciones y búsqueda. Una cuenta (o tarjeta, crédito, deuda) **con movimientos** se elimina con todos ellos: ya no hay `409 has_history`.
+2. **Antes de confirmar**, la app muestra qué se verá afectado (productos relacionados, cuántos movimientos, medios de pago y recurrencias que
+   quedan sin enlace, metas cuyo aporte vuelve a la cuenta de origen) y, en una cuenta con movimientos, ofrece **exportarlos antes**
+   (el CSV que el importador vuelve a leer en las cuentas de activo; JSON en el resto).
+3. **Libro**: por dentro el libro sigue cuadrado: cada asiento eliminado escribe su reverso, **oculto** (no sale en ninguna lista), y la
+   verificación de saldos sigue pasando antes, después de restaurar y después de purgar.
+4. **Auditoría**: queda quién y cuándo eliminó y restauró; la purga a los 30 días es una acción **del sistema**. El registro de auditoría se conserva
+   (solo se añade) y no lleva montos.
+5. **Conciliados**: la persona puede reabrir la conciliación antes (opcional). Si confirma sin hacerlo, se elimina igual y esa conciliación queda
+   marcada **«descuadrada»** (estado nuevo, visible en la pantalla de conciliación).
+6. **Categorías**: eliminarla pasa sus movimientos a «Sin categoría». **Presupuestos y metas**: eliminación directa; los aportes de una meta con su propio
+   fondo vuelven a la cuenta de origen. **Activos**: caen con sus valorizaciones, costos y mantenimientos.
+7. **Papelera**: lista lo eliminado con los días que quedan y «Restaurar» (web: Configuración → Papelera; app: Más → Papelera).
+8. **Hogar**: las mismas reglas con el ámbito y los permisos del hogar: solo quien puede escribir elimina o restaura; un visor solo ve la papelera.
+   Las filas eliminadas siguen cifradas y la purga respeta la llave del hogar.
+
+Contrato: `GET deletions/preview`, `POST deletions`, `GET deletions`, `POST deletions/{id}/restore` y `POST deletions/export` (backend, `finance_trash`).
+Código: `core/trash.ts` (lógica y cliente compartidos), `src/features/finance/trash/` (web) y `mobile/src/features/trash/` (app).

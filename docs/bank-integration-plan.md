@@ -1,12 +1,14 @@
 # FMS: plan de integración con los bancos (solo lectura)
 
-Estado: **versión 2, con las decisiones del propietario** (2026-11-14). No hay código: esto es planeación. Lo que aquí se decide de
-arquitectura o de seguridad necesita un ADR nuevo (apéndice A); los agentes no editan ADR.
+Estado: **versión 3, con las segundas respuestas del propietario** (2026-11-14). La fase 1 del backend (tickets B1 a B7 y B11 a B15) está en la rama
+`feat/fms-email-sync` del repo del CV, pendiente de revisión; B8 a B10 esperan al *spike* S1 (§7). Lo que aquí se decide de arquitectura o de seguridad
+necesita un ADR nuevo (apéndice A); los agentes no editan ADR.
 
 Pedido del propietario (literal): «Empieza con la planeación para la integración con los propios bancos, no hace envíos,
 transferencias, únicamente lectura de movimientos».
 
-Decisiones del propietario que este plan aplica: [reglas del propietario, 2026-11-14](owner-rules.md#2026-11-14-integración-con-los-bancos-solo-lectura).
+Decisiones del propietario que este plan aplica: [reglas del propietario, 2026-11-14](owner-rules.md#2026-11-14-integración-con-los-bancos-solo-lectura) y
+[segundas respuestas](owner-rules.md#2026-11-14-integración-con-los-bancos-segundas-respuestas).
 Documentos relacionados: [plan técnico](technical-plan.md), [diseño](design-spec.md). En el repo del CV: `docs/adr/ADR-019-fms-finanzas.md`,
 `backend/apps/finance_import/README.md` (el importador que se reutiliza), `backend/apps/finance_automation/README.md` (reglas propias) y
 `backend/apps/finance_household/README.md` (Hogar).
@@ -128,7 +130,9 @@ Esa cuenta es del FMS, no del usuario, y nadie la consulta. Si el propietario pr
 
 ### 4.2 Recibir correo en el VPS
 
-* Un **subdominio de ingesta** dedicado (p. ej. `ingesta.<dominio>`), con su MX, servido por el correo de Virtualmin que ya existe.
+* **Subdominios de ingesta** dedicados (decisión del propietario): `ingest.<dominio>` y, para los usuarios en español, **`recibir.<dominio>`**, cada uno con su
+  MX, servidos por el correo de Virtualmin que ya existe. Son una lista configurable (`FMS_SYNC_INGEST_DOMAINS`, uno por defecto por idioma) y todos se
+  enrutan al mismo buzón.
   No mezcla nada con el correo del propietario. Tiene una dirección comodín hacia **un buzón de servicio** y límites de tamaño
   (256 KB por mensaje y 10 MB con adjuntos de extracto).
 * El *worker* de Celery lo lee por **IMAP sobre TLS al host** (sin abrir puertos nuevos al exterior; el MX ya escucha en el 25). La
@@ -184,7 +188,7 @@ Condiciones del propietario para aceptar uno: (1) credenciales solo en la pantal
 | Amenaza | Mitigación |
 |---|---|
 | **Suplantación**: alguien que conoce la dirección envía un correo con `From:` del banco | **DKIM** con `d=` alineado a la lista de dominios del banco (datos con vigencia), o ARC del reenviador declarado; si no, `rejected_auth`. La dirección lleva 128 bits al azar y se rota. Propuestas, no confirmaciones, salvo regla. Conciliación con el extracto |
-| Una regla de autoconfirmación abusada con un correo falso | Las reglas solo se evalúan sobre eventos con DKIM o ARC válidos **y** de la institución de la conexión; el monto tiene un rango obligatorio en reglas de ingreso |
+| Una regla de autoconfirmación abusada con un correo falso | Las reglas solo se evalúan sobre eventos con DKIM o ARC válidos **y** de la institución de la conexión. El rango de monto es **opcional** en toda regla (decisión del propietario, Q4): el texto y el tipo bastan |
 | Contenido hostil (HTML, adjuntos, bombas) | Tope de tamaño; texto extraído con un lector HTML sin red (no se sigue ningún enlace, no se carga nada remoto); adjuntos aceptados solo PDF, CSV, XLSX u OFX hacia el importador (archivo hostil); todo lo demás se ignora |
 | Repetición o reenvíos duplicados | HMAC del `Message-ID` más HMAC del contenido normalizado; huella ciega por fila del importador |
 | Lectura del buzón de servicio | Cada mensaje se borra del servidor al procesarlo; el *worker* es el único cliente; la credencial va en `.env`; alerta si el buzón acumula más de N mensajes |
@@ -219,8 +223,9 @@ apps/finance_sync/
   paga), `matches_confirmed` (un movimiento manual: se enlaza sin cambiarlo) o duplicado. Deshacer, conciliar y la inmutabilidad de lo
   conciliado vienen del importador.
 * **Extractos adjuntos**: van a `finance_import.analyze` como si se subieran (mismo tratamiento hostil) y producen una **propuesta de
-  importación** que el usuario confirma. Si el PDF tiene contraseña, se pide en el momento y no se guarda [Q3]. El lector de PDF es
-  nuevo (dependencia con ≥ 2 semanas publicada) y depende de S3.
+  importación** que el usuario confirma. Si el PDF tiene contraseña, **se pide cada vez**; en Seguridad el usuario puede activar «guardar mi cédula»
+  (cifrada con su DEK, reautenticación para verla o cambiarla) y el lector la prueba solo (decisión del propietario, Q3). El lector de PDF es nuevo
+  (dependencia con ≥ 2 semanas publicada) y depende de S3.
 * **Cruce entre canales**: la fila del extracto cruza con la propuesta o el movimiento creado desde el correo (`matches_pending` o
   `matches_confirmed`): **no duplica**.
 
@@ -230,8 +235,8 @@ apps/finance_sync/
    filtro por remitente del banco, reenviar a la dirección, y el código de confirmación que el FMS muestra) → explica el monto mínimo
    (§3.1) → «Probar»: el usuario reenvía un correo del banco y ve que llegó.
 2. **Aviso**: «Nuevo movimiento propuesto en <cuenta>», sin monto fuera de la app salvo preferencia.
-3. **Movimiento propuesto**: los campos extraídos y la categoría sugerida (por historial) → **Aprobar** | **Modificar** (fecha,
-   categoría, contraparte, nota; el monto se puede corregir, y queda auditado) | **«Ir al correo»** | descartar.
+3. **Movimiento propuesto**: los campos extraídos y la categoría sugerida (por historial) → **Aprobar** | **Modificar** (**todos los campos**, el monto
+   incluido: tipo, monto, fecha, cuenta, categoría, contraparte, descripción y nota; queda auditado antes y después; Q5) | **«Ir al correo»** | descartar.
 4. **Reglas**: tras aprobar 3 o más veces algo con el mismo patrón, el FMS sugiere «¿Confirmar siempre así?».
 
 ### 5.5 Reglas de autoconfirmación (sobre `finance_automation`)
@@ -241,7 +246,7 @@ apps/finance_sync/
 
 * **Disparador `sync_event`** con campos `institution` (opción), `kind` (ingreso, gasto, transferencia), `text` (operadores nuevos
   `contains`, `starts_with`, `eq` sobre la descripción o contraparte normalizada; 3 a 60 caracteres; sin regex), `amount` (`gte`/`lte`)
-  y `day_of_month` (`gte`/`lte`).
+  y `day_of_month` (`gte`/`lte`). Todo es opcional salvo que haya al menos una condición: una regla de gasto sin rango de monto vale (Q4).
 * **Acción `auto_confirm`** con categoría y contraparte opcionales. Hoy las reglas solo avisan; esta es la primera que **escribe**, y por
   eso: solo sobre eventos autenticados (§5.2), con aviso «Confirmado por la regla X» y deshacer con un toque (reverso), y auditada.
 * **Sugerencias** (`domain/finance/sync/patterns.py`): 3 o más eventos aprobados con texto similar, el mismo tipo, montos a ±10 % y día
@@ -252,11 +257,10 @@ apps/finance_sync/
 
 ### 5.6 Nequi y Nu desde la app móvil
 
-Interpretación: estas dos instituciones **no aparecen en la web** hasta que el usuario las **activa en la app** (Más → Conexiones →
+Confirmado por el propietario (Q1): estas dos instituciones **no aparecen en la web** hasta que el usuario las **activa en la app** (Más → Conexiones →
 Nequi / Nu). Activarlas crea la conexión del **mismo canal de correo**: alertas de Nu si llegan por correo y extractos en PDF de Nequi
-enviados con «Enviar al correo». **No** lee notificaciones del teléfono ni pide permisos nuevos. **Ambigüedad** (pregunta Q1): el
-propietario puede haber querido decir que se activen desde la app porque espera que la app lea algo del teléfono. Eso está descartado
-por su propia decisión 3.
+enviados con «Enviar al correo». **No** lee nada del teléfono (salvo que llegara a ser estrictamente necesario) ni pide permisos nuevos. El backend ya
+lo exige: crear una de estas conexiones fuera de la app da `403 activate_from_app`.
 
 ### 5.7 Hogar
 
@@ -327,9 +331,9 @@ dependencias van entre paréntesis.
 | **B5** | `tasks.poll_ingest`: IMAP de la cuenta de servicio → token → conexión → B3 → analizador → evento; borra el mensaje (B3, B4) | Idempotente (mismo `Message-ID`: 0 eventos); token desconocido o rotado: descartado y contado; el buzón queda vacío tras el *run*; candado: dos *runs* a la vez no duplican; registros sin contenido (`caplog`) |
 | **B6** | Confirmación de reenvío: reconocer el correo de verificación del proveedor y exponer **solo el código** en la conexión (B5) | Un correo de confirmación de `google.com` con DKIM válido muestra el código; uno falso no; el código caduca a las 24 h |
 | **B7** | Propuestas: `finance_import.commit_rows(origin="sync")`; aprobar, modificar y descartar; deshacer por lote (B5) | Crea un pendiente con origen «sync»; cruza con una recurrencia o un manual sin duplicar ni cambiar el manual; modificar audita antes y después; deshacer anula con reverso; lo conciliado es inmutable |
-| **B8** | Analizador **Bancolombia** con *fixtures* sintéticos de S1 (B1) | Golden tests por plantilla (compra, retiro, transferencia recibida y enviada, pago); una plantilla desconocida da `parse_error` y guarda el original para depurar |
-| **B9** | Analizadores **AV Villas** y **Nu** (según S1) (B1) | Igual que B8 |
-| **B10** | Extractos adjuntos → `finance_import.analyze` → propuesta de importación (B5, B7) | CSV, XLSX y OFX adjuntos producen una propuesta que el usuario confirma; las filas cruzan con las propuestas del correo sin duplicar; un adjunto de otro tipo se ignora |
+| **B8** | **TODO, bloqueado por S1**: analizador **Bancolombia** con *fixtures* sintéticos de S1 (B1). Hoy el registro tiene solo el analizador **sintético** de referencia (`domain/finance/sync/parsers/synthetic.py`), que sirve de plantilla | Golden tests por plantilla (compra, retiro, transferencia recibida y enviada, pago); una plantilla desconocida da `parse_error` y guarda el original para depurar |
+| **B9** | **TODO, bloqueado por S1**: analizadores **AV Villas** y **Nu** (según S1) (B1) | Igual que B8 |
+| **B10** | **TODO, bloqueado por S1 y S3**: extractos adjuntos → `finance_import.analyze` → propuesta de importación (B5, B7). `mail.py` ya extrae los adjuntos permitidos y la cédula guardada está en `finance_sync.document.pdf_passwords` | CSV, XLSX y OFX adjuntos producen una propuesta que el usuario confirma; las filas cruzan con las propuestas del correo sin duplicar; un adjunto de otro tipo se ignora; un PDF con contraseña la pide o prueba la cédula guardada |
 | **B11** | Retención y salud: `purge` (originales y descartados a 30 días) y `health` (conexión sin eventos en N días: aviso) (B2) | Con el reloj adelantado se borra lo vencido y nada más; el aviso de salud sale una vez por ventana |
 | **B12** | Orden `fms_sync_debug` (clasificada en `apps/ops/registry.py`) que muestra el resultado del analizador sin montos (B2) | Solo el servicio la ejecuta; la salida no contiene ningún monto ni descripción (prueba); queda auditada |
 | **B13** | Reglas de autoconfirmación: disparador `sync_event`, operadores de texto, acción `auto_confirm`, y sugerencias por patrón en `finance_automation` y `domain/finance/sync/patterns.py` (B7) | Sin regex ni `eval` (las pruebas con `{{7*7}}` y `.*` salen literales); solo sobre eventos autenticados de la institución de la conexión; «Probar» sin efectos; 3 nóminas aprobadas sugieren una regla; deshacer una autoconfirmación anula con reverso |
@@ -346,15 +350,15 @@ Orden sugerido: S1 a S6 → B1, B2, B3 → B4, B5, B6 → B7, B8 → W1, W2, M1 
 
 ## 8. Preguntas abiertas para el propietario
 
+Respondidas el 2026-11-14 (ver [owner-rules](owner-rules.md#2026-11-14-integración-con-los-bancos-segundas-respuestas)): Q1 (solo se activan en la app; se leen por
+correo), Q2 (sí al canal D), Q3 (se pide cada vez; «guardar mi cédula» opcional), Q4 (el rango de monto es opcional), Q5 (todo se puede modificar, el monto
+incluido) y Q7 (sí: `ingest.<dominio>` y `recibir.<dominio>`).
+
 | # | Pregunta | Por qué |
 |---|---|---|
-| Q1 | Nequi y Nu «solo desde la app»: ¿quieres decir que **aparecen** solo si las activas en la app (y siguen usando el correo), o esperabas que la app leyera algo del teléfono (descartado por tu decisión 3)? | §5.6 |
-| Q2 | ¿Aceptas el canal D (reenvío filtrado a una dirección única por conexión, procesada en el servidor del FMS y borrada en el acto) como forma de «conectar tu correo»? ¿O prefieres esperar a B (Microsoft) y A (Google, de pago anual)? | §4.1 |
-| Q3 | Si un extracto en PDF trae contraseña (en Colombia suele ser el número de documento), ¿se pide cada vez o se guarda cifrada por institución? | Una contraseña de PDF no es la del banco, pero es un secreto |
-| Q4 | En una regla de autoconfirmación de **gasto** (no solo ingresos), ¿se exige siempre un rango de monto? | Limita el abuso con correos raros |
-| Q5 | ¿Se puede corregir el **monto** al «Modificar» una propuesta, o solo categoría, fecha y nota (y el monto lo corrige el extracto)? | Integridad frente a comodidad |
 | Q6 | ¿Autorizas pedir cotizaciones a Floid y Belvo (S4) en nombre del proyecto, sin datos personales? | Fase 4 |
-| Q7 | ¿Puede el VPS recibir correo en un subdominio nuevo? (Lo aplicas tú; si no, ¿aceptas un servicio de correo entrante gestionado dentro de los 20 USD?) | §4.2, S6 |
+| Q8 | ¿Te sirve `recibir.<dominio>` como subdominio en español, o prefieres otro (`correo-banco.`, `ingesta.`)? Es solo configuración (`FMS_SYNC_INGEST_DOMAINS`) | §4.2 |
+| Q9 | Las reglas de autoconfirmación de un **Hogar**: hoy la API de reglas es personal y un correo del Hogar siempre queda propuesto. ¿Las quieres por Hogar en la fase 1? | §5.7 |
 
 ## 9. Fuentes (consultadas el 2026-11-14)
 

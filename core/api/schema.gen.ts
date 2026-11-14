@@ -3160,6 +3160,26 @@ export interface paths {
         patch: operations["fmsSyncConnectionPatch"];
         trace?: never;
     };
+    "/api/fms/v1/households/{household_id}/sync/connections/{id}/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * La salud de una conexión según el servidor: último evento, último código de error y el umbral de silencio
+         * @description El estado lo calcula el servidor (la ventana `quiet_days` es `FMS_SYNC_HEALTH_DAYS`); el cliente no repite la regla. Solo códigos y fechas: nunca el contenido de un correo.
+         */
+        get: operations["fmsSyncConnectionHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/households/{household_id}/sync/connections/{id}/rotate": {
         parameters: {
             query?: never;
@@ -5546,6 +5566,26 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         patch: operations["fmsSyncConnectionPatch_2"];
+        trace?: never;
+    };
+    "/api/fms/v1/sync/connections/{id}/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * La salud de una conexión según el servidor: último evento, último código de error y el umbral de silencio
+         * @description El estado lo calcula el servidor (la ventana `quiet_days` es `FMS_SYNC_HEALTH_DAYS`); el cliente no repite la regla. Solo códigos y fechas: nunca el contenido de un correo.
+         */
+        get: operations["fmsSyncConnectionHealth_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/fms/v1/sync/connections/{id}/rotate": {
@@ -11985,6 +12025,10 @@ export interface components {
             ingest_domains: {
                 [key: string]: string;
             };
+            /** @description Los hosts permitidos para «Ir al correo», por proveedor (`gmail`, `outlook`, `other`; https siempre). El cliente solo abre un `mail_link.url` cuyo host esté aquí (con `noopener noreferrer`). */
+            mail_link_hosts: {
+                [key: string]: string[];
+            };
         };
         SyncConnection: {
             /** Format: uuid */
@@ -12038,6 +12082,56 @@ export interface components {
             /** @description Uno de `ingest_domains` del catálogo. */
             domain?: string;
         };
+        SyncConnectionHealth: {
+            /** Format: uuid */
+            connection_id: string;
+            /**
+             * @description `paused`: la pausaste. `quiet`: activa y sin correos hace `quiet_days` o más. `error`: el último evento fue rechazado o ilegible. `waiting`: activa y sin ningún correo todavía, aún dentro de la ventana. `ok`: lo demás.
+             *
+             *     * `ok` - ok
+             *     * `quiet` - quiet
+             *     * `paused` - paused
+             *     * `error` - error
+             *     * `waiting` - waiting
+             */
+            state: components["schemas"]["SyncConnectionHealthStateEnum"];
+            status: components["schemas"]["StatusB9bEnum"];
+            /** Format: date-time */
+            last_event_at: string | null;
+            /**
+             * @description `null` si aún no llegó ningún correo.
+             *
+             *     * `proposed` - Proposed
+             *     * `auto_confirmed` - Confirmed by a rule
+             *     * `approved` - Approved
+             *     * `modified` - Approved with changes
+             *     * `discarded` - Discarded
+             *     * `undone` - Undone
+             *     * `rejected_auth` - Rejected: not authenticated
+             *     * `parse_error` - Could not be read
+             */
+            last_event_status: components["schemas"]["SyncEventStatusEnum"] | components["schemas"]["NullEnum"];
+            /** @description El código del último evento rechazado o ilegible (`not_authenticated`, `no_template`...). Nunca su contenido. */
+            last_error_code: string | null;
+            /** Format: date-time */
+            last_error_at: string | null;
+            rejected_count: number;
+            /** @description El umbral del servidor (`FMS_SYNC_HEALTH_DAYS`): días sin correos para avisar. */
+            quiet_days: number;
+            /** @description Días desde el último correo (o desde que se creó la conexión si no llegó ninguno). */
+            days_since_last_event: number;
+            /** @description `true` si la conexión está activa y callada. */
+            quiet: boolean;
+        };
+        /**
+         * @description * `ok` - ok
+         *     * `quiet` - quiet
+         *     * `paused` - paused
+         *     * `error` - error
+         *     * `waiting` - waiting
+         * @enum {string}
+         */
+        SyncConnectionHealthStateEnum: "ok" | "quiet" | "paused" | "error" | "waiting";
         SyncConnectionPage: {
             count: number;
             page: number;
@@ -12073,6 +12167,10 @@ export interface components {
             amount: string | null;
             kind: components["schemas"]["Kind963Enum"] | components["schemas"]["BlankEnum"];
             counterparty: string | null;
+            /** @description La descripción **actual** del movimiento propuesto (o del pendiente con el que cruzó): lo que «Modificar» muestra y edita. Solo para el dueño o los miembros del hogar; nunca el correo. */
+            description: string | null;
+            /** @description La nota actual del movimiento propuesto (como `description`). */
+            notes: string | null;
             last4: string | null;
             reference: string | null;
             match: components["schemas"]["ImportMatchEnum"] | components["schemas"]["BlankEnum"];
@@ -24243,6 +24341,55 @@ export interface operations {
             };
         };
     };
+    fmsSyncConnectionHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnectionHealth"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsSyncConnectionRotate: {
         parameters: {
             query?: never;
@@ -32235,6 +32382,54 @@ export interface operations {
             };
             /** @description Valida pero no se puede aplicar (`code` dice por qué). */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsSyncConnectionHealth_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncConnectionHealth"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

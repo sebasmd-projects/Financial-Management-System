@@ -6,7 +6,7 @@ import { useI18n } from "@/i18n/provider";
 import { fill, signedAmount } from "../helpers";
 import { useSubmit } from "../hooks";
 import { Badge, Banner, Money } from "../kit";
-import { canUndo, editableFields, eventMoneyType, isProposed, safeMailUrl, syncApi, type SyncEvent } from "../../../../core/sync";
+import { canUndo, editableFields, eventMoneyType, isProposed, safeMailUrl, syncApi, type MailHosts, type SyncEvent } from "../../../../core/sync";
 
 const sync = syncApi(api);
 
@@ -27,7 +27,7 @@ const STATUS_TONE: Record<string, "neutral" | "info" | "positive" | "warning" | 
  * Una propuesta del correo: solo los campos que el servidor extrajo (fecha, monto, tipo, comercio, últimos 4) y «Ir al correo». Nunca se muestra el
  * correo. Aprobar y descartar llevan `Idempotency-Key`; «Modificar» abre el formulario; lo decidido se puede deshacer (anula con reverso).
  */
-export function EventCard({ event, where, canWrite, onDecided, onModify }: { event: SyncEvent; where: string | null; canWrite: boolean; onDecided: (event: SyncEvent, decision: Decision) => void; onModify: (event: SyncEvent) => void }) {
+export function EventCard({ event, mailHosts, where, canWrite, onDecided, onModify }: { event: SyncEvent; mailHosts?: MailHosts; where: string | null; canWrite: boolean; onDecided: (event: SyncEvent, decision: Decision) => void; onModify: (event: SyncEvent) => void }) {
   const { dict, locale } = useI18n();
   const t = dict.fin.sync.review;
   const submit = useSubmit();
@@ -42,7 +42,7 @@ export function EventCard({ event, where, canWrite, onDecided, onModify }: { eve
     if (result.ok) onDecided(result.data, decision);
   }
 
-  const mail = safeMailUrl(event.mail_link);
+  const mail = safeMailUrl(event.mail_link, mailHosts);
   const hint = event.mail_link?.search_hint ?? "";
   const match = event.match ? t.match[event.match] : undefined;
   return (

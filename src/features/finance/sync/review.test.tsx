@@ -2,7 +2,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { byText, click, mountScreen, typeInto, wait, type Mounted } from "@/test/render";
 import { setScope } from "../../household/scope-store";
-import { ACCOUNTS, CATEGORIES, CONNECTION, EVENT, page } from "@/test/sync-fixtures";
+import { ACCOUNTS, CATALOG, CATEGORIES, CONNECTION, EVENT, page } from "@/test/sync-fixtures";
 import { NavReviewCount, ReviewCountProvider } from "./review-count";
 import { ReviewScreen } from "./review-screen";
 
@@ -50,6 +50,22 @@ describe("«Por revisar» (W2)", () => {
     expect([...view.host.querySelectorAll("a")].some((a) => a.textContent?.includes("Ir al correo"))).toBe(false);
     expect(view.host.innerHTML).not.toContain("javascript:");
     expect(view.visible()).toContain("from:bancolombia.test 2026-11-13");
+  });
+
+  it("los hosts de «Ir al correo» los da el catálogo del servidor; sin catálogo, la lista incorporada (siempre https y noopener)", async () => {
+    const office = { ...EVENT, mail_link: { exact: false, provider: "outlook", search_hint: "from:banco.test", url: "https://outlook.office.com/mail/" } };
+    view = await mountScreen(<ReviewScreen />, { ...BASE, [PROPOSED]: events(office) });
+    expect([...view.host.querySelectorAll("a")].some((a) => a.textContent?.includes("Ir al correo"))).toBe(false); // el catálogo no llegó
+    view.unmount();
+    const catalog = { ...CATALOG, mail_link_hosts: { gmail: ["mail.google.com"], outlook: ["outlook.live.com", "outlook.office.com"], other: [] } };
+    view = await mountScreen(<ReviewScreen />, { ...BASE, "GET /api/fms/v1/sync/catalog": { status: 200, json: catalog }, [PROPOSED]: events(office) });
+    const link = byText<HTMLAnchorElement>(view.host, "a", "Ir al correo");
+    expect(link.getAttribute("href")).toBe("https://outlook.office.com/mail/");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    view.unmount();
+    const http = { ...office, mail_link: { ...office.mail_link, url: "http://outlook.office.com/mail/" } };
+    view = await mountScreen(<ReviewScreen />, { ...BASE, "GET /api/fms/v1/sync/catalog": { status: 200, json: catalog }, [PROPOSED]: events(http) });
+    expect([...view.host.querySelectorAll("a")].some((a) => a.textContent?.includes("Ir al correo"))).toBe(false);
   });
 
   it("si el enlace no abre el mensaje exacto, da la pista de búsqueda (remitente y fecha)", async () => {
@@ -110,6 +126,22 @@ describe("«Por revisar» (W2)", () => {
     expect(post.body).toEqual({ amount: "250000" });
     expect(post.headers.get("Idempotency-Key")).toBeTruthy();
     expect(view.visible()).toContain("Aprobado con tus cambios");
+  });
+
+  it("Modificar muestra la descripción y la nota actuales; solo se envía lo que cambió y vaciar las borra", async () => {
+    const withNotes = { ...EVENT, description: "Compra Éxito", notes: "con la tarjeta" };
+    view = await mountScreen(<ReviewScreen />, { ...BASE, [PROPOSED]: events(withNotes), "POST /api/fms/v1/sync/events/e1/modify": { status: 200, json: { ...withNotes, status: "modified" } } });
+    click(byText(view.host, "button", "Modificar"));
+    await wait();
+    const form = modal();
+    const description = [...form.querySelectorAll<HTMLInputElement>("input")].find((i) => i.value === "Compra Éxito");
+    const notes = form.querySelector<HTMLTextAreaElement>("textarea")!;
+    expect(description).toBeTruthy();
+    expect(notes.value).toBe("con la tarjeta");
+    typeInto(notes, "");
+    click(byText(form, "button", "Guardar y aprobar"));
+    await wait();
+    expect(view.mock.calls.find((c) => c.url.endsWith("/modify"))!.body).toEqual({ notes: null });
   });
 
   it("modificar sin cambiar nada no sale a la red", async () => {

@@ -66,6 +66,7 @@ export const finSEn: typeof finSEs = {
         waiting: "Waiting for the first e-mail from the bank.",
         quiet: "No e-mails for {n} days (last one on {date}). Check the forwarding filter and the minimum amount of your bank's alerts.",
         paused: "Paused: no e-mail of this connection is read.",
+        error: "The last e-mail could not be read or was not signed by the bank. Check the forwarding filter.",
       },
       rejected: "{n} e-mails were rejected because they were not signed by the bank.",
       statements: "Includes attached statements",

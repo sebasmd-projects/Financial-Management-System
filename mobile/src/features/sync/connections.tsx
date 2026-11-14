@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet, Switch, View } from "react-native";
 import { formatDate } from "@core/dates";
-import { activeForwardingCode, connectionHealth, type Provider, type SyncCatalog, type SyncConnection, type SyncConnectionPage } from "@core/sync";
+import { activeForwardingCode, connectionHealth, syncPaths, type Provider, type SyncCatalog, type SyncConnection, type SyncConnectionHealth, type SyncConnectionPage } from "@core/sync";
 import { createIntents } from "@/api/ids";
 import { bumpData } from "@/features/common/invalidate";
 import { onMemoryWipe } from "@/features/common/memory";
@@ -167,7 +167,17 @@ export function ConnectionsScreen() {
 }
 
 function ConnectionCard({ connection, writable, onHow, onFlip, onRotate, onRemove }: { connection: SyncConnection; writable: boolean; onHow: () => void; onFlip: () => void; onRotate: () => void; onRemove: () => void }) {
-  const health = connectionHealth(connection);
+  // La salud la calcula el servidor (`sync/connections/{id}/health`); aquí no hay una regla de días.
+  const serverHealth = useResource<SyncConnectionHealth>(useScopedPath(syncPaths.health(connection.id)));
+  const reloadHealth = serverHealth.reload;
+  const firstStatus = useRef(connection.status);
+  useEffect(() => {
+    if (firstStatus.current !== connection.status) {
+      firstStatus.current = connection.status;
+      reloadHealth();
+    }
+  }, [connection.status, reloadHealth]);
+  const health = connectionHealth(connection, serverHealth.data);
   const paused = connection.status === "paused";
   const name = connection.label ? `${connection.institution_name} · ${connection.label}` : connection.institution_name;
   const code = activeForwardingCode(connection);
@@ -182,8 +192,8 @@ function ConnectionCard({ connection, writable, onHow, onFlip, onRotate, onRemov
         {paused ? t.paused : t.active}
         {connection.include_statements ? ` · ${t.statements}` : ""}
       </AppText>
-      <AppText accessibilityLiveRegion="polite" tone={health.state === "quiet" ? "negative" : "secondary"}>
-        {health.state === "ok" ? fill(t.health.ok, { date: when }) : health.state === "waiting" ? t.health.waiting : health.state === "quiet" ? fill(t.health.quiet, { n: String(health.days), date: when }) : t.health.paused}
+      <AppText accessibilityLiveRegion="polite" tone={health.state === "quiet" || health.state === "error" ? "negative" : "secondary"}>
+        {health.state === "ok" ? fill(t.health.ok, { date: when }) : health.state === "waiting" ? t.health.waiting : health.state === "quiet" ? fill(t.health.quiet, { n: String(health.days), date: when }) : health.state === "error" ? t.health.error : health.state === "paused" ? t.health.paused : ""}
       </AppText>
       {connection.rejected_count > 0 ? (
         <AppText kind="caption" tone="secondary">

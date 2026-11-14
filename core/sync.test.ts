@@ -17,6 +17,7 @@ import {
   ingestDomain,
   offeredInstitutions,
   offeredProviders,
+  mailHostsFrom,
   safeMailUrl,
   suggestedRuleName,
   syncApi,
@@ -39,6 +40,8 @@ const EVENT: SyncEvent = {
   amount: "180000.00",
   kind: "expense",
   counterparty: "Exito",
+  description: "Compra Éxito",
+  notes: null,
   last4: "1234",
   reference: null,
   match: "new",
@@ -72,11 +75,27 @@ describe("rutas", () => {
 
 describe("conexiones", () => {
   const now = new Date("2026-11-14T12:00:00Z");
-  it("la salud sale de la fecha del último correo", () => {
-    expect(connectionHealth({ status: "paused", last_event_at: "2026-11-13T00:00:00Z" }, now).state).toBe("paused");
-    expect(connectionHealth({ status: "active", last_event_at: null }, now).state).toBe("waiting");
-    expect(connectionHealth({ status: "active", last_event_at: "2026-11-13T12:00:00Z" }, now)).toEqual({ state: "ok", days: 1 });
-    expect(connectionHealth({ status: "active", last_event_at: "2026-10-31T12:00:00Z" }, now)).toEqual({ state: "quiet", days: 14 });
+  const server = (state: "ok" | "quiet" | "paused" | "error" | "waiting", days = 0, code: string | null = null) => ({ state, days_since_last_event: days, last_error_code: code });
+  it("la salud la decide el servidor: no hay una regla de días en el cliente", () => {
+    expect(connectionHealth({ status: "active" }, server("ok", 1))).toEqual({ state: "ok", days: 1, code: null });
+    // 3 días de silencio con un umbral de 2 (lo que diga el servidor): el cliente no lo contradice con su propia cuenta
+    expect(connectionHealth({ status: "active" }, server("quiet", 3))).toEqual({ state: "quiet", days: 3, code: null });
+    expect(connectionHealth({ status: "active" }, server("ok", 40)).state).toBe("ok");
+    expect(connectionHealth({ status: "active" }, server("waiting")).state).toBe("waiting");
+    expect(connectionHealth({ status: "active" }, server("error", 0, "not_authenticated"))).toEqual({ state: "error", days: 0, code: "not_authenticated" });
+  });
+  it("pausada se ve pausada; sin respuesta del servidor no se afirma nada", () => {
+    expect(connectionHealth({ status: "paused" }, server("ok", 1)).state).toBe("paused");
+    expect(connectionHealth({ status: "paused" }, null).state).toBe("paused");
+    expect(connectionHealth({ status: "active" }, null).state).toBe("unknown");
+    expect(connectionHealth({ status: "active" }, undefined).state).toBe("unknown");
+    expect(connectionHealth({ status: "active" }, server("paused")).state).toBe("unknown"); // salud vieja tras reanudar
+  });
+  it("la ruta y el cliente de la salud", async () => {
+    expect(syncPaths.health("a/b")).toBe("/sync/connections/a%2Fb/health");
+    const get = vi.fn(async () => ({ ok: true as const, status: 200, data: {} }));
+    await syncApi({ get, post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn() } as unknown as SyncClient).health("c1", { locale: "es" });
+    expect(get).toHaveBeenCalledWith("/sync/connections/c1/health", { locale: "es" });
   });
   it("el código de confirmación solo vale mientras no caduque", () => {
     expect(activeForwardingCode({ forwarding_code: "123456", forwarding_code_expires_at: "2026-11-15T00:00:00Z" }, now)).toBe("123456");
@@ -119,9 +138,10 @@ describe("conexiones", () => {
 });
 
 describe("«Ir al correo»", () => {
+  const gmail = (url: string | null) => ({ provider: "gmail", url });
   it("solo abre https en un servidor de correo conocido", () => {
-    expect(safeMailUrl({ url: EVENT.mail_link!.url })).toMatch(/^https:\/\/mail\.google\.com\//);
-    expect(safeMailUrl({ url: "https://outlook.live.com/mail/0/" })).toBe("https://outlook.live.com/mail/0/");
+    expect(safeMailUrl({ provider: "gmail", url: EVENT.mail_link!.url })).toMatch(/^https:\/\/mail\.google\.com\//);
+    expect(safeMailUrl({ provider: "outlook", url: "https://outlook.live.com/mail/0/" })).toBe("https://outlook.live.com/mail/0/");
   });
   it.each([
     "javascript:alert(1)",
@@ -135,11 +155,29 @@ describe("«Ir al correo»", () => {
     "no es una url",
     "",
   ])("descarta %j", (url) => {
-    expect(safeMailUrl({ url })).toBeNull();
+    expect(safeMailUrl(gmail(url))).toBeNull();
   });
-  it("sin enlace o sin url, nada", () => {
+  it("sin enlace o sin url, nada; y el host tiene que ser el del proveedor del enlace", () => {
     expect(safeMailUrl(null)).toBeNull();
-    expect(safeMailUrl({ url: null })).toBeNull();
+    expect(safeMailUrl(gmail(null))).toBeNull();
+    expect(safeMailUrl({ provider: "outlook", url: "https://mail.google.com/mail/u/0/" })).toBeNull();
+    expect(safeMailUrl({ provider: "other", url: "https://mail.google.com/" })).toBeNull();
+    expect(safeMailUrl({ provider: "constructor", url: "https://mail.google.com/" })).toBeNull();
+  });
+  it("valida contra los hosts que publica el catálogo y sigue en https", () => {
+    const hosts = mailHostsFrom({ mail_link_hosts: { gmail: ["mail.google.com"], outlook: ["outlook.live.com", "outlook.office.com"], other: [] } });
+    expect(safeMailUrl({ provider: "outlook", url: "https://outlook.office.com/mail/" }, hosts)).toBe("https://outlook.office.com/mail/");
+    expect(safeMailUrl({ provider: "outlook", url: "https://outlook.office.com/mail/" })).toBeNull(); // la lista incorporada no lo trae
+    expect(safeMailUrl({ provider: "outlook", url: "http://outlook.office.com/mail/" }, hosts)).toBeNull();
+    // un host quitado del catálogo deja de abrirse
+    const narrower = mailHostsFrom({ mail_link_hosts: { gmail: ["mail.google.com"], outlook: [], other: [] } });
+    expect(safeMailUrl({ provider: "outlook", url: "https://outlook.live.com/mail/0/" }, narrower)).toBeNull();
+  });
+  it("si el catálogo no llega o trae basura, la lista incorporada; un host que no es un host no entra", () => {
+    for (const bad of [null, undefined, {}, { mail_link_hosts: null }, { mail_link_hosts: { gmail: [] } }, { mail_link_hosts: { gmail: ["*.google.com", "https://mail.google.com", "mail.google.com/x", "a b", ""] } }]) {
+      expect(safeMailUrl({ provider: "gmail", url: "https://mail.google.com/mail/u/0/" }, mailHostsFrom(bad as never))).toBe("https://mail.google.com/mail/u/0/");
+      expect(safeMailUrl({ provider: "gmail", url: "https://evil.test/" }, mailHostsFrom(bad as never))).toBeNull();
+    }
   });
 });
 
@@ -176,6 +214,11 @@ describe("propuestas", () => {
   });
   it("descripción y nota solo viajan si se escribieron, y con tope", () => {
     expect(buildModify(EVENT, { ...draftFromEvent(EVENT), description: " Mercado ", notes: "n" })).toEqual({ ok: true, body: { description: "Mercado", notes: "n" } });
+    // lo actual viene en el evento: se muestra, no se reenvía si no cambió, y vaciarlo lo borra
+    expect(draftFromEvent(EVENT)).toMatchObject({ description: "Compra Éxito", notes: "" });
+    expect(buildModify(EVENT, { ...draftFromEvent(EVENT), amount: "181.000" })).toEqual({ ok: true, body: { amount: "181000" } });
+    expect(buildModify(EVENT, { ...draftFromEvent(EVENT), description: "" })).toEqual({ ok: true, body: { description: null } });
+    expect(buildModify({ ...EVENT, notes: "con la tarjeta" }, { ...draftFromEvent({ ...EVENT, notes: "con la tarjeta" }), notes: "" })).toEqual({ ok: true, body: { notes: null } });
     expect(buildModify(EVENT, { ...draftFromEvent(EVENT), description: "x".repeat(201) })).toEqual({ ok: false, problems: ["description"] });
     expect(buildModify(EVENT, { ...draftFromEvent(EVENT), notes: "x".repeat(281) })).toEqual({ ok: false, problems: ["notes"] });
   });
@@ -207,6 +250,12 @@ describe("reglas de autoconfirmación", () => {
     ]);
     expect(result.ok && result.body.action_category_id).toBe("cat");
     expect(result.ok && result.body.action_counterparty).toBe("Acme");
+  });
+  it("la institución es siempre una elección del catálogo (eq con su código); una condición anterior con texto no se edita", () => {
+    const result = buildAutoRule({ ...base, institution: "nu-colombia" });
+    expect(result.ok && result.conditions).toEqual([{ field: "institution", op: "eq", value: "nu-colombia" }]);
+    expect(draftFromConditions([{ field: "institution", op: "eq", value: "nu-colombia" }])?.institution).toBe("nu-colombia");
+    expect(draftFromConditions([{ field: "institution", op: "contains", value: "banco" }])).toBeNull();
   });
   it("sin ninguna condición, sin nombre, con texto corto o largo, rangos al revés: errores claros", () => {
     expect(buildAutoRule(base)).toEqual({ ok: false, problems: ["no_conditions"] });

@@ -10,7 +10,7 @@ import { useResource, useSubmit } from "../hooks";
 import { Badge, Banner, Empty, ErrorState, FormActions, Loading, Modal, ScreenHeader } from "../kit";
 import { ReadOnlyBanner } from "../../household/notices";
 import { useCanWrite } from "../../household/scope-store";
-import { activeForwardingCode, connectionHealth, syncApi, type Provider, type SyncCatalog, type SyncConnection, type SyncConnectionPage } from "../../../../core/sync";
+import { activeForwardingCode, connectionHealth, syncApi, syncPaths, type Provider, type SyncCatalog, type SyncConnection, type SyncConnectionHealth, type SyncConnectionPage } from "../../../../core/sync";
 import { Created, Wizard } from "./wizard";
 import { ForwardingGuide } from "./forwarding";
 
@@ -98,7 +98,9 @@ function ConnectionRow({ connection, canWrite, onDialog, onChanged }: { connecti
   const { dict, locale } = useI18n();
   const t = dict.fin.sync.conn;
   const toggle = useSubmit();
-  const health = connectionHealth(connection);
+  // La salud la calcula el servidor (`sync/connections/{id}/health`); aquí no hay una regla de días.
+  const serverHealth = useResource<SyncConnectionHealth>(syncPaths.health(connection.id));
+  const health = connectionHealth(connection, serverHealth.data);
   const code = activeForwardingCode(connection);
   const paused = connection.status === "paused";
   const name = connection.label ? `${connection.institution_name} · ${connection.label}` : connection.institution_name;
@@ -108,7 +110,10 @@ function ConnectionRow({ connection, canWrite, onDialog, onChanged }: { connecti
   async function flip() {
     const body = { status: paused ? ("active" as const) : ("paused" as const) };
     const result = await toggle.run({ id: connection.id, ...body }, () => sync.patchConnection(connection.id, body, { locale }));
-    if (result.ok) onChanged(paused ? t.resumed_ok : t.paused_ok);
+    if (result.ok) {
+      serverHealth.reload();
+      onChanged(paused ? t.resumed_ok : t.paused_ok);
+    }
   }
 
   return (
@@ -126,6 +131,7 @@ function ConnectionRow({ connection, canWrite, onDialog, onChanged }: { connecti
           {health.state === "waiting" && t.health.waiting}
           {health.state === "quiet" && fill(t.health.quiet, { n: String(health.days), date: when })}
           {health.state === "paused" && t.health.paused}
+          {health.state === "error" && t.health.error}
         </span>
         {connection.rejected_count > 0 && <span className="fin-row__sub muted">{fill(t.rejected, { n: String(connection.rejected_count) })}</span>}
         {connection.is_manager && code && (

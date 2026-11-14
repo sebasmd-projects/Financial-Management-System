@@ -2,7 +2,7 @@ import { Alert } from "react-native";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { ConnectionsScreen } from "@/features/sync/connections";
 import { scopeStore } from "@/features/scope/store";
-import { accounts, catalog, connection, page } from "./sync-fixtures";
+import { accounts, catalog, connection, health, page } from "./sync-fixtures";
 
 let mockKey = 0;
 jest.mock("expo-crypto", () => ({ randomUUID: () => `key-${++mockKey}` }));
@@ -15,15 +15,19 @@ jest.mock("@/auth/use-session", () => ({ useFms: () => mockFms }));
 
 const ADDRESS = "abcdefghijklmnopqrstuvwxyz234567@recibir.example.test";
 let connections: unknown[] = [];
+let healths: Record<string, unknown> = {};
 
 beforeEach(() => {
   mockKey = 0;
   connections = [];
+  healths = {};
   scopeStore.reset();
   for (const m of [mockGet, mockPost, mockPatch, mockDelete]) m.mockReset();
   mockGet.mockImplementation(async (path: string) => {
     if (path === "/sync/catalog") return { ok: true, status: 200, data: catalog };
     if (path.startsWith("/sync/connections?")) return { ok: true, status: 200, data: page(connections) };
+    const asked = /^\/sync\/connections\/([^/]+)\/health$/.exec(path);
+    if (asked) return healths[asked[1]] ? { ok: true, status: 200, data: healths[asked[1]] } : { ok: false, status: 404, code: "not_found", data: {} };
     if (path === "/sync/connections/c1") return { ok: true, status: 200, data: { ...connection, forwarding_code: "123456", forwarding_code_expires_at: "2099-01-01T00:00:00Z" } };
     if (path.startsWith("/accounts")) return { ok: true, status: 200, data: accounts };
     return { ok: false, status: 404, code: "not_found", data: {} };
@@ -31,13 +35,16 @@ beforeEach(() => {
 });
 
 describe("conexiones de correo (M1)", () => {
-  it("lista las conexiones con su salud", async () => {
-    connections = [connection, { ...connection, id: "c2", institution_name: "Davivienda", last_event_at: "2026-10-01T10:00:00Z" }, { ...connection, id: "c3", institution_name: "AV Villas", status: "paused" }, { ...connection, id: "c4", institution_name: "Otro", last_event_at: null }];
+  it("lista las conexiones con su salud, que la decide el servidor (sin una regla de días en la app)", async () => {
+    connections = [connection, { ...connection, id: "c2", institution_name: "Davivienda" }, { ...connection, id: "c3", institution_name: "AV Villas", status: "paused" }, { ...connection, id: "c4", institution_name: "Otro", last_event_at: null }, { ...connection, id: "c5", institution_name: "Scotia" }, { ...connection, id: "c6", institution_name: "Sin salud" }];
+    healths = { c1: health("ok", 40, "c1"), c2: health("quiet", 2, "c2"), c3: health("paused", 0, "c3"), c4: health("waiting", 0, "c4"), c5: health("error", 0, "c5") };
     await render(<ConnectionsScreen />);
     expect(await screen.findByText(/Al día: último correo el/)).toBeTruthy();
-    expect(screen.getByText(/Sin correos desde hace/)).toBeTruthy();
+    expect(await screen.findByText(/Sin correos desde hace 2 días/)).toBeTruthy();
     expect(screen.getByText(/Pausada: no se lee ningún correo/)).toBeTruthy();
     expect(screen.getByText("Esperando el primer correo del banco.")).toBeTruthy();
+    expect(await screen.findByText(/no venía firmado por el banco/)).toBeTruthy();
+    expect(mockGet.mock.calls.some(([path]) => path === "/sync/connections/c6/health")).toBe(true); // sin respuesta: no afirma nada
   });
 
   it("Nequi y Nu son interruptores y solo existen aquí: encender uno sin conexión abre el asistente con ese banco elegido", async () => {

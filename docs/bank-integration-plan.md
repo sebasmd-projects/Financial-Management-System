@@ -453,3 +453,12 @@ plantilla no cambie: se vigila con la tarea `health` y con *fixtures* versionado
 correo (mitigada con DKIM o ARC, propuestas y conciliación) y una dirección filtrada (rotación). Dependencias nuevas: `dkimpy` y, si S3
 lo confirma, un lector de PDF, con ≥ 2 semanas de publicadas. El VPS recibe correo en un subdominio (lo configura el propietario). Se
 reevalúa cuando la SFC expida el estándar de historial transaccional o un agregador cotice dentro del presupuesto.
+
+## Huecos del contrato que encontró la interfaz (2026-11-14)
+
+* **Modificar** parte de lo actual: el evento trae `description` y `notes` (descifradas solo para el dueño o el hogar); solo se envía lo que cambió y vaciar un campo lo borra (`null`).
+* **Salud** (`GET sync/connections/{id}/health`): la web y la app muestran el estado que calcula el servidor (`ok`, `waiting`, `quiet`, `error`, `paused`); ya no hay una regla de 14 días en el cliente.
+* **Institución de una regla** (`sync_event`): una opción entre los códigos de `sync/catalog` (`eq`), validada en el servidor.
+* **«Ir al correo»**: los hosts permitidos salen de `sync/catalog` (`mail_link_hosts`); se valida el host del proveedor del enlace, solo https, `noopener noreferrer`, con una lista incorporada si el catálogo no llega.
+* Repetir la `Idempotency-Key` de crear no devuelve la dirección (solo se guarda el hash): el camino es **rotar**.
+

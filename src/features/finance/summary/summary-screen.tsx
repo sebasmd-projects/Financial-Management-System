@@ -15,6 +15,7 @@ import { Badge, DefinitionList, Empty, ErrorState, HiddenAmountsContext, Loading
 import { ConsolidatedSummary } from "../../household/consolidated-summary";
 import { useScope } from "../../household/scope-store";
 import { AmountOrPending, IndexNoticeBanner, PendingAmount } from "../uvr/pending";
+import { ReviewCard } from "../sync/review-card";
 import { alertTarget, barSegments, clampIndex, isFirstUse, railTarget } from "./logic";
 
 const PERIODS_BACK = 11;
@@ -67,6 +68,7 @@ export function SummaryScreen() {
           </p>
         )}
 
+        <ReviewCard />
         {both && <ConsolidatedSummary householdId={both.id} period={period} />}
         {!both && data.loading && !d && <Loading />}
         {!both && data.failure && <ErrorState message={t.loadError} onRetry={data.reload} />}

@@ -75,5 +75,9 @@ export const IMPLEMENTED: ReadonlySet<RouteId> = new Set<RouteId>([
   "config-monedas",
   "config-auditoria",
   "config-papelera",
+  "config-conexiones",
+  "config-autoconfirmacion",
+  "movimientos-por-revisar",
+  "perfil",
   "notificaciones",
 ]);

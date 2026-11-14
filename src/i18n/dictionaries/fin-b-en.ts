@@ -260,6 +260,9 @@ export const finBEn: FinBDictionary = {
       low_balance: { title: "Insufficient balance", body: "Warns if the projected balance drops below zero." },
       renewal: { title: "Annual renewal", body: "Warns before a renewal." },
       period_start: { title: "Start of period", body: "Summarizes the month when it starts." },
+      sync_proposed: { title: "Movement to review", body: "Notifies you when an e-mail from your bank proposes a movement." },
+      sync_auto_confirmed: { title: "Confirmed by a rule", body: "Notifies you when an auto-confirm rule confirms a movement." },
+      sync_health: { title: "A connection receives no e-mails", body: "Notifies you if an e-mail connection has received nothing for days." },
     } as Record<string, { title: string; body: string }>,
   },
   recon: {

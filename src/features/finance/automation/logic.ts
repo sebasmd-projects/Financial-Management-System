@@ -15,7 +15,7 @@ export interface DraftCondition {
   value: string;
 }
 
-export const OPERATOR_SYMBOLS: Record<RuleOperator, string> = { gt: ">", gte: "≥", lt: "<", lte: "≤", eq: "=", ne: "≠" };
+export const OPERATOR_SYMBOLS: Record<RuleOperator, string> = { gt: ">", gte: "≥", lt: "<", lte: "≤", eq: "=", ne: "≠", contains: "∋", starts_with: "⊏" };
 
 export function fieldOf(trigger: RuleTrigger | undefined, key: string): RuleField | undefined {
   return trigger?.condition_fields.find((f) => f.key === key);
@@ -72,6 +72,9 @@ export function parseConditionValue(field: Pick<RuleField, "kind" | "choices">, 
     }
     case "option":
       return field.choices.includes(raw) ? raw : null;
+    case "text":
+      // Solo el disparador de los correos de los bancos tiene textos (su pantalla es «Autoconfirmación»): se comparan literales, de 3 a 60 caracteres.
+      return raw.length >= 3 && raw.length <= 60 ? raw : null;
   }
 }
 

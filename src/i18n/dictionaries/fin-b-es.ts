@@ -258,6 +258,9 @@ export const finBEs = {
       low_balance: { title: "Saldo insuficiente", body: "Avisa si el saldo proyectado baja de cero." },
       renewal: { title: "Renovación anual", body: "Avisa antes de una renovación." },
       period_start: { title: "Inicio de periodo", body: "Resume el mes cuando empieza." },
+      sync_proposed: { title: "Movimiento por revisar", body: "Avisa cuando un correo de tu banco propone un movimiento." },
+      sync_auto_confirmed: { title: "Confirmado por una regla", body: "Avisa cuando una regla de autoconfirmación confirma un movimiento." },
+      sync_health: { title: "Una conexión no recibe correos", body: "Avisa si una conexión de correo lleva días sin recibir nada." },
     } as Record<string, { title: string; body: string }>,
   },
   recon: {

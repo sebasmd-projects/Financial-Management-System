@@ -21,13 +21,13 @@ describe("árbol del propietario (diseño §1.1)", () => {
   });
   it("subelementos del diseño", () => {
     const labels = (id: string) => SECTIONS.find((s) => s.id === id)!.items.map((i) => es.nav.items[i.id]);
-    expect(labels("movimientos")).toEqual(["Ingresos", "Egresos", "Transferencias", "Historial", "Compartidos"]);
+    expect(labels("movimientos")).toEqual(["Por revisar", "Ingresos", "Egresos", "Transferencias", "Historial", "Compartidos"]);
     expect(labels("cuentas")).toEqual(["Bancos", "Efectivo", "Débito", "Crédito", "Importar extracto"]);
     expect(labels("pagos")).toEqual(["Suscripciones", "Gastos fijos", "Calendario"]);
     expect(labels("creditos")).toEqual(["Préstamos", "Cuotas", "Intereses", "Amortizaciones", "Deudas personales"]);
     expect(labels("plan")).toEqual(["Presupuestos", "Ahorro", "Objetivos"]);
     expect(labels("informes")).toEqual(["Estadísticas", "Proyecciones", "Patrimonio"]);
-    expect(labels("config")).toEqual(["Categorías", "Etiquetas", "Instituciones", "Monedas", "Reglas", "Parámetros Colombia", "Auditoría", "Papelera"]);
+    expect(labels("config")).toEqual(["Categorías", "Etiquetas", "Instituciones", "Monedas", "Reglas", "Parámetros Colombia", "Auditoría", "Papelera", "Conexiones", "Autoconfirmación"]);
     expect(labels("resumen")).toEqual([]);
   });
   it("todo subelemento tiene texto en los dos idiomas y su ruta existe", () => {

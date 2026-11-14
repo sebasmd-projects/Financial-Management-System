@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Notification } from "@/api/models";
-import { groupNotifications, isTime, offsetsText, parseOffsets, paymentTarget, timeInput } from "./logic";
+import { groupNotifications, isTime, offsetsText, parseOffsets, paymentTarget, timeInput, syncTarget } from "./logic";
 
 const n = (id: string, group: Notification["group"]) => ({ id, group }) as Notification;
 
@@ -30,5 +30,14 @@ describe("avisos", () => {
     expect(parseOffsets("a")).toBeNull();
     expect(parseOffsets("1,2,3,4,5,6,7")).toBeNull();
     expect(offsetsText([5, 1])).toBe("5, 1");
+  });
+});
+
+describe("avisos de los bancos por correo", () => {
+  it("un movimiento propuesto lleva a «Por revisar» y una conexión, a «Conexiones»; el resto, a nada", () => {
+    expect(syncTarget({ object_kind: "sync_event", object_id: "e1" })).toEqual({ kind: "review", route: "movimientos-por-revisar", params: [] });
+    expect(syncTarget({ object_kind: "sync_connection", object_id: "c1" })).toEqual({ kind: "connection", route: "config-conexiones", params: [] });
+    expect(syncTarget({ object_kind: "card", object_id: "x" })).toBeNull();
+    expect(syncTarget({ object_kind: "", object_id: null })).toBeNull();
   });
 });

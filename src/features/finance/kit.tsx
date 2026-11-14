@@ -217,7 +217,7 @@ function describedBy(id: string, hint?: string, error?: string | null): string |
   return error ? `${id}-error` : hint ? `${id}-hint` : undefined;
 }
 
-export function TextField({ label, hint, error, required, help, value, onChange, type = "text", inputMode, autoComplete = "off", maxLength, placeholder, list, name }: BaseField & { value: string; onChange: (value: string) => void; type?: "text" | "date" | "email" | "time"; inputMode?: "text" | "decimal" | "numeric"; autoComplete?: string; maxLength?: number; placeholder?: string; list?: string; name?: string }) {
+export function TextField({ label, hint, error, required, help, value, onChange, type = "text", inputMode, autoComplete = "off", maxLength, placeholder, list, name }: BaseField & { value: string; onChange: (value: string) => void; type?: "text" | "date" | "email" | "time" | "password"; inputMode?: "text" | "decimal" | "numeric"; autoComplete?: string; maxLength?: number; placeholder?: string; list?: string; name?: string }) {
   const id = useId();
   return (
     <FieldShell id={id} label={label} hint={hint} error={error} required={required} help={help}>

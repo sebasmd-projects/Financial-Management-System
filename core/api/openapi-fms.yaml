@@ -249,8 +249,8 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: Eliminar una cuenta sin historia (anula su saldo inicial con reverso
-        y la cierra); con movimientos, 409 `has_history`
+      summary: 'Eliminar una cuenta (borrado lógico): con sus movimientos, a la papelera
+        30 días; pide antes `GET deletions/preview`'
       parameters:
       - in: path
         name: id
@@ -1526,7 +1526,8 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: Borrar una regla (sus avisos ya creados se quedan)
+      summary: 'Eliminar una regla (borrado lógico: a la papelera 30 días; sus avisos
+        ya creados se quedan)'
       parameters:
       - in: path
         name: id
@@ -1541,7 +1542,7 @@ paths:
       - cvSession: []
       responses:
         '204':
-          description: Borrada.
+          description: Eliminada.
         '401':
           content:
             application/json:
@@ -2287,8 +2288,8 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: Eliminar una tarjeta sin historia (anula su saldo inicial con reverso
-        y la cierra); con movimientos, 409 `has_history`
+      summary: 'Eliminar una tarjeta (borrado lógico): con sus compras y pagos, a
+        la papelera 30 días; pide antes `GET deletions/preview`'
       parameters:
       - in: path
         name: id
@@ -4809,8 +4810,8 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: Eliminar una deuda sin abonos (anula su asiento con reverso y la cierra);
-        con abonos, 409 `has_history`
+      summary: 'Eliminar una deuda (borrado lógico): con sus abonos, a la papelera
+        30 días; pide antes `GET deletions/preview`'
       parameters:
       - in: path
         name: id
@@ -5061,6 +5062,284 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active`, `account_blocked` o
             `reauthentication_required`.'
+  /api/fms/v1/deletions:
+    get:
+      operationId: fmsDeletions
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'La papelera: lo eliminado que aún se puede restaurar (30 días), lo
+        más reciente primero'
+      tags:
+      - deletions
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Deletion'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+    post:
+      operationId: fmsDeletionCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Eliminar (borrado lógico): lo elegido y todo lo que depende de ello
+        caen juntos y se pueden restaurar 30 días; después se borran de verdad'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - deletions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeletionRequest'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deletion'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deletion'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/deletions/{id}/restore:
+    post:
+      operationId: fmsDeletionRestore
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Restaurar de la papelera (dentro de los 30 días): vuelve todo lo que
+        cayó con ello y se retiran los reversos ocultos'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - deletions
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deletion'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/deletions/export:
+    post:
+      operationId: fmsDeletionExport
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Exportar los movimientos de una cuenta, tarjeta, crédito o deuda **antes**
+        de eliminarla (csv que el importador acepta, o json); exige reautenticación
+        reciente
+      tags:
+      - deletions
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeletionExportRequest'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/deletions/preview:
+    get:
+      operationId: fmsDeletionPreview
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Qué se verá afectado si eliminas algo: productos relacionados, cuántos
+        movimientos, conciliaciones y si se puede exportar antes. No escribe nada'
+      parameters:
+      - in: query
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: kind
+        schema:
+          type: string
+        required: true
+      tags:
+      - deletions
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionPreview'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
   /api/fms/v1/devices:
     get:
       operationId: fmsDevices
@@ -6701,8 +6980,8 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: Eliminar una cuenta sin historia (anula su saldo inicial con reverso
-        y la cierra); con movimientos, 409 `has_history`
+      summary: 'Eliminar una cuenta (borrado lógico): con sus movimientos, a la papelera
+        30 días; pide antes `GET deletions/preview`'
       parameters:
       - in: path
         name: household_id
@@ -7837,6 +8116,316 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/deletions:
+    get:
+      operationId: fmsDeletions_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'La papelera: lo eliminado que aún se puede restaurar (30 días), lo
+        más reciente primero'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Deletion'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+    post:
+      operationId: fmsDeletionCreate_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Eliminar (borrado lógico): lo elegido y todo lo que depende de ello
+        caen juntos y se pueden restaurar 30 días; después se borran de verdad'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeletionRequest'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deletion'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deletion'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/deletions/{id}/restore:
+    post:
+      operationId: fmsDeletionRestore_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Restaurar de la papelera (dentro de los 30 días): vuelve todo lo que
+        cayó con ello y se retiran los reversos ocultos'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deletion'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/deletions/export:
+    post:
+      operationId: fmsDeletionExport_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Exportar los movimientos de una cuenta, tarjeta, crédito o deuda **antes**
+        de eliminarla (csv que el importador acepta, o json); exige reautenticación
+        reciente
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeletionExportRequest'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/deletions/preview:
+    get:
+      operationId: fmsDeletionPreview_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Qué se verá afectado si eliminas algo: productos relacionados, cuántos
+        movimientos, conciliaciones y si se puede exportar antes. No escribe nada'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: kind
+        schema:
+          type: string
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletionPreview'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
   /api/fms/v1/households/{household_id}/entries:
     get:
       operationId: fmsEntries_2
@@ -11458,8 +12047,8 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: Eliminar un préstamo sin cuotas pagadas (anula su desembolso con reverso
-        y lo cierra); con pagos, 409 `has_history`
+      summary: 'Eliminar un préstamo (borrado lógico): con sus pagos, a la papelera
+        30 días; pide antes `GET deletions/preview`'
       parameters:
       - in: path
         name: id
@@ -15409,8 +15998,9 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: 'Eliminar una recurrencia: se cancela: deja de generar. Lo ya generado
-        y pagado queda en el libro (nada se borra del libro)'
+      summary: 'Eliminar una recurrencia (borrado lógico: a la papelera 30 días):
+        deja de generar y sus pendientes se van con ella. Lo ya pagado queda en el
+        libro'
       parameters:
       - in: path
         name: id
@@ -16030,8 +16620,8 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: 'Borrar un escenario (no toca el libro: un escenario nunca escribió
-        en él)'
+      summary: 'Eliminar un escenario (borrado lógico: a la papelera 30 días; no toca
+        el libro: un escenario nunca escribió en él)'
       parameters:
       - in: path
         name: id
@@ -16046,7 +16636,7 @@ paths:
       - cvSession: []
       responses:
         '204':
-          description: Borrado.
+          description: Eliminado.
         '401':
           content:
             application/json:
@@ -20700,6 +21290,189 @@ components:
           $ref: '#/components/schemas/ConfirmEnum'
       required:
       - confirm
+    Deletion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+        object_id:
+          type: string
+          format: uuid
+        label:
+          type: string
+        deleted_at:
+          type: string
+          format: date-time
+        purge_after:
+          type: string
+          format: date-time
+        days_left:
+          type: integer
+          description: 'Días que quedan para restaurarlo (0: se purga hoy).'
+        affected:
+          type: object
+          additionalProperties:
+            type: integer
+        deleted_by:
+          oneOf:
+          - $ref: '#/components/schemas/Person'
+          - type: 'null'
+          description: Quién eliminó (en un hogar, el miembro).
+      required:
+      - affected
+      - days_left
+      - deleted_at
+      - deleted_by
+      - id
+      - kind
+      - label
+      - object_id
+      - purge_after
+    DeletionExportRequest:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/DeletionExportRequestKindEnum'
+        id:
+          type: string
+          format: uuid
+        format:
+          $ref: '#/components/schemas/DeletionExportRequestFormatEnum'
+      required:
+      - format
+      - id
+      - kind
+    DeletionExportRequestFormatEnum:
+      enum:
+      - csv
+      - json
+      type: string
+      description: |-
+        * `csv` - csv
+        * `json` - json
+    DeletionExportRequestKindEnum:
+      enum:
+      - account
+      - card
+      - loan
+      - debt
+      type: string
+      description: |-
+        * `account` - account
+        * `card` - card
+        * `loan` - loan
+        * `debt` - debt
+    DeletionPreview:
+      type: object
+      properties:
+        kind:
+          type: string
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+        retention_days:
+          type: integer
+        affected:
+          type: object
+          additionalProperties:
+            type: integer
+          description: 'Cuántas cosas de cada clase caen además de la raíz: `movements`,
+            `accounts`, `cards`, `loans`, `debts`, `payment_methods`, `recurrences`,
+            `budgets`, `goals`, `reconciliations`, `attachments`..., y las que **quedan
+            sin enlace** (`movements_uncategorized` pasan a «Sin categoría»).'
+        items:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/Item'
+          description: Hasta 10 nombres por clase, para reconocerlos.
+        movements:
+          type: integer
+        reconciled:
+          $ref: '#/components/schemas/Reconciled'
+        export:
+          $ref: '#/components/schemas/ExportHint'
+        returns_to:
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+          description: 'Metas: las cuentas a las que vuelve lo aportado.'
+        digest:
+          type: string
+      required:
+      - affected
+      - digest
+      - export
+      - id
+      - items
+      - kind
+      - label
+      - movements
+      - reconciled
+      - retention_days
+      - returns_to
+    DeletionRequest:
+      type: object
+      properties:
+        kind:
+          $ref: '#/components/schemas/DeletionRequestKindEnum'
+        id:
+          type: string
+          format: uuid
+        digest:
+          type: string
+          description: 'El `digest` de la vista previa: si lo que caería cambió desde
+            entonces, `409 preview_stale`.'
+          maxLength: 64
+      required:
+      - id
+      - kind
+    DeletionRequestKindEnum:
+      enum:
+      - movement
+      - account
+      - card
+      - loan
+      - debt
+      - category
+      - budget
+      - goal
+      - asset
+      - asset_valuation
+      - vehicle_cost
+      - maintenance_item
+      - maintenance_record
+      - payment_method
+      - custom_attribute
+      - recurrence
+      - scenario
+      - rule
+      type: string
+      description: |-
+        * `movement` - movement
+        * `account` - account
+        * `card` - card
+        * `loan` - loan
+        * `debt` - debt
+        * `category` - category
+        * `budget` - budget
+        * `goal` - goal
+        * `asset` - asset
+        * `asset_valuation` - asset_valuation
+        * `vehicle_cost` - vehicle_cost
+        * `maintenance_item` - maintenance_item
+        * `maintenance_record` - maintenance_record
+        * `payment_method` - payment_method
+        * `custom_attribute` - custom_attribute
+        * `recurrence` - recurrence
+        * `scenario` - scenario
+        * `rule` - rule
     DryRun:
       type: object
       properties:
@@ -21214,6 +21987,26 @@ components:
         * `xlsx` - xlsx
         * `csv` - csv
         * `pdf` - pdf
+    ExportHint:
+      type: object
+      properties:
+        available:
+          type: boolean
+        formats:
+          type: array
+          items:
+            type: string
+        preferred:
+          type:
+          - string
+          - 'null'
+        count:
+          type: integer
+      required:
+      - available
+      - count
+      - formats
+      - preferred
     ExtraPayment:
       type: object
       properties:
@@ -23166,6 +23959,17 @@ components:
             si cumple los requisitos.'
       required:
       - status
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+      required:
+      - id
+      - label
     Kind9ffEnum:
       enum:
       - handling_fee
@@ -27127,6 +27931,21 @@ components:
       - marked
       - reconciled_balance
       - statement_balance
+    Reconciled:
+      type: object
+      properties:
+        entries:
+          type: integer
+          description: Cuántos asientos conciliados caen.
+        reconciliations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReconciliationRef'
+          description: Las conciliaciones (la última de cada cuenta) que quedarían
+            **descuadradas**; `POST reconciliations/{id}/reopen` las reabre antes.
+      required:
+      - entries
+      - reconciliations
     Reconciliation:
       type: object
       properties:
@@ -27198,14 +28017,32 @@ components:
       - page
       - page_size
       - results
+    ReconciliationRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        cutoff:
+          type: string
+          format: date
+      required:
+      - account_id
+      - cutoff
+      - id
     ReconciliationStatusEnum:
       enum:
       - closed
       - reopened
+      - unbalanced
       type: string
       description: |-
         * `closed` - closed
         * `reopened` - reopened
+        * `unbalanced` - unbalanced
     Recurrence:
       type: object
       description: La regla de fechas (diseño §3.10).

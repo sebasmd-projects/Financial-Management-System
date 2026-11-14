@@ -46,7 +46,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Eliminar una cuenta sin historia (anula su saldo inicial con reverso y la cierra); con movimientos, 409 `has_history`
+         * Eliminar una cuenta (borrado lógico): con sus movimientos, a la papelera 30 días; pide antes `GET deletions/preview`
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
@@ -376,7 +376,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Borrar una regla (sus avisos ya creados se quedan)
+         * Eliminar una regla (borrado lógico: a la papelera 30 días; sus avisos ya creados se quedan)
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
@@ -588,7 +588,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Eliminar una tarjeta sin historia (anula su saldo inicial con reverso y la cierra); con movimientos, 409 `has_history`
+         * Eliminar una tarjeta (borrado lógico): con sus compras y pagos, a la papelera 30 días; pide antes `GET deletions/preview`
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
@@ -1320,7 +1320,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Eliminar una deuda sin abonos (anula su asiento con reverso y la cierra); con abonos, 409 `has_history`
+         * Eliminar una deuda (borrado lógico): con sus abonos, a la papelera 30 días; pide antes `GET deletions/preview`
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
@@ -1395,6 +1395,95 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         get: operations["fmsDebtsSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/deletions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * La papelera: lo eliminado que aún se puede restaurar (30 días), lo más reciente primero
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsDeletions"];
+        put?: never;
+        /**
+         * Eliminar (borrado lógico): lo elegido y todo lo que depende de ello caen juntos y se pueden restaurar 30 días; después se borran de verdad
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsDeletionCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/deletions/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restaurar de la papelera (dentro de los 30 días): vuelve todo lo que cayó con ello y se retiran los reversos ocultos
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsDeletionRestore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/deletions/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Exportar los movimientos de una cuenta, tarjeta, crédito o deuda **antes** de eliminarla (csv que el importador acepta, o json); exige reautenticación reciente
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsDeletionExport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/deletions/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Qué se verá afectado si eliminas algo: productos relacionados, cuántos movimientos, conciliaciones y si se puede exportar antes. No escribe nada
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsDeletionPreview"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1906,7 +1995,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Eliminar una cuenta sin historia (anula su saldo inicial con reverso y la cierra); con movimientos, 409 `has_history`
+         * Eliminar una cuenta (borrado lógico): con sus movimientos, a la papelera 30 días; pide antes `GET deletions/preview`
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
@@ -2225,6 +2314,95 @@ export interface paths {
          * @description Base: las rutas de gestión las puede usar cualquier rol (el servicio decide); las de datos exigen escritura.
          */
         post: operations["fmsHouseholdDelete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/deletions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * La papelera: lo eliminado que aún se puede restaurar (30 días), lo más reciente primero
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsDeletions_2"];
+        put?: never;
+        /**
+         * Eliminar (borrado lógico): lo elegido y todo lo que depende de ello caen juntos y se pueden restaurar 30 días; después se borran de verdad
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsDeletionCreate_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/deletions/{id}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restaurar de la papelera (dentro de los 30 días): vuelve todo lo que cayó con ello y se retiran los reversos ocultos
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsDeletionRestore_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/deletions/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Exportar los movimientos de una cuenta, tarjeta, crédito o deuda **antes** de eliminarla (csv que el importador acepta, o json); exige reautenticación reciente
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsDeletionExport_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/deletions/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Qué se verá afectado si eliminas algo: productos relacionados, cuántos movimientos, conciliaciones y si se puede exportar antes. No escribe nada
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsDeletionPreview_2"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3288,7 +3466,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Eliminar un préstamo sin cuotas pagadas (anula su desembolso con reverso y lo cierra); con pagos, 409 `has_history`
+         * Eliminar un préstamo (borrado lógico): con sus pagos, a la papelera 30 días; pide antes `GET deletions/preview`
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
@@ -4534,7 +4712,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Eliminar una recurrencia: se cancela: deja de generar. Lo ya generado y pagado queda en el libro (nada se borra del libro)
+         * Eliminar una recurrencia (borrado lógico: a la papelera 30 días): deja de generar y sus pendientes se van con ella. Lo ya pagado queda en el libro
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
@@ -4716,7 +4894,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Borrar un escenario (no toca el libro: un escenario nunca escribió en él)
+         * Eliminar un escenario (borrado lógico: a la papelera 30 días; no toca el libro: un escenario nunca escribió en él)
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
@@ -6826,6 +7004,95 @@ export interface components {
         DeleteHousehold: {
             confirm: components["schemas"]["ConfirmEnum"];
         };
+        Deletion: {
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            /** Format: uuid */
+            object_id: string;
+            label: string;
+            /** Format: date-time */
+            deleted_at: string;
+            /** Format: date-time */
+            purge_after: string;
+            /** @description Días que quedan para restaurarlo (0: se purga hoy). */
+            days_left: number;
+            affected: {
+                [key: string]: number;
+            };
+            /** @description Quién eliminó (en un hogar, el miembro). */
+            deleted_by: components["schemas"]["Person"] | null;
+        };
+        DeletionExportRequest: {
+            kind: components["schemas"]["DeletionExportRequestKindEnum"];
+            /** Format: uuid */
+            id: string;
+            format: components["schemas"]["DeletionExportRequestFormatEnum"];
+        };
+        /**
+         * @description * `csv` - csv
+         *     * `json` - json
+         * @enum {string}
+         */
+        DeletionExportRequestFormatEnum: "csv" | "json";
+        /**
+         * @description * `account` - account
+         *     * `card` - card
+         *     * `loan` - loan
+         *     * `debt` - debt
+         * @enum {string}
+         */
+        DeletionExportRequestKindEnum: "account" | "card" | "loan" | "debt";
+        DeletionPreview: {
+            kind: string;
+            /** Format: uuid */
+            id: string;
+            label: string;
+            retention_days: number;
+            /** @description Cuántas cosas de cada clase caen además de la raíz: `movements`, `accounts`, `cards`, `loans`, `debts`, `payment_methods`, `recurrences`, `budgets`, `goals`, `reconciliations`, `attachments`..., y las que **quedan sin enlace** (`movements_uncategorized` pasan a «Sin categoría»). */
+            affected: {
+                [key: string]: number;
+            };
+            /** @description Hasta 10 nombres por clase, para reconocerlos. */
+            items: {
+                [key: string]: components["schemas"]["Item"][];
+            };
+            movements: number;
+            reconciled: components["schemas"]["Reconciled"];
+            export: components["schemas"]["ExportHint"];
+            /** @description Metas: las cuentas a las que vuelve lo aportado. */
+            returns_to: components["schemas"]["Item"][];
+            digest: string;
+        };
+        DeletionRequest: {
+            kind: components["schemas"]["DeletionRequestKindEnum"];
+            /** Format: uuid */
+            id: string;
+            /** @description El `digest` de la vista previa: si lo que caería cambió desde entonces, `409 preview_stale`. */
+            digest?: string;
+        };
+        /**
+         * @description * `movement` - movement
+         *     * `account` - account
+         *     * `card` - card
+         *     * `loan` - loan
+         *     * `debt` - debt
+         *     * `category` - category
+         *     * `budget` - budget
+         *     * `goal` - goal
+         *     * `asset` - asset
+         *     * `asset_valuation` - asset_valuation
+         *     * `vehicle_cost` - vehicle_cost
+         *     * `maintenance_item` - maintenance_item
+         *     * `maintenance_record` - maintenance_record
+         *     * `payment_method` - payment_method
+         *     * `custom_attribute` - custom_attribute
+         *     * `recurrence` - recurrence
+         *     * `scenario` - scenario
+         *     * `rule` - rule
+         * @enum {string}
+         */
+        DeletionRequestKindEnum: "movement" | "account" | "card" | "loan" | "debt" | "category" | "budget" | "goal" | "asset" | "asset_valuation" | "vehicle_cost" | "maintenance_item" | "maintenance_record" | "payment_method" | "custom_attribute" | "recurrence" | "scenario" | "rule";
         DryRun: {
             trigger: components["schemas"]["CustomRuleTriggerEnum"];
             evaluated: number;
@@ -7055,6 +7322,12 @@ export interface components {
          * @enum {string}
          */
         ExportFormatEnum: "xlsx" | "csv" | "pdf";
+        ExportHint: {
+            available: boolean;
+            formats: string[];
+            preferred: string | null;
+            count: number;
+        };
         ExtraPayment: {
             after_installment: number;
             /**
@@ -8014,6 +8287,11 @@ export interface components {
         InviteResult: {
             /** @description Siempre `sent`: no se confirma qué correos tienen cuenta ni si cumple los requisitos. */
             status: string;
+        };
+        Item: {
+            /** Format: uuid */
+            id: string;
+            label: string;
         };
         /**
          * @description * `handling_fee` - handling_fee
@@ -9947,6 +10225,12 @@ export interface components {
             candidates: components["schemas"]["Candidate"][];
             last: components["schemas"]["ReconcileLast"] | null;
         };
+        Reconciled: {
+            /** @description Cuántos asientos conciliados caen. */
+            entries: number;
+            /** @description Las conciliaciones (la última de cada cuenta) que quedarían **descuadradas**; `POST reconciliations/{id}/reopen` las reabre antes. */
+            reconciliations: components["schemas"]["ReconciliationRef"][];
+        };
         Reconciliation: {
             /** Format: uuid */
             id: string;
@@ -9973,12 +10257,21 @@ export interface components {
             page_size: number;
             results: components["schemas"]["Reconciliation"][];
         };
+        ReconciliationRef: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            account_id: string;
+            /** Format: date */
+            cutoff: string;
+        };
         /**
          * @description * `closed` - closed
          *     * `reopened` - reopened
+         *     * `unbalanced` - unbalanced
          * @enum {string}
          */
-        ReconciliationStatusEnum: "closed" | "reopened";
+        ReconciliationStatusEnum: "closed" | "reopened" | "unbalanced";
         /** @description La regla de fechas (diseño §3.10). */
         Recurrence: {
             /** @description Meses del año en que ocurre (p. ej. `[2, 8]` la matrícula); sustituye el paso de la frecuencia. */
@@ -12805,7 +13098,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Borrada. */
+            /** @description Eliminada. */
             204: {
                 headers: {
                     [name: string]: unknown;
@@ -16672,6 +16965,314 @@ export interface operations {
             };
         };
     };
+    fmsDeletions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Deletion"][];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsDeletionCreate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletionRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Deletion"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Deletion"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsDeletionRestore: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Deletion"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsDeletionExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletionExportRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsDeletionPreview: {
+        parameters: {
+            query: {
+                id: string;
+                kind: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionPreview"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsDevices: {
         parameters: {
             query?: never;
@@ -19583,6 +20184,323 @@ export interface operations {
             };
             /** @description No existe (o es de otro usuario). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsDeletions_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Deletion"][];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsDeletionCreate_2: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletionRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Deletion"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Deletion"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsDeletionRestore_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Deletion"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsDeletionExport_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeletionExportRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsDeletionPreview_2: {
+        parameters: {
+            query: {
+                id: string;
+                kind: string;
+            };
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletionPreview"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -28050,7 +28968,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Borrado. */
+            /** @description Eliminado. */
             204: {
                 headers: {
                     [name: string]: unknown;

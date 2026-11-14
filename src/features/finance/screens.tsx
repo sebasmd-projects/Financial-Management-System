@@ -31,6 +31,10 @@ import { AssetDetail } from "./assets/asset-detail";
 import { WealthScreen } from "./assets/wealth-screen";
 import { AuditScreen, MovementHistory } from "./audit/audit-screen";
 import { TrashScreen } from "./trash/trash-screen";
+import { AutoRulesScreen } from "./sync/auto-rules-screen";
+import { ConnectionsScreen } from "./sync/connections-screen";
+import { ProfileScreen } from "./sync/profile-screen";
+import { ReviewScreen } from "./sync/review-screen";
 import { CalendarScreen } from "./calendar/calendar-screen";
 import { CardDetail } from "./cards/card-detail";
 import { CardPay } from "./cards/card-pay";
@@ -190,6 +194,14 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <AuditScreen />;
     case "config-papelera":
       return <TrashScreen />;
+    case "config-conexiones":
+      return <ConnectionsScreen />;
+    case "config-autoconfirmacion":
+      return <AutoRulesScreen />;
+    case "movimientos-por-revisar":
+      return <ReviewScreen />;
+    case "perfil":
+      return <ProfileScreen />;
     case "movimiento-historial":
       return <MovementHistory id={first} />;
     case "config-parametros":

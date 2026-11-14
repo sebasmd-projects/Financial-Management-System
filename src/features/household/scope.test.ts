@@ -33,6 +33,18 @@ describe("ruta de la API según el ámbito", () => {
       expect(scopedPath(path, household)).toBe(path);
     },
   );
+  it.each([
+    ["/sync/connections?page_size=100", `/households/${HID}/sync/connections?page_size=100`],
+    ["/sync/connections/c1/rotate", `/households/${HID}/sync/connections/c1/rotate`],
+    ["/sync/events?status=proposed&page=1&page_size=50", `/households/${HID}/sync/events?status=proposed&page=1&page_size=50`],
+    ["/sync/events/summary", `/households/${HID}/sync/events/summary`],
+    ["/sync/events/e1/approve", `/households/${HID}/sync/events/e1/approve`],
+  ])("los bancos por correo en el hogar %s → hogar", (path, expected) => {
+    expect(scopedPath(path, household)).toBe(expected);
+  });
+  it.each(["/sync/catalog", "/sync/rule-suggestions", "/sync/rule-suggestions/dismiss", "/sync/settings", "/sync/settings/document", "/sync/settings/document/reveal"])("%s es personal aunque esté bajo «sync»", (path) => {
+    expect(scopedPath(path, household)).toBe(path);
+  });
   it("pasar una cuenta al hogar es personal aunque empiece por «accounts»", () => {
     expect(scopedPath("/accounts/a1/share", household)).toBe("/accounts/a1/share");
     expect(scopedPath("/accounts/a1", household)).not.toBe("/accounts/a1");
@@ -45,12 +57,12 @@ describe("ruta de la API según el ámbito", () => {
 });
 
 describe("pantallas solo personales", () => {
-  it.each(["cuentas-credito", "tarjeta", "pagos-fijos", "pagos-recurrencia", "creditos", "plan-presupuestos", "plan-objetivos", "cuentas-importar", "informes-patrimonio", "config-reglas", "informes-proyecciones", "cuenta-conciliar", "movimiento-historial"] as const)("%s se sustituye por el aviso en el hogar", (id) => {
+  it.each(["cuentas-credito", "tarjeta", "pagos-fijos", "pagos-recurrencia", "creditos", "plan-presupuestos", "plan-objetivos", "cuentas-importar", "informes-patrimonio", "config-reglas", "informes-proyecciones", "cuenta-conciliar", "movimiento-historial", "config-autoconfirmacion", "perfil"] as const)("%s se sustituye por el aviso en el hogar", (id) => {
     expect(blockedInScope(id, household)).toBe(true);
     expect(blockedInScope(id, personal)).toBe(false);
     expect(blockedInScope(id, both)).toBe(false);
   });
-  it.each(["resumen", "cuentas", "cuenta", "movimientos", "movimiento-nuevo", "movimiento", "informes", "informe", "hogares", "hogar", "hogar-invitaciones"] as const)("%s funciona en el hogar", (id) => {
+  it.each(["resumen", "cuentas", "cuenta", "movimientos", "movimiento-nuevo", "movimiento", "informes", "informe", "hogares", "hogar", "hogar-invitaciones", "movimientos-por-revisar", "config-conexiones"] as const)("%s funciona en el hogar", (id) => {
     expect(isPersonalOnlyRoute(id)).toBe(false);
   });
   it("toda ruta de la tabla está clasificada (el resto es solo personal)", () => {

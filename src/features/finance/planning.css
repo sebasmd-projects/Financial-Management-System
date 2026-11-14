@@ -95,3 +95,14 @@
 
 /* ---------- Parámetros ---------- */
 .params__row { width: 100%; text-align: left; cursor: pointer; }
+
+/* Bancos por correo: el contador de «Por revisar» en la navegación. */
+.nav-count { margin-left: auto; min-width: 20px; padding: 0 6px; border-radius: var(--radius-full); background: var(--color-primary); color: var(--color-on-primary); font: var(--text-caption); line-height: 20px; text-align: center; }
+.sheet__row .nav-count, .sheet__row .nav-count span { flex: 0 0 auto; }
+
+/* Bancos por correo: la dirección de reenvío, la guía paso a paso y las condiciones de una regla. */
+.sync-address__input { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9375rem; overflow-wrap: anywhere; }
+.sync-steps { display: grid; gap: var(--space-8); margin: var(--space-8) 0; padding-left: var(--space-24); }
+.sync-code__value { font-size: 1.5rem; letter-spacing: 0.08em; }
+.sync-conditions { display: grid; gap: var(--space-2); margin: 0; padding-left: var(--space-16); list-style: disc; }
+.sync-conn .actions, .sync-event .actions { margin-top: var(--space-8); }

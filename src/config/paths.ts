@@ -22,6 +22,8 @@ export const HEALTH_PATH = `${ASSET_PREFIX}/healthz`;
 export const FMS_API = "/api/fms/v1";
 /** El token CSRF de Django para el navegador (cookie HttpOnly en producción), el mismo del CV. */
 export const CSRF_URL = "/_allauth/cv/v1/csrf";
+/** La API de cuentas del CV (allauth en modo `browser`, mismo origen): aquí solo se usa para confirmar la contraseña o el código (reautenticación). */
+export const ACCOUNT_API = "/_allauth/browser/v1";
 
 /** Las páginas de cuenta del CV (otra aplicación, mismo origen): inicio de sesión, registro, términos, privacidad. */
 export function cvPath(locale: Locale, page: "account/login" | "account/signup" | "terms" | "privacy"): string {

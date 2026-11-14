@@ -37,16 +37,21 @@ const HOUSEHOLD_ROOTS: ReadonlySet<string> = new Set([
   "dashboard",
   "summary",
   "deletions",
+  "sync",
 ]);
 
 /** `POST accounts/{id}/share` es personal aunque empiece por `accounts`: el hogar destino va en el cuerpo. */
 const ALWAYS_PERSONAL = /^\/accounts\/[^/?]+\/share(?:[/?]|$)/;
+
+/** De `sync` el hogar sirve solo las conexiones y los eventos («Por revisar»); el catálogo, las sugerencias y la cédula son personales. */
+const SYNC_IN_HOUSEHOLD = /^\/sync\/(?:connections|events)(?:[/?]|$)/;
 
 /** La ruta de la API en el ámbito activo. En «Ambos» las listas siguen siendo personales (el consolidado es de Resumen e Informes). */
 export function scopedPath(path: string, scope: Scope): string {
   if (scope.kind !== "household") return path;
   const root = /^\/([^/?]+)/.exec(path)?.[1];
   if (!root || !HOUSEHOLD_ROOTS.has(root) || ALWAYS_PERSONAL.test(path)) return path;
+  if (root === "sync" && !SYNC_IN_HOUSEHOLD.test(path)) return path;
   return `/households/${encodeURIComponent(scope.id)}${path}`;
 }
 
@@ -79,6 +84,8 @@ const HOUSEHOLD_ROUTES: ReadonlySet<RouteId> = new Set<RouteId>([
   "informes-estadisticas",
   "config-categorias",
   "config-papelera",
+  "config-conexiones",
+  "movimientos-por-revisar",
   "config-etiquetas",
   "notificaciones",
   "hogares",

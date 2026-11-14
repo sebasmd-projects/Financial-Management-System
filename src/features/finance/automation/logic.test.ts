@@ -6,6 +6,8 @@ const TRIGGER: RuleTrigger = {
   key: "card_utilization",
   label: "Utilización de una tarjeta",
   subject: "card",
+  actions: ["notify"],
+  max_conditions: 5,
   condition_fields: [
     { key: "utilization", kind: "percent", label: "Usado ÷ cupo (%)", operators: ["gt", "gte", "lt", "lte", "eq", "ne"], choices: [] },
     { key: "used", kind: "amount", label: "Usado", operators: ["gt", "gte", "lt", "lte", "eq", "ne"], choices: [] },
@@ -86,5 +88,16 @@ describe("el resto de la regla", () => {
     const ok = { name: "Alerta", trigger: "card_utilization", conditionsOk: true, channels: ["app"], cooldownOk: true, titleLength: 10, maxTitle: 40 };
     expect(ruleProblems(ok)).toEqual([]);
     expect(ruleProblems({ ...ok, name: "  ", channels: [], titleLength: 41 })).toEqual(["name", "channels", "title"]);
+  });
+});
+
+describe("valores de texto (disparador de los correos de los bancos)", () => {
+  const text = { kind: "text" as const, choices: [] as string[] };
+  it("se comparan literales: de 3 a 60 caracteres, sin tocar `.*` ni plantillas", () => {
+    expect(parseConditionValue(text, " nomina acme ")).toBe("nomina acme");
+    expect(parseConditionValue(text, ".*")).toBeNull();
+    expect(parseConditionValue(text, "{{7*7}}")).toBe("{{7*7}}");
+    expect(parseConditionValue(text, "ab")).toBeNull();
+    expect(parseConditionValue(text, "x".repeat(61))).toBeNull();
   });
 });

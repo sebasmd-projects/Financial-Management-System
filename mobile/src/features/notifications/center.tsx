@@ -122,6 +122,7 @@ function NoticeRow({ n, focused, busy, onRead, onSnooze, onPay }: { n: Notificat
           {n.title}
         </Text>
         <Text style={[type.bodyS, { color: c.textSecondary }]}>{n.body}</Text>
+        {n.object_kind === "sync_event" && n.object_id ? <Text style={[type.caption, { color: c.textSecondary }]}>{t.syncHint}</Text> : null}
         <Text style={[type.caption, { color: tone }]}>
           {t.severity[n.severity]} · {formatDate(n.visible_at)} {formatTime(n.visible_at)}
           {focused ? ` · ${t.opened}` : ""}

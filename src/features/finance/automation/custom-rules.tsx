@@ -31,8 +31,9 @@ export function CustomRules() {
   const [testing, setTesting] = useState<CustomRule | null>(null);
   const [removing, setRemoving] = useState<CustomRule | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const list = rules.data?.results ?? [];
-  const cat = catalog.data;
+  // Las reglas de los correos de los bancos (`sync_event`) tienen su propia pantalla: «Autoconfirmación».
+  const list = (rules.data?.results ?? []).filter((rule) => rule.trigger !== "sync_event");
+  const cat = catalog.data ? { ...catalog.data, triggers: catalog.data.triggers.filter((x) => x.key !== "sync_event") } : null;
   return (
     <Section
       title={t.title}

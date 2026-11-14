@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { api } from "@/api";
-import type { CustomRule, DryRun, RuleCatalog, RuleChannel, RuleOperator, RuleSeverity, RuleTrigger, RuleTriggerKey } from "@/api/models";
+import type { CustomRule, DryRun, RuleCatalog, RuleChannel, RuleField, RuleOperator, RuleSeverity, RuleTrigger, RuleTriggerKey } from "@/api/models";
 import { paths, roots } from "@/api/paths";
 import { formatCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
@@ -177,7 +177,7 @@ export function RuleForm({ catalog, rule, onDone, onCancel }: { catalog: RuleCat
 }
 
 /** El monto tal como se leyó («= $850.000»), para que la persona confirme lo que se va a guardar. */
-function valueHint(text: string, field: { kind: "amount" | "percent" | "count" | "option"; choices: string[] }, template: string): string | undefined {
+function valueHint(text: string, field: Pick<RuleField, "kind" | "choices">, template: string): string | undefined {
   const value = parseConditionValue(field, text);
   return value === null || text.trim() === "" ? undefined : template.replace("{amount}", formatCop(value));
 }

@@ -16,6 +16,13 @@ export function paymentTarget(n: Pick<Notification, "object_kind" | "object_id">
   return null;
 }
 
+/** Un aviso de la sincronización lleva a «Por revisar» (un movimiento propuesto) o a la conexión (su salud). Sin objeto, nada. */
+export function syncTarget(n: Pick<Notification, "object_kind" | "object_id">): (Target & { kind: "review" | "connection" }) | null {
+  if (n.object_kind === "sync_event") return { kind: "review", route: "movimientos-por-revisar", params: [] };
+  if (n.object_kind === "sync_connection") return { kind: "connection", route: "config-conexiones", params: [] };
+  return null;
+}
+
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export function isTime(text: string): boolean {

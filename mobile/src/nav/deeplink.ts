@@ -3,7 +3,9 @@
  * la consulta (`?monto=…`), el fragmento y cualquier parámetro se descartan, así un enlace no puede precargar un monto ni un id.
  * Una ruta desconocida, otro esquema o algo que no se entiende van a la raíz (`/`), que decide según el estado de la sesión.
  */
-export const DEEP_LINK_ROUTES = ["/", "/home", "/movements", "/notifications", "/quick-add"] as const;
+import { safeMailUrl, type MailLink } from "@core/sync";
+
+export const DEEP_LINK_ROUTES = ["/", "/home", "/movements", "/notifications", "/review", "/quick-add"] as const;
 export type DeepLinkRoute = (typeof DEEP_LINK_ROUTES)[number];
 
 const ALLOWED: ReadonlySet<string> = new Set(DEEP_LINK_ROUTES);
@@ -23,4 +25,12 @@ export function sanitizeDeepLink(input: string): DeepLinkRoute {
   const path = (end === -1 ? rest : rest.slice(0, end)).replace(/\/{2,}/g, "/");
   const normalized = path.length > 1 ? path.replace(/\/$/, "") : path;
   return ALLOWED.has(normalized) ? (normalized as DeepLinkRoute) : "/";
+}
+
+/**
+ * Lo que sale de la app: «Ir al correo» solo abre HTTPS en el servidor de correo de un proveedor conocido (Gmail, Outlook). La URL viene del
+ * servidor y se comprueba aquí, en la misma lista blanca que lo que entra; cualquier otra cosa se descarta y solo queda la pista de búsqueda.
+ */
+export function sanitizeMailLink(link: Pick<MailLink, "url"> | null | undefined): string | null {
+  return safeMailUrl(link);
 }

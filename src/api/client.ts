@@ -38,22 +38,23 @@ export function readBrowserCookie(name: string): string | null {
   return null;
 }
 
-export function createApiClient(deps: ClientDeps) {
-  async function csrfToken(signal?: AbortSignal): Promise<string | null> {
-    for (const name of CSRF_COOKIES) {
-      const fromCookie = deps.readCookie(name);
-      if (fromCookie) return fromCookie;
-    }
-    try {
-      const response = await deps.fetch(CSRF_URL, { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" }, signal });
-      if (!response.ok) return null;
-      const body = (await response.json()) as { csrfToken?: unknown };
-      return typeof body.csrfToken === "string" && body.csrfToken ? body.csrfToken : null;
-    } catch {
-      return null;
-    }
+/** El token CSRF de Django: de la cookie si el navegador la deja leer, y si no, de `/_allauth/cv/v1/csrf`. Nunca se guarda. */
+export async function csrfToken(deps: Pick<ClientDeps, "fetch" | "readCookie">, signal?: AbortSignal): Promise<string | null> {
+  for (const name of CSRF_COOKIES) {
+    const fromCookie = deps.readCookie(name);
+    if (fromCookie) return fromCookie;
   }
+  try {
+    const response = await deps.fetch(CSRF_URL, { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" }, signal });
+    if (!response.ok) return null;
+    const body = (await response.json()) as { csrfToken?: unknown };
+    return typeof body.csrfToken === "string" && body.csrfToken ? body.csrfToken : null;
+  } catch {
+    return null;
+  }
+}
 
+export function createApiClient(deps: ClientDeps) {
   return createCoreClient({
     fetch: deps.fetch,
     baseUrl: FMS_API,
@@ -62,7 +63,7 @@ export function createApiClient(deps: ClientDeps) {
     onUnauthorized: () => deps.onUnauthorized(),
     async prepare(method, signal): Promise<Prepared> {
       if (method === "GET") return { headers: {} };
-      const token = await csrfToken(signal);
+      const token = await csrfToken(deps, signal);
       return token ? { headers: { "X-CSRFToken": token } } : { fail: "csrf" };
     },
   });

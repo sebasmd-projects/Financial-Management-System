@@ -4,6 +4,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import type { MeResponse } from "@/api/types";
 import { useI18n } from "@/i18n/provider";
+import { ReauthDialog } from "@/features/finance/sync/reauth-dialog";
+import { ReviewCountProvider } from "@/features/finance/sync/review-count";
 import { fmsHref, NEW_MOVEMENT_ROUTE } from "@/nav/routes";
 import { BottomTabBar } from "./bottom-tab-bar";
 import { MoreSheet } from "./more-sheet";
@@ -57,6 +59,7 @@ export function AppShell({ me, children }: { me: MeResponse; children: ReactNode
   }, [router, locale]);
 
   return (
+    <ReviewCountProvider pathname={pathname}>
     <div className="shell">
       <Sidebar />
       <div className="shell__body">
@@ -67,6 +70,8 @@ export function AppShell({ me, children }: { me: MeResponse; children: ReactNode
       </div>
       <BottomTabBar onMore={openMore} moreOpen={moreOpen} />
       <MoreSheet open={moreOpen} onClose={closeMore} />
+      <ReauthDialog />
     </div>
+    </ReviewCountProvider>
   );
 }

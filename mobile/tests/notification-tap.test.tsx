@@ -66,6 +66,15 @@ describe("tocar un aviso push", () => {
     await renderHook(() => useNotificationTaps());
     expect(pendingStore.get()?.target.notificationId).toBe(ID);
   });
+  it("el aviso de un movimiento propuesto por el correo abre «Por revisar», con el id solo en memoria", async () => {
+    mockPhase = "ready";
+    await renderHook(() => useNotificationTaps());
+    await renderHook(() => usePushWhenReady());
+    await act(() => mockTap?.({ ...payload, object_kind: "sync_event" }));
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith("/review");
+    expect(pendingStore.get()?.target).toEqual({ notificationId: ID, objectKind: "sync_event", objectId: OBJ });
+  });
   it("una carga que no es de la app (ids falsos) se ignora", async () => {
     mockPhase = "ready";
     await renderHook(() => useNotificationTaps());

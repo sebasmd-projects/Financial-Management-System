@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text } from "react-native";
 import { Tabs, useRouter } from "expo-router";
 import { paths } from "@/features/common/paths";
+import { useReviewCount } from "@/features/sync/count";
 import { useResource } from "@/features/common/use-resource";
 import type { NotificationList } from "@/features/notifications/logic";
 import { startQuickAdd } from "@/features/quick-add/store";
@@ -13,6 +14,7 @@ export default function TabsLayout() {
   const c = useTheme();
   const router = useRouter();
   const unread = useResource<NotificationList>(paths.notifications(true)).data?.unread ?? 0;
+  const review = useReviewCount();
   const t = es.tabs;
   return (
     <Tabs
@@ -49,7 +51,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen name="notifications" options={{ title: t.notifications, tabBarAccessibilityLabel: unread > 0 ? `${t.notifications}, ${unread} sin leer` : t.notifications, tabBarBadge: unread > 0 ? (unread > 9 ? "9+" : unread) : undefined }} />
-      <Tabs.Screen name="more" options={{ title: t.more, tabBarAccessibilityLabel: t.more }} />
+      <Tabs.Screen name="more" options={{ title: t.more, tabBarAccessibilityLabel: review > 0 ? `${t.more}, ${review} por revisar` : t.more, tabBarBadge: review > 0 ? (review > 9 ? "9+" : review) : undefined }} />
     </Tabs>
   );
 }

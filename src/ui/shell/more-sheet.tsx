@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/i18n/provider";
 import { PersonalTag } from "@/features/household/notices";
+import { NavReviewCount } from "@/features/finance/sync/review-count";
 import { fmsHref, PROFILE_ROUTE } from "@/nav/routes";
 import { searchScreens } from "@/nav/search";
 import { Icon } from "@/ui/icons";
@@ -75,6 +76,7 @@ export function MoreSheet({ open, onClose }: { open: boolean; onClose: () => voi
                   <li key={item.id}>
                     <Link href={fmsHref(locale, item.route)} onClick={onClose} className="sheet__row sheet__row--item">
                       {dict.nav.items[item.id]}
+                      <NavReviewCount route={item.route} />
                       <PersonalTag route={item.route} />
                     </Link>
                   </li>

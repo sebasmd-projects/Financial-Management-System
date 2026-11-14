@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useI18n } from "@/i18n/provider";
 import { PersonalTag } from "@/features/household/notices";
+import { NavReviewCount } from "@/features/finance/sync/review-count";
 import { fmsHref, isItemActive, isSectionActive, SECTIONS, type SectionId } from "@/nav/routes";
 import { Icon } from "@/ui/icons";
 import { useMediaQuery } from "./use-media-query";
@@ -70,6 +71,7 @@ export function Sidebar() {
                       <li key={item.id}>
                         <Link href={fmsHref(locale, item.route)} className="sidebar__sublink" aria-current={isItemActive(item, pathname) ? "page" : undefined}>
                           {dict.nav.items[item.id]}
+                          <NavReviewCount route={item.route} />
                           <PersonalTag route={item.route} />
                         </Link>
                       </li>

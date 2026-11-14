@@ -29,6 +29,8 @@ export const CONFIG_SCREENS = [
   { slug: "parametros", en: "parameters" },
   { slug: "auditoria", en: "audit" },
   { slug: "papelera", en: "trash" },
+  { slug: "conexiones", en: "connections" },
+  { slug: "autoconfirmacion", en: "auto-confirm" },
 ] as const;
 
 type Def = { id: string; section: SectionId | null; es: string; en: string };
@@ -41,6 +43,7 @@ const STATIC_ROUTES = [
   { id: "movimientos-transferencias", section: "movimientos", es: "/movimientos/transferencias", en: "/transactions/transfers" },
   { id: "movimientos-historial", section: "movimientos", es: "/movimientos/historial", en: "/transactions/history" },
   { id: "movimiento-nuevo", section: "movimientos", es: "/movimientos/nuevo", en: "/transactions/new" },
+  { id: "movimientos-por-revisar", section: "movimientos", es: "/movimientos/por-revisar", en: "/transactions/to-review" },
   { id: "compartidos", section: "movimientos", es: "/movimientos/compartidos", en: "/transactions/shared" },
   { id: "compartidos-persona", section: "movimientos", es: "/movimientos/compartidos/[persona]", en: "/transactions/shared/[persona]" },
   { id: "movimiento", section: "movimientos", es: "/movimientos/[id]", en: "/transactions/[id]" },
@@ -142,6 +145,7 @@ export const SECTIONS: readonly NavSection[] = [
     icon: "list",
     route: "movimientos",
     items: [
+      { id: "por-revisar", route: "movimientos-por-revisar" },
       { id: "ingresos", route: "movimientos-ingresos" },
       { id: "egresos", route: "movimientos-egresos" },
       { id: "transferencias", route: "movimientos-transferencias" },

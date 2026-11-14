@@ -11,7 +11,7 @@ import { Icon } from "@/ui/icons";
 import { fill } from "../helpers";
 import { useHref, useResource, useSubmit } from "../hooks";
 import { Badge, Banner, Empty, ErrorState, Loading, ScreenHeader, Section, Segmented, SelectField } from "../kit";
-import { groupNotifications, paymentTarget } from "./logic";
+import { groupNotifications, paymentTarget, syncTarget } from "./logic";
 import { PrefsPanel } from "./prefs-panel";
 
 /** Centro de notificaciones (`/notificaciones`, diseño §3.16): grupos Hoy / Esta semana / Anteriores, leído, posponer y preferencias. */
@@ -95,6 +95,7 @@ function NoticeRow({ notification: n, onChanged }: { notification: Notification;
   const href = useHref();
   const submit = useSubmit();
   const pay = paymentTarget(n);
+  const review = syncTarget(n);
 
   async function markRead() {
     const body = { ids: [n.id] };
@@ -132,6 +133,12 @@ function NoticeRow({ notification: n, onChanged }: { notification: Notification;
         {pay && (
           <Link className="button button--primary" href={href(pay.route, pay.params)}>
             {pay.route === "pagos-fijo-pagar" ? t.markPaid : t.pay}
+            <span className="visually-hidden"> {n.title}</span>
+          </Link>
+        )}
+        {review && (
+          <Link className="button button--primary" href={href(review.route, review.params)}>
+            {review.kind === "review" ? dict.fin.sync.notif.review : dict.fin.sync.notif.connection}
             <span className="visually-hidden"> {n.title}</span>
           </Link>
         )}

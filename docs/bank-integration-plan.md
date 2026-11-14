@@ -267,7 +267,8 @@ lo exige: crear una de estas conexiones fuera de la app da `403 activate_from_ap
 Cada conexión pertenece a **un** ámbito. Una conexión hacia una cuenta del Hogar cifra con la DEK del Hogar y la crea un miembro con
 permiso de escritura. Los demás miembros ven las propuestas de esa cuenta y pueden aprobarlas según su rol, pero no ven la dirección de
 la conexión ni su configuración. Si el miembro sale del Hogar, sus conexiones hacia él se pausan. Las reglas de autoconfirmación son por
-ámbito.
+ámbito: un correo de una conexión del Hogar solo evalúa las reglas de ese Hogar (decisión del propietario, 2026-11-14, Q9); crear o cambiar una regla del Hogar
+pide rol de escritura y las del Hogar son solo de autoconfirmación (`sync_event`).
 
 ## 6. Hoja de ruta
 
@@ -352,13 +353,12 @@ Orden sugerido: S1 a S6 → B1, B2, B3 → B4, B5, B6 → B7, B8 → W1, W2, M1 
 
 Respondidas el 2026-11-14 (ver [owner-rules](owner-rules.md#2026-11-14-integración-con-los-bancos-segundas-respuestas)): Q1 (solo se activan en la app; se leen por
 correo), Q2 (sí al canal D), Q3 (se pide cada vez; «guardar mi cédula» opcional), Q4 (el rango de monto es opcional), Q5 (todo se puede modificar, el monto
-incluido) y Q7 (sí: `ingest.<dominio>` y `recibir.<dominio>`).
+incluido), Q7 (sí: `ingest.<dominio>` y `recibir.<dominio>`), Q8 (`recibir.<dominio>` confirmado) y Q9 (las reglas de autoconfirmación también en el Hogar; 2026-11-14,
+[owner-rules](owner-rules.md#2026-11-14-reglas-de-autoconfirmación-también-en-el-hogar-y-recibir-confirmado)).
 
 | # | Pregunta | Por qué |
 |---|---|---|
 | Q6 | ¿Autorizas pedir cotizaciones a Floid y Belvo (S4) en nombre del proyecto, sin datos personales? | Fase 4 |
-| Q8 | ¿Te sirve `recibir.<dominio>` como subdominio en español, o prefieres otro (`correo-banco.`, `ingesta.`)? Es solo configuración (`FMS_SYNC_INGEST_DOMAINS`) | §4.2 |
-| Q9 | Las reglas de autoconfirmación de un **Hogar**: hoy la API de reglas es personal y un correo del Hogar siempre queda propuesto. ¿Las quieres por Hogar en la fase 1? | §5.7 |
 
 ## 9. Fuentes (consultadas el 2026-11-14)
 

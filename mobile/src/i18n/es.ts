@@ -614,7 +614,6 @@ export const es = {
       title: "Reglas de autoconfirmación",
       intro: "Una regla confirma sola los movimientos que llegan del correo y cumplen sus condiciones (por ejemplo, tu nómina). Solo se aplica a correos firmados por tu banco, y cada confirmación se puede deshacer en «Por revisar».",
       webNote: "Crear una regla a mano o editarla se hace en la web.",
-      personalOnly: "Las reglas de autoconfirmación son personales: un movimiento de un hogar siempre queda por revisar.",
       emptyTitle: "Aún no tienes reglas de autoconfirmación",
       emptyBody: "Acepta una sugerencia cuando el FMS detecte un patrón, o crea una en la web.",
       loadFailed: "No pudimos cargar tus reglas.",

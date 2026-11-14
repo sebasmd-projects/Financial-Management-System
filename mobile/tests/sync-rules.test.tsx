@@ -1,7 +1,7 @@
 import { Alert } from "react-native";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { RulesScreen } from "@/features/sync/rules";
-import { scopeStore } from "@/features/scope/store";
+import { householdsStore, scopeStore } from "@/features/scope/store";
 import { catalog, categories, rule, suggestion } from "./sync-fixtures";
 
 let mockKey = 0;
@@ -21,12 +21,13 @@ beforeEach(() => {
   rules = [rule];
   suggestions = [];
   scopeStore.reset();
+  householdsStore.reset();
   for (const m of [mockGet, mockPost, mockPatch, mockDelete]) m.mockReset();
   mockGet.mockImplementation(async (path: string) => {
-    if (path.startsWith("/automation/rules")) return { ok: true, status: 200, data: { count: rules.length, results: rules } };
-    if (path === "/sync/rule-suggestions") return { ok: true, status: 200, data: { results: suggestions } };
+    if (path.startsWith("/automation/rules") || path.startsWith("/households/h1/automation/rules")) return { ok: true, status: 200, data: { count: rules.length, results: rules } };
+    if (path === "/sync/rule-suggestions" || path === "/households/h1/sync/rule-suggestions") return { ok: true, status: 200, data: { results: suggestions } };
     if (path === "/sync/catalog") return { ok: true, status: 200, data: catalog };
-    if (path.startsWith("/categories")) return { ok: true, status: 200, data: categories };
+    if (path.startsWith("/categories") || path.startsWith("/households/h1/categories")) return { ok: true, status: 200, data: categories };
     return { ok: false, status: 404, code: "not_found", data: {} };
   });
 });
@@ -89,11 +90,34 @@ describe("reglas de autoconfirmación (M2, simple)", () => {
     expect(mockPost).toHaveBeenCalledWith("/sync/rule-suggestions/dismiss", { key: "s1" }, undefined);
   });
 
-  it("en un hogar solo avisa que son personales y no pide nada", async () => {
+  it("en un hogar lee y escribe las reglas del hogar (no las personales)", async () => {
     scopeStore.set({ kind: "household", id: "h1" });
+    householdsStore.set([{ id: "h1", name: "Casa", role: "editor", members: 2, rotating: false }]);
+    suggestions = [suggestion];
+    mockPatch.mockResolvedValue({ ok: true, status: 200, data: { ...rule, enabled: false } });
+    mockPost.mockResolvedValue({ ok: true, status: 204, data: undefined });
     await render(<RulesScreen />);
-    expect(await screen.findByText(/son personales/)).toBeTruthy();
-    expect(mockGet).not.toHaveBeenCalled();
+    expect(await screen.findByText("Nómina")).toBeTruthy();
+    const paths = mockGet.mock.calls.map((c) => c[0]);
+    expect(paths).toContain("/households/h1/automation/rules?page_size=100");
+    expect(paths).toContain("/households/h1/sync/rule-suggestions");
+    expect(paths).toContain("/sync/catalog");
+    expect(paths).not.toContain("/automation/rules?page_size=100");
+    await fireEvent.press(screen.getByRole("button", { name: "Pausar" }));
+    await waitFor(() => expect(mockPatch).toHaveBeenCalledWith("/households/h1/automation/rules/r1", { enabled: false }, undefined));
+    await fireEvent.press(screen.getByRole("button", { name: "Descartar" }));
+    await waitFor(() => expect(mockPost).toHaveBeenCalledWith("/households/h1/sync/rule-suggestions/dismiss", { key: "s1" }, undefined));
+  });
+
+  it("un visor del hogar las ve sin botones ni sugerencias", async () => {
+    scopeStore.set({ kind: "household", id: "h1" });
+    householdsStore.set([{ id: "h1", name: "Casa", role: "viewer", members: 2, rotating: false }]);
+    suggestions = [suggestion];
+    await render(<RulesScreen />);
+    expect(await screen.findByText("Nómina")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Pausar" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Borrar" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Descartar" })).toBeNull();
   });
 
   it("un fallo de red se dice y se puede reintentar", async () => {

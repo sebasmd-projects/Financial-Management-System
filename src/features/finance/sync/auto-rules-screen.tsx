@@ -22,8 +22,9 @@ type Editing = { rule: CustomRule | null; draft: AutoRuleDraft } | null;
 
 /**
  * `/configuracion/autoconfirmacion` (W3): las reglas que confirman solas los movimientos que llegan del correo (nómina, suscripciones…), con sus
- * sugerencias. La condición se muestra en lenguaje de persona; «Probar» lista los casos de los últimos 90 días sin efectos; pausar y borrar. Es
- * personal: un movimiento de un hogar siempre queda por revisar.
+ * sugerencias. La condición se muestra en lenguaje de persona; «Probar» lista los casos de los últimos 90 días sin efectos; pausar y borrar. Funciona
+ * en el ámbito activo, como las demás pantallas del hogar (`scopedPath`): en un Hogar son las reglas del hogar, que solo evalúan los correos de las
+ * conexiones del hogar; quien no tiene rol de escritura las ve sin botones (`useCanWrite` y el aviso de solo lectura).
  */
 export function AutoRulesScreen() {
   const { dict } = useI18n();

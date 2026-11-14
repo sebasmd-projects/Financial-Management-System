@@ -90,3 +90,24 @@ Respuestas del propietario a las preguntas abiertas del [plan de integración co
    y nombre fijo). El rango de monto es opcional en toda regla.
 5. **Q5, «Modificar»**: **todos los campos** se pueden editar antes de aprobar, **el monto incluido** (queda auditado).
 6. **Q1, Nequi y Nu**: no se lee nada del teléfono salvo que sea estrictamente necesario; Nequi y Nu solo se **activan** en la app y se leen por correo.
+
+### 2026-11-14: reglas de autoconfirmación también en el Hogar, y `recibir.` confirmado
+
+Respuestas a las dos preguntas que quedaban abiertas del [plan de integración con los bancos](bank-integration-plan.md) (§8):
+
+1. **Q8, subdominio en español**: **`recibir.<dominio>`** queda confirmado (junto a `ingest.<dominio>`). Sigue siendo solo configuración
+   (`FMS_SYNC_INGEST_DOMAINS`, `en=ingest.<dominio>,es=recibir.<dominio>`).
+2. **Q9, reglas del Hogar**: las reglas de autoconfirmación **también funcionan en el Hogar**. Antes la API de reglas era solo personal y un correo
+   de una conexión del Hogar siempre quedaba propuesto.
+
+Plan (y qué se hizo):
+
+* **Por ámbito, sin cruzarse**: un correo de una conexión del Hogar solo evalúa las reglas de **ese** Hogar; uno personal, solo las del usuario. Las reglas y
+  las sugerencias (y sus descartes) son del ámbito, y las del Hogar se cifran con la llave del Hogar.
+* **Permisos**: crear, cambiar, pausar y eliminar reglas, y descartar sugerencias, pide rol de escritura (propietario, administrador o editor). Un visor las ve y
+  puede «Probar» (no escribe), sin botones de edición. Crear o cambiar una regla de autoconfirmación sigue pidiendo reautenticación reciente. Todo queda auditado
+  a nombre del miembro.
+* **Solo `sync_event` + `auto_confirm`** en el Hogar: las reglas de avisos del libro (tarjetas, presupuestos, saldos, obligaciones) siguen siendo personales.
+* **API**: las mismas rutas bajo `households/{id}/` (`automation/catalog`, `automation/rules[...]`, `sync/rule-suggestions[/dismiss]`). **Web**: la pantalla
+  «Autoconfirmación» sigue el ámbito activo como las demás del Hogar. **App**: la lista de reglas del Hogar (pausar, reactivar, borrar y sugerencias según el rol).
+* Contrato: `core/api/openapi-fms.yaml` sincronizado con el backend (`households/{id}/automation/*` y `households/{id}/sync/rule-suggestions*`).

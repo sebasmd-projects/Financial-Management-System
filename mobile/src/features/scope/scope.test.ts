@@ -13,11 +13,15 @@ describe("ámbito", () => {
     expect(scopedPath("/movements", { kind: "both", id: "h2" })).toBe("/movements");
     expect(scopedPath("/notifications", home)).toBe("/notifications");
   });
-  it("los bancos por correo en el hogar: solo conexiones y eventos; el catálogo, las sugerencias y la cédula son personales", () => {
+  it("los bancos por correo en el hogar: conexiones, eventos, sugerencias y reglas; el catálogo y la cédula son personales", () => {
     expect(scopedPath("/sync/connections?page_size=100", home)).toBe("/households/h%201/sync/connections?page_size=100");
     expect(scopedPath("/sync/events?status=proposed&page=1&page_size=50", home)).toBe("/households/h%201/sync/events?status=proposed&page=1&page_size=50");
     expect(scopedPath("/sync/events/summary", home)).toBe("/households/h%201/sync/events/summary");
-    for (const path of ["/sync/catalog", "/sync/rule-suggestions", "/sync/settings", "/sync/settings/document"]) expect(scopedPath(path, home)).toBe(path);
+    expect(scopedPath("/sync/rule-suggestions", home)).toBe("/households/h%201/sync/rule-suggestions");
+    expect(scopedPath("/sync/rule-suggestions/dismiss", home)).toBe("/households/h%201/sync/rule-suggestions/dismiss");
+    expect(scopedPath("/automation/rules?page_size=100", home)).toBe("/households/h%201/automation/rules?page_size=100");
+    expect(scopedPath("/automation/rules/r1", home)).toBe("/households/h%201/automation/rules/r1");
+    for (const path of ["/sync/catalog", "/sync/settings", "/sync/settings/document"]) expect(scopedPath(path, home)).toBe(path);
     expect(scopedPath("/sync/connections", PERSONAL)).toBe("/sync/connections");
   });
   it("comparar y nombrar", () => {

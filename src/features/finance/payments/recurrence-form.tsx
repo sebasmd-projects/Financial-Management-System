@@ -11,6 +11,7 @@ import { toInt } from "@/lib/ints";
 import { formatDate, todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import { movementAccounts } from "../helpers";
+import { CategoryCombobox } from "../category-combobox";
 import { useAll, useHref, useSubmit } from "../hooks";
 import { AmountField, Banner, Checkbox, Empty, FormActions, Loading, ScreenHeader, SelectField, TextField } from "../kit";
 import { EMPTY_PAUSES, EMPTY_TERMS, pauseFields, termsFields, type PausesState, type TermsState } from "./conditions";
@@ -139,7 +140,7 @@ export function RecurrenceForm() {
           <AmountField label={t.amount} value={amountText} onChange={setAmountText} required error={touched && amount === null ? dict.fin.common.invalidAmount : null} />
           <Checkbox label={t.estimate} hint={t.estimateHint} checked={estimate} onChange={setEstimate} />
           <SelectField label={isIncome ? t.accountIn : t.accountOut} value={account} onChange={setAccountId} options={sources.map((a) => ({ value: a.id, label: a.name }))} />
-          <SelectField label={dict.fin.form.category} value={categoryId} onChange={setCategoryId} placeholder={dict.fin.form.noCategory} options={categories.items.filter((c) => c.kind === (isIncome ? "income" : "expense")).map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />
+          <CategoryCombobox label={dict.fin.form.category} kind={isIncome ? "income" : "expense"} categories={categories} value={categoryId} onChange={setCategoryId} placeholder={dict.fin.form.noCategory} />
 
           <SelectField label={t.frequency} value={frequency} onChange={(v) => setFrequency(v as Frequency)} options={FREQUENCIES.map((f) => ({ value: f, label: dict.fin.frequencies[f] }))} />
           <div className="fin-grid-2">

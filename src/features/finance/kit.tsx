@@ -180,7 +180,7 @@ export function HelpTip({ label, text }: { label: string; text: string }) {
   );
 }
 
-function FieldShell({ id, label, hint, error, required, help, children }: BaseField & { id: string; children: ReactNode }) {
+export function FieldShell({ id, label, hint, error, required, help, children }: BaseField & { id: string; children: ReactNode }) {
   const { dict } = useI18n();
   const labelNode = (
     <label htmlFor={id} className="field__label">

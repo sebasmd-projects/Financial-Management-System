@@ -11,9 +11,10 @@ import { compareAmounts, formatCop } from "@/lib/money";
 import { formatDate, todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
 import { fill } from "../helpers";
+import { CategoryCombobox } from "../category-combobox";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { useConventionLabel } from "../conventions";
-import { AmountField, Banner, Checkbox, ErrorState, FormActions, Loading, Money, ScreenHeader, SelectField, SpentFigure, TextField } from "../kit";
+import { AmountField, Banner, Checkbox, ErrorState, FormActions, Loading, Money, ScreenHeader, SpentFigure, TextField } from "../kit";
 import { warningText } from "../movements/movement-form";
 import { ConventionSelect, type RateConventionCode } from "../conventions";
 
@@ -145,7 +146,7 @@ export function PurchasePanel({ card, simulator = false, onDone }: { card: Card;
       </div>
 
       <TextField label={t.date} type="date" value={date} onChange={setDate} required />
-      <SelectField label={dict.fin.form.category} value={category} onChange={setCategory} placeholder={dict.fin.form.noCategory} options={categories.items.map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />
+      <CategoryCombobox label={dict.fin.form.category} kind="expense" categories={categories} value={category} onChange={setCategory} placeholder={dict.fin.form.noCategory} />
       <TextField label={dict.fin.form.description} value={description} onChange={setDescription} maxLength={200} />
       {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
       <FormActions>

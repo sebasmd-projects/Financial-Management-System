@@ -415,7 +415,7 @@ sugeridos llevan un punto `info` de 6 dp y la leyenda «sugerido»; al editarlos
 | Campo | Control | Notas |
 |---|---|---|
 | Tipo | Segmentos | Ingreso, Egreso, Transferencia. «Reembolso o devolución» es una casilla que invierte el signo y pide el movimiento original |
-| Categoría y subcategoría | Selector jerárquico con búsqueda | Personalizable en 8 › Categorías |
+| Categoría y subcategoría | Selector jerárquico con búsqueda; si el nombre no existe ofrece «Crear «texto»» (la crea y la deja elegida sin reiniciar el formulario) y, sin categorías, «Añadir categorías por defecto» (solo inserta las que faltan) | Personalizable en 8 › Categorías |
 | Naturaleza | Segmentos Fijo · Variable | Independiente de la categoría |
 | Clasificación | Segmentos Necesario · Discrecional | Independiente de la naturaleza |
 | Etiquetas | Fichas múltiples con alta en línea | |

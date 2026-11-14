@@ -14,6 +14,7 @@ import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
 import { DrillLink } from "../drill-link";
 import { fill, movementAccounts } from "../helpers";
+import { CategoryCombobox } from "../category-combobox";
 import { useAll, useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, DefinitionList, Empty, ErrorState, FormActions, Loading, Modal, Money, Section, Segmented, SelectField, TextArea, TextField } from "../kit";
 import { maintenanceRule, odometerGoesBack, parseKm, VEHICLE_COST_KINDS } from "./logic";
@@ -242,7 +243,7 @@ function CostForm({ assetId, onDone, onCancel }: { assetId: string; onDone: () =
       <AmountField label={t.amount} value={amount} onChange={setAmount} required error={touched && parsed === null ? t.problems.amount : null} apiCode={submit.errorCode} />
       <TextField label={t.due} type="date" value={due} onChange={setDue} required error={touched && due === "" ? t.problems.due : null} />
       <SelectField label={t.account} value={account} onChange={setAccountId} options={usable.map((a) => ({ value: a.id, label: a.name }))} error={touched && account === "" ? t.problems.account : null} />
-      <SelectField label={t.category} value={categoryId} onChange={setCategoryId} placeholder={t.none} options={categories.items.filter((c) => c.kind === "expense").map((c) => ({ value: c.id, label: c.path.join(" › ") }))} />
+      <CategoryCombobox label={t.category} kind="expense" categories={categories} value={categoryId} onChange={setCategoryId} placeholder={t.none} />
       {centers.items.length > 0 && <SelectField label={t.costCenter} value={centerId} onChange={setCenterId} placeholder={t.none} options={centers.items.filter((c) => !c.archived).map((c) => ({ value: c.id, label: c.name }))} />}
       {submit.error && submit.errorCode !== "too_many_decimals" && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
       <FormActions>

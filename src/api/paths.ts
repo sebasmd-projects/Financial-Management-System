@@ -158,6 +158,7 @@ export const paths = {
   customAttribute: (attributeId: string) => `/custom-attributes/${id(attributeId)}`,
   costCenter: (centerId: string) => `/cost-centers/${id(centerId)}`,
   costCenterDefaults: () => "/cost-centers/defaults",
+  categoryDefaults: () => "/categories/defaults",
   costCenterUsage: (params: { from?: string; to?: string } = {}) => `/cost-centers/usage${query(params)}`,
   usuryCheck: (params: { rate: string; convention: string; on?: string }) => `/usury/check${query(params)}`,
   // FMS-3a (cortes 3.1 a 3.4): motor de reglas, escenarios e independencia, UVR y tasa variable, compras compartidas.

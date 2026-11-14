@@ -139,6 +139,7 @@ export const paths = {
   exchangeRates: (params: Record<string, QueryValue> = {}) => `/exchange-rates${query({ page_size: 100, ...params })}`,
   exchangeRate: (rateId: string) => `/exchange-rates/${id(rateId)}`,
   importPreview: () => "/imports/preview",
+  importFormats: () => "/imports/formats",
   imports: (params: Record<string, QueryValue> = {}) => `/imports${query({ page_size: 20, ...params })}`,
   importUndo: (batchId: string) => `/imports/${id(batchId)}/undo`,
   importMappings: () => `/import-mappings${query({ page_size: 100 })}`,

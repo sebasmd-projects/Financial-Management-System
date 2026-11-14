@@ -11562,6 +11562,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: El estado actual no lo permite.
+  /api/fms/v1/imports/formats:
+    get:
+      operationId: fmsImportFormats
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: El formato del archivo de cada importador (columnas, separadores, fechas,
+        signo, límites y filas de ejemplo con su plantilla CSV)
+      tags:
+      - imports
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImportFormats'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/imports/preview:
     post:
       operationId: fmsImportPreview
@@ -23064,6 +23097,250 @@ components:
         * `csv` - csv
         * `xlsx` - xlsx
         * `ofx` - ofx
+    ImportFormat:
+      type: object
+      description: 'El formato del archivo de un importador: sale de las mismas constantes
+        y del mismo lector que lo procesan.'
+      properties:
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/Kind9efEnum'
+          description: |-
+            `account` (cuenta de activo) o `card` (tarjeta de crédito).
+
+            * `account` - account
+            * `card` - card
+        file_types:
+          type: array
+          items:
+            type: string
+        extensions:
+          type: array
+          items:
+            type: string
+        encodings:
+          type: array
+          items:
+            type: string
+        delimiters:
+          type: array
+          items:
+            type: string
+        decimal_separators:
+          type: array
+          items:
+            type: string
+        thousands_separators:
+          type: array
+          items:
+            type: string
+        date_formats:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportFormatDate'
+        amount_modes:
+          type: array
+          items:
+            type: string
+          description: '`amount` (una columna con signo) o `debit_credit` (dos columnas).'
+        sign_modes:
+          type: array
+          items:
+            type: string
+          description: 'Solo tarjetas: los valores de `sign`.'
+        columns:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportFormatColumn'
+        example_header:
+          type: array
+          items:
+            type: string
+        example_rows:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+          description: Al menos 5 filas de ejemplo (datos inventados).
+        example_stored:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportFormatStored'
+          description: Cómo queda cada fila de ejemplo tras leerla con el lector real.
+        template_csv:
+          type: string
+          description: 'La plantilla: títulos y filas de ejemplo, UTF-8, separada
+            por comas.'
+        template_filename:
+          type: string
+        template_mapping:
+          type: object
+          additionalProperties:
+            type: string
+          description: El mapeo con que se lee la plantilla.
+        ofx_fields:
+          type: array
+          items:
+            type: string
+        row_errors:
+          type: array
+          items:
+            type: string
+          description: Los códigos con que se informa una fila ilegible.
+        limits:
+          $ref: '#/components/schemas/ImportFormatLimits'
+      required:
+      - amount_modes
+      - columns
+      - date_formats
+      - decimal_separators
+      - delimiters
+      - encodings
+      - example_header
+      - example_rows
+      - example_stored
+      - extensions
+      - file_types
+      - kind
+      - limits
+      - ofx_fields
+      - row_errors
+      - sign_modes
+      - template_csv
+      - template_filename
+      - template_mapping
+      - thousands_separators
+    ImportFormatColumn:
+      type: object
+      properties:
+        key:
+          type: string
+          description: 'El rol: `date`, `description`, `amount`, `reference`, `balance`
+            o `installments`.'
+        header:
+          type: string
+          description: El título que lleva la plantilla (con él se reconoce la columna
+            sola).
+        required:
+          type: boolean
+        type:
+          $ref: '#/components/schemas/ImportFormatColumnTypeEnum'
+        constraints:
+          type: object
+          additionalProperties:
+            type: integer
+          description: '`max_length`, `min`, `max`.'
+        example:
+          type: string
+      required:
+      - constraints
+      - example
+      - header
+      - key
+      - required
+      - type
+    ImportFormatColumnTypeEnum:
+      enum:
+      - date
+      - money
+      - text
+      - integer
+      type: string
+      description: |-
+        * `date` - date
+        * `money` - money
+        * `text` - text
+        * `integer` - integer
+    ImportFormatDate:
+      type: object
+      properties:
+        format:
+          type: string
+          description: El `strftime` que usa el lector (`%d/%m/%Y`) o `serial` (número
+            de Excel).
+        pattern:
+          type: string
+          description: Cómo se escribe (`DD/MM/YYYY`).
+        example:
+          type: string
+          description: El 25 de octubre de 2026 escrito así.
+      required:
+      - example
+      - format
+      - pattern
+    ImportFormatLimits:
+      type: object
+      properties:
+        max_bytes:
+          type: integer
+        max_rows:
+          type: integer
+        max_columns:
+          type: integer
+        max_cell_chars:
+          type: integer
+        max_installments:
+          type: integer
+      required:
+      - max_bytes
+      - max_cell_chars
+      - max_columns
+      - max_installments
+      - max_rows
+    ImportFormatStored:
+      type: object
+      properties:
+        number:
+          type: integer
+          description: La fila en la plantilla (la 1 son los títulos).
+        date:
+          type: string
+          format: date
+        amount:
+          type: string
+          description: 'Cadena decimal con signo: negativo es un egreso o un cargo.'
+        description:
+          type: string
+        reference:
+          type: string
+        kind:
+          description: |-
+            Solo tarjetas: la clase que se propone.
+
+            * `purchase` - purchase
+            * `advance` - advance
+            * `interest` - interest
+            * `fee` - fee
+            * `insurance` - insurance
+            * `payment` - payment
+            * `refund` - refund
+            * `adjustment` - adjustment
+          oneOf:
+          - $ref: '#/components/schemas/KindE46Enum'
+          - $ref: '#/components/schemas/NullEnum'
+        installments:
+          type:
+          - integer
+          - 'null'
+          description: Solo tarjetas y compras.
+      required:
+      - amount
+      - date
+      - description
+      - installments
+      - kind
+      - number
+      - reference
+    ImportFormats:
+      type: object
+      properties:
+        formats:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImportFormat'
+      required:
+      - formats
     ImportMapping:
       type: object
       description: Qué columna es cada cosa (por título) y cómo se escriben las fechas
@@ -23233,6 +23510,10 @@ components:
           type: object
           additionalProperties:
             type: integer
+        summary:
+          allOf:
+          - $ref: '#/components/schemas/ImportSummary'
+          description: 'Los totales: filas leídas, válidas, con aviso y con error.'
         target:
           $ref: '#/components/schemas/TargetEnum'
         card:
@@ -23278,6 +23559,7 @@ components:
       - sign_detected
       - sign_used
       - suggested_mapping
+      - summary
       - target
     ImportPreviewRow:
       type: object
@@ -23338,7 +23620,7 @@ components:
             * `refund` - refund
             * `adjustment` - adjustment
           oneOf:
-          - $ref: '#/components/schemas/ImportPreviewRowKindEnum'
+          - $ref: '#/components/schemas/KindE46Enum'
           - $ref: '#/components/schemas/NullEnum'
         installments:
           type:
@@ -23378,6 +23660,20 @@ components:
           type: string
           description: Código de lo que falta decidir o conviene saber (p. ej. `payment_source_required`);
             vacío si nada.
+        validity:
+          allOf:
+          - $ref: '#/components/schemas/ValidityEnum'
+          description: |-
+            `valid`: se importará tal cual; `warning`: conviene saber o decidir algo (ver `reasons`). Una fila ilegible no está aquí: es un `error` de la vista previa.
+
+            * `valid` - valid
+            * `warning` - warning
+        reasons:
+          type: array
+          items:
+            type: string
+          description: Los códigos del aviso (`already_imported`, `possible_duplicate`,
+            `payment_source_required`...); vacío si la fila es válida.
       required:
       - action
       - amount
@@ -23394,29 +23690,11 @@ components:
       - number
       - period_end
       - period_start
+      - reasons
       - reference
       - refund_of_id
       - refund_of_row
-    ImportPreviewRowKindEnum:
-      enum:
-      - purchase
-      - advance
-      - interest
-      - fee
-      - insurance
-      - payment
-      - refund
-      - adjustment
-      type: string
-      description: |-
-        * `purchase` - purchase
-        * `advance` - advance
-        * `interest` - interest
-        * `fee` - fee
-        * `insurance` - insurance
-        * `payment` - payment
-        * `refund` - refund
-        * `adjustment` - adjustment
+      - validity
     ImportRowError:
       type: object
       properties:
@@ -23450,6 +23728,24 @@ components:
       - last_used_at
       - mapping
       - name
+    ImportSummary:
+      type: object
+      properties:
+        rows_read:
+          type: integer
+          description: 'Filas de datos del archivo: válidas, con aviso y con error.'
+        valid:
+          type: integer
+        warnings:
+          type: integer
+        errors:
+          type: integer
+          description: 'Filas ilegibles: no se importan (ver `errors`).'
+      required:
+      - errors
+      - rows_read
+      - valid
+      - warnings
     ImportUpload:
       type: object
       properties:
@@ -23970,6 +24266,14 @@ components:
       required:
       - id
       - label
+    Kind9efEnum:
+      enum:
+      - account
+      - card
+      type: string
+      description: |-
+        * `account` - account
+        * `card` - card
     Kind9ffEnum:
       enum:
       - handling_fee
@@ -23978,6 +24282,26 @@ components:
       description: |-
         * `handling_fee` - handling_fee
         * `insurance` - insurance
+    KindE46Enum:
+      enum:
+      - purchase
+      - advance
+      - interest
+      - fee
+      - insurance
+      - payment
+      - refund
+      - adjustment
+      type: string
+      description: |-
+        * `purchase` - purchase
+        * `advance` - advance
+        * `interest` - interest
+        * `fee` - fee
+        * `insurance` - insurance
+        * `payment` - payment
+        * `refund` - refund
+        * `adjustment` - adjustment
     Kpi:
       type: object
       properties:
@@ -30319,6 +30643,14 @@ components:
       - exceeds
       - usury
       - usury_known
+    ValidityEnum:
+      enum:
+      - valid
+      - warning
+      type: string
+      description: |-
+        * `valid` - valid
+        * `warning` - warning
     Vehicle:
       type: object
       properties:

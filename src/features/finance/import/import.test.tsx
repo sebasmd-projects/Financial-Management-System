@@ -1,8 +1,9 @@
 // @vitest-environment happy-dom
 import { act } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ImportAction, ImportMatch, ImportPreview, ImportPreviewRow } from "@/api/models";
+import type { ImportAction, ImportFormats, ImportMatch, ImportPreview, ImportPreviewRow } from "@/api/models";
 import { byText, click, mountScreen, typeInto, wait, type Mounted } from "@/test/render";
+import { es } from "@/i18n/dictionaries/es";
 import { ImportScreen } from "./import-screen";
 
 vi.mock("next/navigation", () => ({
@@ -14,9 +15,10 @@ vi.mock("next/navigation", () => ({
 const page = (results: unknown[]) => ({ status: 200, json: { count: results.length, page: 1, page_size: 100, results } });
 const ACCOUNT = { id: "a-1", type: "asset", kind: "savings", system_key: "", name: "Ahorros Bancolombia", last4: null, institution: null, parent_id: null, currency: "COP", gmf_exempt: false, liquid: true, enforce_funds: false, status: "active", posted_balance: "3420000.00", projected_balance: "3420000.00" };
 const HEADERS = ["Fecha", "Descripción", "Valor", "Saldo"];
-const row = (number: number, match: ImportMatch, action: ImportAction, amount = "-182300.00", description = "ÉXITO CHAPINERO"): ImportPreviewRow => ({ number, date: "2026-11-02", amount, description, reference: "", match, candidate_id: null, action, counterparty: null, category_id: null, kind: null, installments: null, period_start: null, period_end: null, refund_of_id: null, refund_of_row: null, counter_account: null, issue: "" });
+const validityOf = (match: ImportMatch): Pick<ImportPreviewRow, "validity" | "reasons"> => (match === "duplicate" ? { validity: "warning", reasons: ["already_imported"] } : match === "possible_duplicate" ? { validity: "warning", reasons: ["possible_duplicate"] } : { validity: "valid", reasons: [] });
+const row = (number: number, match: ImportMatch, action: ImportAction, amount = "-182300.00", description = "ÉXITO CHAPINERO"): ImportPreviewRow => ({ number, date: "2026-11-02", amount, description, reference: "", match, candidate_id: null, action, counterparty: null, category_id: null, kind: null, installments: null, period_start: null, period_end: null, refund_of_id: null, refund_of_row: null, counter_account: null, issue: "", ...validityOf(match) });
 
-const NEEDS_MAPPING: ImportPreview = { kind: "csv", needs_mapping: true, headers: HEADERS, sample: [["02/11/2026", "ÉXITO", "-182.300,00", "1.000,00"]], mapping: null, mapping_source: "none", suggested_mapping: { date: "Fecha", description: "Descripción", amount: "Valor", balance: "Saldo", decimal_sep: ",", thousands_sep: "." }, rows: [], errors: [], notes: [], meta: {}, counts: {}, target: "account", card: null, sign_detected: null, sign_used: null, kind_counts: {} };
+const NEEDS_MAPPING: ImportPreview = { kind: "csv", needs_mapping: true, headers: HEADERS, sample: [["02/11/2026", "ÉXITO", "-182.300,00", "1.000,00"]], mapping: null, mapping_source: "none", suggested_mapping: { date: "Fecha", description: "Descripción", amount: "Valor", balance: "Saldo", decimal_sep: ",", thousands_sep: "." }, rows: [], errors: [], notes: [], meta: {}, counts: {}, summary: { rows_read: 0, valid: 0, warnings: 0, errors: 0 }, target: "account", card: null, sign_detected: null, sign_used: null, kind_counts: {} };
 const REVIEW: ImportPreview = {
   kind: "xlsx",
   needs_mapping: false,
@@ -30,12 +32,51 @@ const REVIEW: ImportPreview = {
   notes: ["formulas_ignored"],
   meta: {},
   counts: { new: 1, matches_pending: 1, possible_duplicate: 1, duplicate: 1 },
+  summary: { rows_read: 5, valid: 2, warnings: 2, errors: 1 },
   target: "account",
   card: null,
   sign_detected: null,
   sign_used: null,
   kind_counts: {},
 };
+const COLUMNS = (card: boolean): ImportFormats["formats"][number]["columns"] => [
+  { key: "date", header: "Fecha", required: true, type: "date", constraints: {}, example: "2026-10-01" },
+  { key: "description", header: "Descripcion", required: false, type: "text", constraints: { max_length: 200 }, example: "NOMINA EMPRESA" },
+  { key: "amount", header: "Valor", required: true, type: "money", constraints: {}, example: "5200000.00" },
+  { key: "reference", header: "Referencia", required: false, type: "text", constraints: { max_length: 80 }, example: "NOM-1001" },
+  card ? { key: "installments", header: "Cuotas", required: false, type: "integer", constraints: { min: 1, max: 48 }, example: "1" } : { key: "balance", header: "Saldo", required: false, type: "money", constraints: {}, example: "5200000.00" },
+];
+const EXAMPLES = [
+  ["2026-10-01", "NOMINA EMPRESA", "5200000.00", "NOM-1001", ""],
+  ["2026-10-02", "COMPRA EXITO", "-182300.50", "TRX-1", ""],
+  ["2026-10-03", "RETIRO CAJERO", "-200000.00", "TRX-2", ""],
+  ["2026-10-05", "PAGO SERVICIOS", "-145900.00", "TRX-3", ""],
+  ["2026-10-08", "TRANSFERENCIA", "350000.00", "TRX-4", ""],
+  ["2026-10-10", "COMISION", "-12500.00", "", ""],
+];
+const FORMAT = (kind: "account" | "card"): ImportFormats["formats"][number] => ({
+  kind,
+  file_types: ["csv", "xlsx", "ofx"],
+  extensions: [".csv", ".txt", ".xlsx", ".ofx", ".qfx"],
+  encodings: ["utf-8", "utf-8-sig", "cp1252"],
+  delimiters: [";", ",", "tab", "|"],
+  decimal_separators: [".", ","],
+  thousands_separators: ["", ".", ",", "space"],
+  date_formats: [{ format: "%Y-%m-%d", pattern: "YYYY-MM-DD", example: "2026-10-25" }, { format: "%d/%m/%Y", pattern: "DD/MM/YYYY", example: "25/10/2026" }],
+  amount_modes: ["amount", "debit_credit"],
+  sign_modes: kind === "card" ? ["auto", "charges_negative", "charges_positive"] : [],
+  columns: COLUMNS(kind === "card"),
+  example_header: ["Fecha", "Descripcion", "Valor", "Referencia", kind === "card" ? "Cuotas" : "Saldo"],
+  example_rows: EXAMPLES,
+  example_stored: EXAMPLES.map((r, i) => ({ number: i + 2, date: r[0], amount: r[2], description: r[1], reference: r[3], kind: kind === "card" ? "purchase" : null, installments: kind === "card" ? 1 : null })),
+  template_csv: "Fecha,Descripcion,Valor,Referencia,Saldo\n2026-10-01,NOMINA EMPRESA,5200000.00,NOM-1001,\n",
+  template_filename: "plantilla.csv",
+  template_mapping: { date: "Fecha" },
+  ofx_fields: ["DTPOSTED", "TRNAMT", "NAME", "MEMO", "FITID"],
+  row_errors: ["invalid_date", "invalid_amount", "too_many_decimals", "debit_and_credit", "zero_amount", "invalid_installments"],
+  limits: { max_bytes: 10485760, max_rows: 5000, max_columns: 60, max_cell_chars: 500, max_installments: 48 },
+});
+const FORMATS: ImportFormats = { formats: [FORMAT("account"), FORMAT("card")] };
 const BATCH = { id: "b-1", account_id: "a-1", kind: "xlsx", filename: "extracto.xlsx", status: "committed", rows_total: 4, created_count: 1, confirmed_count: 1, skipped_count: 2, created_at: "2026-11-11T15:00:00Z", undone_at: null };
 
 let view: Mounted | null = null;
@@ -160,7 +201,7 @@ describe("importar extracto", () => {
   });
 
   it("con el mapeo guardado del banco no pregunta nada, y reimportar el mismo archivo informa que no creó nada", async () => {
-    const saved: ImportPreview = { ...REVIEW, mapping_source: "saved", errors: [], notes: [], rows: [row(2, "duplicate", "skip"), row(3, "duplicate", "skip")], counts: { duplicate: 2 } };
+    const saved: ImportPreview = { ...REVIEW, mapping_source: "saved", errors: [], notes: [], rows: [row(2, "duplicate", "skip"), row(3, "duplicate", "skip")], counts: { duplicate: 2 }, summary: { rows_read: 2, valid: 0, warnings: 2, errors: 0 } };
     view = await mountScreen(<ImportScreen />, {
       ...base,
       "POST /api/fms/v1/imports/preview": { status: 200, json: saved },
@@ -212,6 +253,7 @@ describe("importar extracto", () => {
       errors: [],
       notes: [],
       counts: { new: 2 },
+      summary: { rows_read: 2, valid: 2, warnings: 0, errors: 0 },
     };
     let last: FormData | null = null;
     view = await mountScreen(<ImportScreen />, {
@@ -260,6 +302,91 @@ describe("importar extracto", () => {
     await wait();
     expect(last!.get("sign")).toBe("charges_positive");
     expect(JSON.parse(String(last!.get("edits")))).toEqual({ "2": { installments: 6 }, "3": { counter_account: "unregistered" } });
+  });
+
+  it("revisión: cada fila dice si es válida o trae aviso, la ilegible aparece en la tabla con su motivo y los totales cuadran", async () => {
+    view = await mountScreen(<ImportScreen />, { ...base, "POST /api/fms/v1/imports/preview": { status: 200, json: REVIEW } });
+    chooseFile(view.host, csv());
+    await wait();
+    click(byText(view.host, "button", "Analizar archivo"));
+    await wait();
+    expect(view.host.querySelector("[data-testid=import-validity]")!.textContent).toBe("5 filas leídas: 2 válidas, 2 con aviso y 1 con error.");
+    const items = [...view.host.querySelectorAll("li.imp-row")];
+    expect(items).toHaveLength(5); // 4 legibles + 1 ilegible, en el orden del archivo
+    expect(items[0].textContent).toContain("Válida");
+    expect(items[2].textContent).toContain("Con aviso");
+    expect(items[2].textContent).toContain("Se parece a algo ya importado");
+    expect(items[3].textContent).toContain("Ya se importó antes");
+    expect(items[4].textContent).toContain("Fila 9");
+    expect(items[4].textContent).toContain("Con error");
+    expect(view.host.querySelector("[data-testid=error-row-9]")!.textContent).toContain("No se importa: fecha no válida.");
+    expect(view.host.querySelector("[data-testid=error-row-9] input")).toBeNull(); // no se puede incluir
+    // Cómo se guardará cada fila: egreso confirmado, confirma el pendiente, no se importa.
+    expect(view.host.querySelector("[data-testid=stored-2]")!.textContent).toBe("Se guardará como un egreso confirmado");
+    expect(view.host.querySelector("[data-testid=stored-3]")!.textContent).toContain("Confirmará el movimiento pendiente");
+    expect(view.host.querySelector("[data-testid=stored-4]")!.textContent).toBe("No se importará");
+    // Filtrar por error o por aviso.
+    click(byText(view.host, "label", "Con error").querySelector("input")!);
+    await wait();
+    expect(view.host.querySelectorAll("li.imp-row")).toHaveLength(1);
+    click(byText(view.host, "label", "Con aviso").querySelector("input")!);
+    await wait();
+    expect(view.host.querySelectorAll("li.imp-row")).toHaveLength(2);
+  });
+
+  it("«Formato del archivo»: columnas, fechas, signo, al menos 5 filas de ejemplo, cómo se guardan y la plantilla se descarga", async () => {
+    const saved: Blob[] = [];
+    const createObjectURL = vi.fn((blob: Blob) => {
+      saved.push(blob);
+      return "blob:plantilla";
+    });
+    vi.stubGlobal("URL", Object.assign(URL, { createObjectURL, revokeObjectURL: vi.fn() }));
+    view = await mountScreen(<ImportScreen />, { ...base, "GET /api/fms/v1/imports/formats": { status: 200, json: FORMATS } });
+    click(byText(view.host, "button", "Formato del archivo"));
+    await wait();
+    const panel = view.host.querySelector("[data-testid=import-format]")!;
+    expect(view.mock.calls.filter((c) => c.url.endsWith("/imports/formats"))).toHaveLength(1);
+    const text = panel.textContent!;
+    expect(text).toContain("Archivos aceptados");
+    expect(text).toContain(".csv, .txt, .xlsx, .ofx, .qfx");
+    expect(text).toContain("UTF-8");
+    expect(text).toContain("YYYY-MM-DD");
+    expect(text).toContain("Signo: un egreso");
+    expect(text).toContain("Fecha — fecha"); // título de la plantilla — rol
+    const example = panel.querySelector<HTMLTableElement>("table[aria-label], div[aria-label='Filas de ejemplo del archivo'] table")!;
+    expect(example.querySelectorAll("tbody tr").length).toBeGreaterThanOrEqual(5);
+    expect(panel.querySelector("div[aria-label='Cómo queda cada fila de ejemplo'] tbody tr")).not.toBeNull();
+    expect(panel.querySelectorAll("caption").length).toBeGreaterThanOrEqual(4); // tablas con título
+    // Descargar la plantilla: CSV con BOM y la fila de títulos, sin tocar el almacenamiento del navegador.
+    click(byText(panel as HTMLElement, "button", "Descargar plantilla"));
+    expect(createObjectURL).toHaveBeenCalledTimes(1);
+    expect(saved[0].type).toContain("text/csv");
+    expect(saved[0].size).toBe(new Blob(["\uFEFF", FORMATS.formats[0].template_csv]).size);
+    // Tarjeta: pide otro formato dentro del mismo panel (cuotas, clase propuesta).
+    click(byText(panel as HTMLElement, "label", "Tarjeta de crédito").querySelector("input")!);
+    await wait();
+    expect(panel.textContent).toContain("Cuotas: solo cuentan en las compras");
+    expect(panel.textContent).toContain("Compra");
+  });
+
+  it("«Formato del archivo» abre en el formato de la tarjeta si la cuenta elegida es una tarjeta, y en inglés", async () => {
+    const CARD = { ...ACCOUNT, id: "c-1", type: "liability", kind: "credit_card", name: "Visa Sintética" };
+    view = await mountScreen(<ImportScreen />, { ...base, "GET /api/fms/v1/accounts?page_size=100": page([CARD]), "GET /api/fms/v1/imports/formats": { status: 200, json: FORMATS } }, "en");
+    click(byText(view.host, "button", "File format"));
+    await wait();
+    const panel = view.host.querySelector("[data-testid=import-format]")!;
+    expect(panel.querySelector<HTMLInputElement>("input[type=radio]:checked")!.closest("label")!.textContent).toBe("Credit card");
+    expect(panel.textContent).toContain("Sign: a bank may show purchases as negative");
+    expect(panel.textContent).toContain("Download template");
+  });
+
+  it("«Formato del archivo» falla con un mensaje, no en blanco", async () => {
+    const CARD = { ...ACCOUNT, id: "c-1", type: "liability", kind: "credit_card", name: "Visa Sintética" };
+    view = await mountScreen(<ImportScreen />, { ...base, "GET /api/fms/v1/accounts?page_size=100": page([CARD]), "GET /api/fms/v1/imports/formats": { status: 500, json: { code: "server_error" } } });
+    click(byText(view.host, "button", "Formato del archivo"));
+    await wait();
+    expect(view.host.querySelector("[data-testid=import-format]")).toBeNull();
+    expect(view.visible()).toContain(es.fin.errors.generic);
   });
 
   it("en inglés", async () => {

@@ -1,4 +1,4 @@
-import type { ImportAction, ImportMapping, ImportPreviewRow } from "@/api/models";
+import type { ImportAction, ImportFormat, ImportMapping, ImportPreview, ImportPreviewRow } from "@/api/models";
 
 /** Tope del servidor (`FMS_ATTACHMENT_MAX_BYTES`): se avisa antes de subir. */
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
@@ -229,4 +229,35 @@ export function tally(rows: readonly ImportPreviewRow[], choices: ReadonlyMap<nu
   const out: Tally = { import: 0, confirm: 0, link: 0, skip: 0 };
   for (const row of rows) out[effectiveAction(row, choices)] += 1;
   return out;
+}
+
+/** Lo que enseña la tabla de la vista previa: una fila legible (con su veredicto) o una ilegible (con el motivo). */
+export type PreviewEntry = { kind: "row"; number: number; row: ImportPreviewRow } | { kind: "error"; number: number; code: string };
+export type EntryFilter = "all" | "warning" | "error" | ImportPreviewRow["match"];
+
+/** Las filas legibles y las ilegibles, juntas y en el orden del archivo: nada desaparece en silencio. */
+export function previewEntries(preview: Pick<ImportPreview, "rows" | "errors">): PreviewEntry[] {
+  const rows: PreviewEntry[] = preview.rows.map((row) => ({ kind: "row", number: row.number, row }));
+  const errors: PreviewEntry[] = preview.errors.map((e) => ({ kind: "error", number: e.row, code: e.code }));
+  return [...rows, ...errors].sort((a, b) => a.number - b.number);
+}
+
+export function filterEntries(entries: readonly PreviewEntry[], filter: EntryFilter): PreviewEntry[] {
+  if (filter === "all") return [...entries];
+  if (filter === "error") return entries.filter((e) => e.kind === "error");
+  if (filter === "warning") return entries.filter((e) => e.kind === "row" && e.row.validity === "warning");
+  return entries.filter((e) => e.kind === "row" && e.row.match === filter);
+}
+
+/** Cómo se guardará una fila según la acción efectiva (la que propone el servidor o la que eligió la persona). */
+export type StoredAs = "income" | "expense" | "confirm" | "link" | "skip";
+export function storedAs(row: Pick<ImportPreviewRow, "number" | "action" | "amount">, choices: ReadonlyMap<number, "import" | "skip">): StoredAs {
+  const action = effectiveAction(row, choices);
+  if (action === "import") return row.amount.startsWith("-") ? "expense" : "income";
+  return action;
+}
+
+/** El formato de un destino según el tipo de cuenta elegida. */
+export function formatFor(formats: readonly ImportFormat[], target: "account" | "card"): ImportFormat | null {
+  return formats.find((f) => f.kind === target) ?? null;
 }

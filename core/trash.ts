@@ -113,6 +113,12 @@ export function reopenReason(text: string): string | null {
   return reason === "" || reason.length > 200 ? null : reason;
 }
 
+/** ¿Hay categorías en la papelera? Mientras las haya, no se ofrece «Añadir categorías por defecto» (el servidor las cuenta como existentes y no las
+ * vuelve a crear): se restauran desde la Papelera. */
+export function hasTrashedCategories(trashed: readonly Pick<Deletion, "kind">[] | null | undefined): boolean {
+  return (trashed ?? []).some((d) => d.kind === "category");
+}
+
 /** Días que quedan para restaurar, acotados a 0..30 (para el texto «quedan N días»). */
 export function daysLeft(deletion: Pick<Deletion, "days_left">): number {
   return Math.min(30, Math.max(0, Math.trunc(deletion.days_left)));

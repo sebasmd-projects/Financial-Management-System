@@ -230,6 +230,7 @@ export const finEn: FinDictionary = {
       results: "{n} options. Use the arrow keys and Enter.",
       noResults: "No matches.",
       addDefaults: "Add default categories",
+      inTrash: "You have categories in the Trash: restore them from Settings → Trash (the defaults are not created again while they are there).",
       defaultsAdded: "{n} categories added.",
       defaultsNone: "You already have all the default categories.",
     },

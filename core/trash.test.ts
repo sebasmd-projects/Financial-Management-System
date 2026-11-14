@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ApiResult } from "./api/client";
-import { affectedRows, daysLeft, deletionBody, exportChoices, exportFileName, hasReconciled, isSimple, reopenReason, shouldRefetchPreview, trashApi, trashPaths, type Deletion, type DeletionPreview, type TrashClient } from "./trash";
+import { affectedRows, daysLeft, hasTrashedCategories, deletionBody, exportChoices, exportFileName, hasReconciled, isSimple, reopenReason, shouldRefetchPreview, trashApi, trashPaths, type Deletion, type DeletionPreview, type TrashClient } from "./trash";
 
 const PREVIEW: DeletionPreview = {
   kind: "account",
@@ -76,6 +76,14 @@ describe("confirmar", () => {
     expect(daysLeft({ days_left: 45 })).toBe(30);
     expect(daysLeft({ days_left: -2 })).toBe(0);
     expect(daysLeft({ days_left: 12.7 })).toBe(12);
+  });
+});
+
+describe("categorías en la papelera", () => {
+  it("las detecta (y una lista que aún no llegó no cuenta)", () => {
+    expect(hasTrashedCategories([{ kind: "movement" }, { kind: "category" }])).toBe(true);
+    expect(hasTrashedCategories([{ kind: "account" }])).toBe(false);
+    expect(hasTrashedCategories(null)).toBe(false);
   });
 });
 

@@ -176,6 +176,7 @@ export const es = {
     categoryTaken: "Ya tienes una categoría con ese nombre (puede estar archivada).",
     categoryFailed: "No se pudo crear la categoría. Inténtalo de nuevo.",
     addDefaults: "Añadir categorías por defecto",
+    categoriesInTrash: "Tienes categorías en la Papelera: restáuralas desde Más → Papelera.",
     defaultsAdded: (n: number) => `${n} categorías añadidas.`,
     defaultsNone: "Ya tienes todas las categorías por defecto.",
     save: "Guardar",

@@ -229,6 +229,7 @@ export const finEs = {
       results: "{n} opciones. Usa las flechas y Enter.",
       noResults: "Sin coincidencias.",
       addDefaults: "Añadir categorías por defecto",
+      inTrash: "Tienes categorías en la Papelera: restáuralas desde Configuración → Papelera (no se vuelven a crear las de por defecto mientras estén ahí).",
       defaultsAdded: "{n} categorías añadidas.",
       defaultsNone: "Ya tienes todas las categorías por defecto.",
     },

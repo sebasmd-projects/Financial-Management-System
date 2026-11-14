@@ -6,6 +6,7 @@ import { finBEn } from "./fin-b-en";
 import { finHelpEn } from "./fin-help-en";
 import { errorsXEn, finXEn } from "./fin-x-en";
 import { errorsFEn, finFEn } from "./fin-f-en";
+import { errorsTEn, finTEn } from "./fin-t-en";
 import type { FinDictionary } from "./fin-es";
 
 /** English strings for the FMS-1 finance screens. Must satisfy the same type as Spanish. */
@@ -19,6 +20,7 @@ export const finEn: FinDictionary = {
     ...errorsHEn,
     ...errorsXEn,
     ...errorsFEn,
+    ...errorsTEn,
     generic: "We could not complete the action. Please try again in a moment.",
     network: "There is no connection to the server. Check your network and try again: nothing will be duplicated.",
     csrf: "We could not validate the request. Reload the page and try again.",
@@ -603,4 +605,5 @@ export const finEn: FinDictionary = {
   ...finEEn,
   ...finXEn,
   ...finFEn,
+  ...finTEn,
 };

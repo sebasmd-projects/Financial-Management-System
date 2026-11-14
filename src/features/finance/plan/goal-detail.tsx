@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/api";
 import type { Goal } from "@/api/models";
@@ -10,6 +11,7 @@ import { useI18n } from "@/i18n/provider";
 import { goalTab } from "./logic";
 import { useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Banner, ErrorState, FormActions, Loading, Modal, ScreenHeader, TextField } from "../kit";
+import { RemoveDialog } from "../shared/remove";
 import { ContributeForm, GoalCard } from "./goal-parts";
 
 /** Una meta (`/presupuestos/objetivos/[id]`): su ficha, aportar, editar objetivo, fecha y aporte planeado, y archivar. */
@@ -21,6 +23,8 @@ export function GoalDetail({ id }: { id: string }) {
   const submit = useSubmit();
   const [contributing, setContributing] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const router = useRouter();
   const back = goal.data ? { href: href(goalTab(goal.data.kind) === "ahorro" ? "plan-ahorro" : "plan-objetivos"), label: dict.screens[goalTab(goal.data.kind) === "ahorro" ? "plan-ahorro" : "plan-objetivos"] } : { href: href("plan-objetivos"), label: dict.screens["plan-objetivos"] };
   if (goal.loading && !goal.data) return <div className="screen"><ScreenHeader title={dict.screens["plan-meta"]} back={back} /><Loading /></div>;
   if (goal.failure || !goal.data) {
@@ -48,7 +52,11 @@ export function GoalDetail({ id }: { id: string }) {
         <button type="button" className="button button--ghost" disabled={submit.pending} onClick={() => void toggle()}>
           {g.status === "active" ? t.archive : t.restore}
         </button>
+        <button type="button" className="button button--ghost" onClick={() => setRemoving(true)}>
+          {dict.fin.own.delete}
+        </button>
       </div>
+      <RemoveDialog open={removing} kind="goal" id={g.id} name={g.name} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(back.href); }} />
       {submit.error && <Banner tone="negative" live="assertive">{submit.error}</Banner>}
       <p className="hint">{g.kind === "pay_debt" ? t.progressDebt : t.progressNote}</p>
       <Modal open={contributing} title={t.contribute} onClose={() => setContributing(false)}>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/api";
 import type { Asset, AssetValuation, Page } from "@/api/models";
@@ -12,6 +13,7 @@ import { DrillLink } from "../drill-link";
 import { fill } from "../helpers";
 import { useHref, useResource, useSubmit } from "../hooks";
 import { AmountField, Badge, Banner, DefinitionList, ErrorState, FormActions, Loading, Modal, Money, Pager, ScreenHeader, Section, TextArea, TextField } from "../kit";
+import { RemoveDialog } from "../shared/remove";
 import { valuationDelta } from "./logic";
 import { VehicleSection } from "./vehicle-section";
 
@@ -25,6 +27,8 @@ export function AssetDetail({ id }: { id: string }) {
   const valuations = useResource<Page<AssetValuation>>(paths.assetValuations(id, { page }));
   const [valuing, setValuing] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const router = useRouter();
   const [notice, setNotice] = useState<string | null>(null);
   const archive = useSubmit();
   const back = { href: href("informes-patrimonio"), label: t.back };
@@ -79,7 +83,11 @@ export function AssetDetail({ id }: { id: string }) {
         <button type="button" className="button button--ghost" onClick={() => void toggleArchive()} disabled={archive.pending}>
           {a.archived ? t.unarchive : t.archive}
         </button>
+        <button type="button" className="button button--ghost" onClick={() => setRemoving(true)}>
+          {dict.fin.own.delete}
+        </button>
       </div>
+      <RemoveDialog open={removing} kind="asset" id={a.id} name={a.name} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(back.href); }} />
       {archive.error && <Banner tone="negative" live="assertive">{archive.error}</Banner>}
 
       <Section title={t.info}>

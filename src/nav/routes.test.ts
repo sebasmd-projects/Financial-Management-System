@@ -27,7 +27,7 @@ describe("árbol del propietario (diseño §1.1)", () => {
     expect(labels("creditos")).toEqual(["Préstamos", "Cuotas", "Intereses", "Amortizaciones", "Deudas personales"]);
     expect(labels("plan")).toEqual(["Presupuestos", "Ahorro", "Objetivos"]);
     expect(labels("informes")).toEqual(["Estadísticas", "Proyecciones", "Patrimonio"]);
-    expect(labels("config")).toEqual(["Categorías", "Etiquetas", "Instituciones", "Monedas", "Reglas", "Parámetros Colombia", "Auditoría"]);
+    expect(labels("config")).toEqual(["Categorías", "Etiquetas", "Instituciones", "Monedas", "Reglas", "Parámetros Colombia", "Auditoría", "Papelera"]);
     expect(labels("resumen")).toEqual([]);
   });
   it("todo subelemento tiene texto en los dos idiomas y su ruta existe", () => {

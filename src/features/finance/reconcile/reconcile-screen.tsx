@@ -69,12 +69,14 @@ function LastReconciliation({ list, last, loading, onChanged }: { list: readonly
           <p>{t.reopened}</p>
         </Banner>
       )}
+      {list.some((r) => r.status === "unbalanced") && <Banner tone="warning" live="off"><p>{t.unbalancedNote}</p></Banner>}
       {last && (
         <div className="fin-row fin-row--static">
           <div className="fin-row__main">
             <span className="fin-row__sub">
               <Slots template={fill(t.lastLine, { date: formatDate(last.cutoff), n: String(last.entry_count) })} vars={{ amount: <Money value={last.statement_balance} /> }} />
             </span>
+            {last.status === "unbalanced" && <Badge tone="warning">{t.status.unbalanced}</Badge>}
           </div>
           <button type="button" className="button button--ghost" onClick={() => setOpen(true)}>
             {t.reopen}

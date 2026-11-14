@@ -66,8 +66,8 @@ export function CardList({ embedded = false }: { embedded?: boolean }) {
       <RemoveDialog
         open={removing !== null}
         name={removing?.name ?? ""}
-        deletePath={removing ? paths.card(removing.id) : ""}
-        closePath={removing ? paths.card(removing.id) : undefined}
+        kind="card"
+        id={removing?.id ?? ""}
         onClose={() => setRemoving(null)}
         onDone={() => {
           setRemoving(null);

@@ -84,7 +84,7 @@ export function CardDetail({ id }: { id: string }) {
       <Modal open={editing} title={dict.fin.own.card.editTitle} onClose={() => setEditing(false)}>
         <CardEditForm card={c} onCancel={() => setEditing(false)} onDone={() => { setEditing(false); card.reload(); }} />
       </Modal>
-      <RemoveDialog open={removing} name={c.name} deletePath={paths.card(c.id)} closePath={paths.card(c.id)} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(back.href); }} />
+      <RemoveDialog open={removing} kind="card" id={c.id} name={c.name} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(back.href); }} />
 
       <section className="fin-card" aria-label={t.limitSection}>
         <p className="muted">

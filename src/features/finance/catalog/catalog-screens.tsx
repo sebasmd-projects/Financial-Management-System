@@ -10,6 +10,7 @@ import { ReadOnlyBanner } from "../../household/notices";
 import { useCanWrite } from "../../household/scope-store";
 import { useAll, useSubmit } from "../hooks";
 import { Badge, Banner, Checkbox, Empty, ErrorState, FormActions, Loading, Modal, ScreenHeader, Section, Segmented, SelectField, Tabs, TextField } from "../kit";
+import { RemoveDialog } from "../shared/remove";
 import { AttributesPanel } from "../classification/attributes-panel";
 import { CostCentersPanel } from "../classification/cost-centers-panel";
 
@@ -21,6 +22,7 @@ export function CategoriesScreen() {
   const [archived, setArchived] = useState(false);
   const categories = useAll<Category>(paths.categories({ archived }));
   const [editing, setEditing] = useState<Category | "new" | null>(null);
+  const [removing, setRemoving] = useState<Category | null>(null);
   const archiving = useSubmit();
   async function toggleArchive(category: Category) {
     const body = { archived: !category.archived };
@@ -70,6 +72,10 @@ export function CategoriesScreen() {
                         {category.archived ? dict.fin.own.unarchive : dict.fin.own.archive}
                         <span className="visually-hidden"> {category.name}</span>
                       </button>
+                      <button type="button" className="button button--ghost" onClick={() => setRemoving(category)}>
+                        {dict.fin.own.delete}
+                        <span className="visually-hidden"> {category.name}</span>
+                      </button>
                     </>
                   )}
                 </li>
@@ -78,6 +84,17 @@ export function CategoriesScreen() {
           </Section>
         );
       })}
+      <RemoveDialog
+        open={removing !== null}
+        kind="category"
+        id={removing?.id ?? ""}
+        name={removing?.name ?? ""}
+        onClose={() => setRemoving(null)}
+        onDone={() => {
+          setRemoving(null);
+          categories.reload();
+        }}
+      />
       <Modal open={editing !== null} title={editing === "new" ? t.add : t.edit} onClose={() => setEditing(null)}>
         <CategoryForm
           category={editing === "new" || editing === null ? null : editing}

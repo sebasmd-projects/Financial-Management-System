@@ -22,9 +22,10 @@ export function signedStatementBalance(normalized: string | null, negative: bool
   return negative && compareAmounts(normalized, "0") !== 0 ? negateAmount(normalized) : normalized;
 }
 
-/** Solo se reabre la ÚLTIMA conciliación cerrada de la cuenta (la de mayor corte; en empate, la más reciente en cerrarse). */
+/** Solo se reabre la ÚLTIMA conciliación cerrada de la cuenta (la de mayor corte; en empate, la más reciente en cerrarse). Una «descuadrada»
+ * (se eliminó un movimiento conciliado) cuenta como cerrada: se reabre para volver a conciliar. */
 export function reopenable(list: readonly Reconciliation[]): Reconciliation | null {
-  const closed = list.filter((r) => r.status === "closed");
+  const closed = list.filter((r) => r.status === "closed" || r.status === "unbalanced");
   if (closed.length === 0) return null;
   return closed.reduce((best, r) => (r.cutoff > best.cutoff || (r.cutoff === best.cutoff && r.closed_at > best.closed_at) ? r : best));
 }

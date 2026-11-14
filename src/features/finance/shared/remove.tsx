@@ -2,77 +2,18 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
-import { api } from "@/api";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
 import { fill } from "../helpers";
-import { useSubmit } from "../hooks";
-import { Banner, FormActions, Modal } from "../kit";
+import { DeleteDialog } from "../trash/delete-dialog";
+import type { DeletionKind } from "../../../../core/trash";
 
 /**
- * «Eliminar» con las reglas del libro: pide confirmación, llama `DELETE` y, si el objeto tiene historia (`409 has_history`), no lo
- * borra: lo explica y ofrece «Archivar / Cerrar» (`PATCH status=closed`, que exige saldo cero). Nunca se borran asientos.
+ * «Eliminar» (propietario, 2026-11-14): el diálogo con vista previa de lo que se verá afectado, «Exportar antes» y la conciliación; lo elegido va a
+ * la Papelera 30 días. Ver `trash/delete-dialog.tsx`. Se queda con este nombre para las pantallas que ya lo usaban.
  */
-export function RemoveDialog({ open, name, deletePath, closePath, onClose, onDone }: { open: boolean; name: string; deletePath: string; closePath?: string; onClose: () => void; onDone: () => void }) {
-  const { dict, locale } = useI18n();
-  const t = dict.fin.own.remove;
-  const del = useSubmit();
-  const close = useSubmit();
-  const [blocked, setBlocked] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
-
-  async function remove() {
-    const result = await del.run({ delete: deletePath }, () => api.delete<undefined>(deletePath, { locale }));
-    if (result.ok) {
-      setNote(t.deleted);
-      onDone();
-    } else if (del.errorCode === "has_history" || blocked) setBlocked(true);
-  }
-  async function archive() {
-    if (!closePath) return;
-    const body = { status: "closed" };
-    const result = await close.run(body, (key) => api.patch<unknown>(closePath, body, { idempotencyKey: key, locale }));
-    if (result.ok) {
-      setNote(t.closed);
-      onDone();
-    }
-  }
-  const hasHistory = blocked || del.errorCode === "has_history";
-  return (
-    <Modal open={open} title={hasHistory ? t.blockedTitle : fill(t.title, { name })} onClose={onClose}>
-      {hasHistory ? (
-        <div className="fin-form">
-          <p>{t.blockedBody}</p>
-          {closePath && <p className="hint">{t.closeBody}</p>}
-          {close.error && <Banner tone="negative" live="assertive">{close.error}</Banner>}
-          <FormActions>
-            {closePath && (
-              <button type="button" className="button button--primary" disabled={close.pending} onClick={() => void archive()}>
-                {close.pending ? t.closing : dict.fin.own.close}
-              </button>
-            )}
-            <button type="button" className="button button--ghost" onClick={onClose}>
-              {dict.common.cancel}
-            </button>
-          </FormActions>
-        </div>
-      ) : (
-        <div className="fin-form">
-          <p>{t.body}</p>
-          {del.error && <Banner tone="negative" live="assertive">{del.error}</Banner>}
-          {note && <p role="status">{note}</p>}
-          <FormActions>
-            <button type="button" className="button button--danger" disabled={del.pending} onClick={() => void remove()}>
-              {del.pending ? t.working : t.confirm}
-            </button>
-            <button type="button" className="button button--ghost" onClick={onClose}>
-              {dict.common.cancel}
-            </button>
-          </FormActions>
-        </div>
-      )}
-    </Modal>
-  );
+export function RemoveDialog({ open, kind, id, name, onClose, onDone }: { open: boolean; kind: DeletionKind; id: string; name: string; onClose: () => void; onDone: () => void }) {
+  return <DeleteDialog open={open} kind={kind} id={id} name={name} onClose={onClose} onDone={onDone} />;
 }
 
 /** El menú «⋮» de una fila de lista (en el móvil, las acciones no caben en la fila): Editar y Eliminar. Un botón hermano del enlace de la fila. */

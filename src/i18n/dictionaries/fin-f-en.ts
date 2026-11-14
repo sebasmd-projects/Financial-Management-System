@@ -1,7 +1,6 @@
 import type { errorsFEs, finFEs } from "./fin-f-es";
 
 export const errorsFEn: typeof errorsFEs = {
-  has_history: "It has ledger movements and the ledger is never erased: it stays as history. You can archive or close it.",
   balance_not_zero: "To close it the balance must be zero.",
   invalid_default_account: "Only an open account or card can be the default.",
   bank_installment_below_schedule: "The bank installment is lower than principal plus interest: check the rate and term.",
@@ -25,18 +24,6 @@ export const finFEn: typeof finFEs = {
     moreActions: "More actions for {name}",
     closedBadge: "Closed",
     showClosed: "Show closed",
-    remove: {
-      title: "Delete “{name}”?",
-      body: "What was posted when it was created is annulled (the ledger keeps the reversal) and it stops showing. This cannot be undone.",
-      confirm: "Yes, delete",
-      working: "Deleting…",
-      blockedTitle: "It cannot be deleted",
-      blockedBody: "It has recorded movements and the ledger is never erased: what is already recorded stays as history. You can archive or close it: it stops showing in lists and keeps its history.",
-      closeBody: "To close it the balance must be zero.",
-      closing: "Closing…",
-      closed: "Closed: it no longer shows in lists.",
-      deleted: "Deleted.",
-    },
     default: {
       badge: "Default",
       toggle: "Use as default",

@@ -176,7 +176,7 @@ export function LoanDetail({ id }: { id: string }) {
           }}
         />
       </Modal>
-      <RemoveDialog open={removing} name={l.name} deletePath={paths.loan(l.id)} closePath={paths.loan(l.id)} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(href("creditos")); }} />
+      <RemoveDialog open={removing} kind="loan" id={l.id} name={l.name} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(href("creditos")); }} />
       {next && (
         <Modal open={paying} title={t.payInstallment} onClose={() => setPaying(false)}>
           <PayForm

@@ -66,6 +66,7 @@ export const es = {
       reglas: "Reglas",
       parametros: "Parámetros Colombia",
       auditoria: "Auditoría",
+      papelera: "Papelera",
     } as Record<string, string>,
   },
   theme: {
@@ -219,6 +220,7 @@ export const es = {
     "config-reglas": "Reglas",
     "config-parametros": "Parámetros Colombia",
     "config-auditoria": "Auditoría",
+    "config-papelera": "Papelera",
     "movimientos-ingresos": "Ingresos",
     "movimientos-egresos": "Egresos",
     "movimientos-transferencias": "Transferencias",

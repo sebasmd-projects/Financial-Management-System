@@ -92,7 +92,7 @@ function Body({ formats, initial }: { formats: ImportFormats; initial: "account"
         legend={t.targetLegend}
         value={target}
         onChange={(value) => setTarget(value === "card" ? "card" : "account")}
-        options={formats.formats.map((f) => ({ value: f.kind, label: t.targets[f.kind] ?? f.kind }))}
+        options={formats.formats.filter((f) => f.kind !== "opening_plans").map((f) => ({ value: f.kind, label: t.targets[f.kind] ?? f.kind }))}
       />
 
       <section aria-labelledby="fmt-files">

@@ -2707,6 +2707,188 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
+  /api/fms/v1/cards/{id}/opening-plans:
+    get:
+      operationId: fmsOpeningPlans
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Compras a cuotas vigentes (anteriores al inicio): los planes de apertura
+        y la cuenta saldo inicial = revolvente + capital de los planes'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpeningPlans'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    post:
+      operationId: fmsOpeningPlanCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Registrar una compra a cuotas vigente a mitad de camino: crea el plan
+        y las cuotas que faltan, sin gasto en el periodo'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OpeningPlanCreate'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpeningPlanCreated'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpeningPlanCreated'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/cards/{id}/opening-plans/{plan_id}:
+    delete:
+      operationId: fmsOpeningPlanDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Quitar un plan de apertura (un error de digitación). Con intereses
+        ya cargados, 409 `has_history`
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: plan_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
   /api/fms/v1/cards/{id}/payments:
     post:
       operationId: fmsCardPay
@@ -3205,6 +3387,133 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Simulation'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/cards/{id}/simulators/payment-strategy:
+    post:
+      operationId: fmsCardPayStrategy
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Simulador de pagos de la tarjeta: pagar el total, el mínimo, X, o
+        diferir en N cuotas; mes a mes, interés y costo total (sin escribir)'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayStrategyRequest'
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayStrategy'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/cards/{id}/simulators/payment-target:
+    post:
+      operationId: fmsCardPayTarget
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Las preguntas al revés: ¿cuánto pagar para no pagar intereses, para
+        terminar en N extractos o para que la cuota no pase de X? (sin escribir)'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - cards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PayTargetRequest'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayTarget'
           description: ''
         '400':
           content:
@@ -13041,6 +13350,139 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active`, `account_blocked` o
             `reauthentication_required`.'
+  /api/fms/v1/imports/opening-plans:
+    post:
+      operationId: fmsOpeningPlansImport
+      description: 'Lo común de la vista previa y la confirmación de los planes de
+        apertura: el archivo en memoria, la tarjeta y si el saldo inicial los incluía.'
+      summary: 'Importar los planes de apertura: todo o nada y sin duplicar (reimportar
+        el mismo archivo crea 0 planes)'
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - imports
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OpeningPlansUpload'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpeningImport'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpeningImport'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/imports/opening-plans/preview:
+    post:
+      operationId: fmsOpeningPlansPreview
+      description: 'Lo común de la vista previa y la confirmación de los planes de
+        apertura: el archivo en memoria, la tarjeta y si el saldo inicial los incluía.'
+      summary: 'Vista previa de los planes de apertura: valida cada fila, calcula
+        el capital y la próxima cuota y muestra la cuenta saldo inicial = revolvente
+        + capital. No escribe nada'
+      tags:
+      - imports
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OpeningPlansUpload'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpeningPreview'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/imports/preview:
     post:
       operationId: fmsImportPreview
@@ -14173,6 +14615,69 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
+  /api/fms/v1/loans/{id}/simulators/payment-strategy:
+    post:
+      operationId: fmsLoanPayStrategy
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Simulador de pagos del préstamo: solo la cuota o un abono X (reducir
+        plazo o cuota) y «¿cuánto abonar para terminar en N cuotas?» (sin escribir)'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - loans
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoanPayRequest'
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoanPaySim'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/loans/{id}/valuation:
     get:
       operationId: fmsLoanValuation
@@ -22994,6 +23499,16 @@ components:
       - spent_booked
       - spent_difference
       - spent_original
+    ContinueWithEnum:
+      enum:
+      - same
+      - minimum
+      - total
+      type: string
+      description: |-
+        * `same` - same
+        * `minimum` - minimum
+        * `total` - total
     CostCenterUsage:
       type: object
       properties:
@@ -23997,6 +24512,14 @@ components:
       description: |-
         * `.` - .
         * `,` - ,
+    DeferScopeEnum:
+      enum:
+      - statement
+      - all
+      type: string
+      description: |-
+        * `statement` - statement
+        * `all` - all
     DeleteHousehold:
       type: object
       properties:
@@ -25669,6 +26192,16 @@ components:
       - kind
       - name
       - target_amount
+    GoalEnum:
+      enum:
+      - no_interest
+      - finish_in
+      - max_payment
+      type: string
+      description: |-
+        * `no_interest` - no_interest
+        * `finish_in` - finish_in
+        * `max_payment` - max_payment
     GoalKindEnum:
       enum:
       - vehicle
@@ -25940,12 +26473,13 @@ components:
       properties:
         kind:
           allOf:
-          - $ref: '#/components/schemas/Kind9efEnum'
+          - $ref: '#/components/schemas/ImportFormatKindEnum'
           description: |-
-            `account` (cuenta de activo) o `card` (tarjeta de crédito).
+            `account` (cuenta de activo), `card` (tarjeta de crédito) u `opening_plans` (compras a cuotas vigentes de una tarjeta).
 
             * `account` - account
             * `card` - card
+            * `opening_plans` - opening_plans
         file_types:
           type: array
           items:
@@ -26082,12 +26616,14 @@ components:
       - money
       - text
       - integer
+      - rate
       type: string
       description: |-
         * `date` - date
         * `money` - money
         * `text` - text
         * `integer` - integer
+        * `rate` - rate
     ImportFormatDate:
       type: object
       properties:
@@ -26105,6 +26641,16 @@ components:
       - example
       - format
       - pattern
+    ImportFormatKindEnum:
+      enum:
+      - account
+      - card
+      - opening_plans
+      type: string
+      description: |-
+        * `account` - account
+        * `card` - card
+        * `opening_plans` - opening_plans
     ImportFormatLimits:
       type: object
       properties:
@@ -26498,7 +27044,7 @@ components:
             vacío si nada.
         validity:
           allOf:
-          - $ref: '#/components/schemas/ValidityEnum'
+          - $ref: '#/components/schemas/ImportPreviewRowValidityEnum'
           description: |-
             `valid`: se importará tal cual; `warning`: conviene saber o decidir algo (ver `reasons`). Una fila ilegible no está aquí: es un `error` de la vista previa.
 
@@ -26531,6 +27077,14 @@ components:
       - refund_of_id
       - refund_of_row
       - validity
+    ImportPreviewRowValidityEnum:
+      enum:
+      - valid
+      - warning
+      type: string
+      description: |-
+        * `valid` - valid
+        * `warning` - warning
     ImportRowError:
       type: object
       properties:
@@ -27111,14 +27665,6 @@ components:
       type: string
       description: "* `income` - income\n* `expense` - expense\n* `transfer_in` -
         transfer_in\n* `transfer_out` - transfer_out\n* `` - "
-    Kind9efEnum:
-      enum:
-      - account
-      - card
-      type: string
-      description: |-
-        * `account` - account
-        * `card` - card
     Kind9ffEnum:
       enum:
       - handling_fee
@@ -27644,6 +28190,29 @@ components:
       - rate
       - rate_convention
       - term
+    LoanFinishIn:
+      type: object
+      properties:
+        months:
+          type: integer
+        feasible:
+          type: boolean
+        extra:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El abono único más pequeño que lo logra.
+        outcome:
+          oneOf:
+          - $ref: '#/components/schemas/LoanOutcome'
+          - type: 'null'
+      required:
+      - extra
+      - feasible
+      - months
+      - outcome
     LoanIndexEnum:
       enum:
       - DTF_EA
@@ -27822,6 +28391,75 @@ components:
         * `mortgage` - mortgage
         * `educational` - educational
         * `vehicle` - vehicle
+    LoanOutcome:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/LoanOutcomeKeyEnum'
+        extra_now:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        installments:
+          type: integer
+          description: Las cuotas que faltan por pagar.
+        first_payment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        last_payment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        interest_saved:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total_cost:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        saved:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que se ahorra frente a pagar solo la cuota (costo total).
+        last_due_date:
+          type: string
+          format: date
+        cheapest:
+          type: boolean
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoanRow'
+      required:
+      - cheapest
+      - extra_now
+      - first_payment
+      - installments
+      - interest_saved
+      - key
+      - last_due_date
+      - last_payment
+      - rows
+      - saved
+      - total_cost
+      - total_interest
+    LoanOutcomeKeyEnum:
+      enum:
+      - installment
+      - reduce_term
+      - reduce_installment
+      type: string
+      description: |-
+        * `installment` - installment
+        * `reduce_term` - reduce_term
+        * `reduce_installment` - reduce_installment
     LoanPage:
       type: object
       properties:
@@ -27888,6 +28526,74 @@ components:
       required:
       - date
       - from_account_id
+    LoanPayRequest:
+      type: object
+      properties:
+        extra:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Un abono extra a capital justo después de pagar la cuota que
+            viene.
+        months:
+          type:
+          - integer
+          - 'null'
+          maximum: 120
+          minimum: 1
+          description: ¿Cuánto abonar para terminar en N cuotas? (sin cambiar la cuota).
+    LoanPaySim:
+      type: object
+      properties:
+        loan_id:
+          type: string
+          format: uuid
+        balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que falta de capital antes de la próxima cuota.
+        installments_left:
+          type: integer
+        next_payment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        rate_convention:
+          type: string
+        strategies:
+          type: array
+          items:
+            $ref: '#/components/schemas/LoanOutcome'
+        finish_in:
+          oneOf:
+          - $ref: '#/components/schemas/LoanFinishIn'
+          - type: 'null'
+        assumptions:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+      required:
+      - assumptions
+      - balance
+      - finish_in
+      - installments_left
+      - loan_id
+      - next_payment
+      - rate
+      - rate_convention
+      - strategies
+      - warnings
     LoanRate:
       type: object
       properties:
@@ -27992,6 +28698,49 @@ components:
           description: La fecha cuya UVR pone al día el pasivo del libro.
       required:
       - 'on'
+    LoanRow:
+      type: object
+      properties:
+        number:
+          type: integer
+        due_date:
+          type: string
+          format: date
+        opening:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        capital:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        payment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Capital + interés.
+        total:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Con seguro y cargos.
+        closing:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+      required:
+      - capital
+      - closing
+      - due_date
+      - interest
+      - number
+      - opening
+      - payment
+      - total
     LoanSchedule:
       type: object
       properties:
@@ -29431,6 +30180,320 @@ components:
       - rate
       - rate_convention
       - term
+    OpeningImport:
+      type: object
+      properties:
+        created:
+          type: integer
+        skipped:
+          type: integer
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanSummary'
+        reconciliation:
+          $ref: '#/components/schemas/OpeningReconciliation'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+      required:
+      - created
+      - plans
+      - reconciliation
+      - skipped
+      - warnings
+    OpeningPlanCreate:
+      type: object
+      properties:
+        purchase_date:
+          type: string
+          format: date
+          description: Cuándo se hizo la compra (antes de empezar a usar el FMS).
+        description:
+          type: string
+          default: ''
+          maxLength: 200
+        original:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El valor original de la compra.
+        count:
+          type: integer
+          maximum: 48
+          minimum: 2
+          description: Las cuotas totales del plan.
+        billed:
+          type: integer
+          maximum: 47
+          minimum: 0
+          description: Las cuotas que el banco ya facturó (están en el saldo inicial).
+            Debe ser menor que `count`.
+        remaining:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El saldo de capital que dice el banco. Sin él se calcula con
+            el sistema de cuotas de la tarjeta.
+        rate:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: 'La tasa de la compra (fracción: `0.296`). Sin ella el plan
+            sigue la tasa de la tarjeta.'
+        rate_convention:
+          oneOf:
+          - $ref: '#/components/schemas/RateConventionEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        next_date:
+          type:
+          - string
+          - 'null'
+          format: date
+          description: El corte en que se factura la próxima cuota (se ajusta al primer
+            corte de la tarjeta en o después de esa fecha). Sin ella, el primer corte
+            posterior a hoy.
+        add_to_opening:
+          type: boolean
+          default: false
+          description: '`true`: el saldo inicial de la tarjeta **no** incluía esta
+            compra; su capital pendiente se suma al saldo inicial.'
+      required:
+      - billed
+      - count
+      - original
+      - purchase_date
+    OpeningPlanCreated:
+      type: object
+      properties:
+        plan:
+          $ref: '#/components/schemas/PlanSummary'
+        reconciliation:
+          $ref: '#/components/schemas/OpeningReconciliation'
+        first_cutoff:
+          type: string
+          format: date
+          description: El corte en que se factura la próxima cuota.
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+      required:
+      - first_cutoff
+      - plan
+      - reconciliation
+      - warnings
+    OpeningPlans:
+      type: object
+      properties:
+        plans:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlanSummary'
+        reconciliation:
+          $ref: '#/components/schemas/OpeningReconciliation'
+      required:
+      - plans
+      - reconciliation
+    OpeningPlansUpload:
+      type: object
+      properties:
+        file:
+          type: string
+          format: uri
+          description: CSV o xlsx con la plantilla de planes de apertura; hasta 10
+            MB. No se guarda.
+        card_id:
+          type: string
+          format: uuid
+        add_to_opening:
+          type: boolean
+          default: false
+          description: '`true`: el saldo inicial de la tarjeta no incluía estas compras;
+            su capital se suma al saldo inicial.'
+      required:
+      - card_id
+      - file
+    OpeningPreview:
+      type: object
+      properties:
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/OpeningPreviewRow'
+        ignored_columns:
+          type: array
+          items:
+            type: string
+        counts:
+          type: object
+          additionalProperties:
+            type: integer
+        plans_capital:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Σ del capital pendiente de las filas válidas.
+        reconciliation:
+          $ref: '#/components/schemas/OpeningReconciliation'
+        reconciliation_after:
+          allOf:
+          - $ref: '#/components/schemas/OpeningReconciliation'
+          description: Cómo quedaría la cuenta si se importan las filas válidas (con
+            `add_to_opening` si se pidió).
+      required:
+      - counts
+      - ignored_columns
+      - plans_capital
+      - reconciliation
+      - reconciliation_after
+      - rows
+    OpeningPreviewRow:
+      type: object
+      properties:
+        number:
+          type: integer
+          description: La fila en el archivo (la 1 son los títulos).
+        purchase_date:
+          type:
+          - string
+          - 'null'
+          format: date
+        description:
+          type: string
+        original:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        count:
+          type:
+          - integer
+          - 'null'
+        billed:
+          type:
+          - integer
+          - 'null'
+        remaining:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El saldo del archivo o, si no lo trae, el calculado.
+        remaining_source:
+          oneOf:
+          - $ref: '#/components/schemas/RemainingSourceEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        rate:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        rate_convention:
+          type:
+          - string
+          - 'null'
+        first_cutoff:
+          type:
+          - string
+          - 'null'
+          format: date
+        left:
+          type:
+          - integer
+          - 'null'
+          description: Las cuotas que faltan.
+        next_payment:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total_interest:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        validity:
+          $ref: '#/components/schemas/OpeningPreviewRowValidityEnum'
+        reasons:
+          type: array
+          items:
+            type: string
+      required:
+      - billed
+      - count
+      - description
+      - first_cutoff
+      - left
+      - next_payment
+      - number
+      - original
+      - purchase_date
+      - rate
+      - rate_convention
+      - reasons
+      - remaining
+      - remaining_source
+      - total_interest
+      - validity
+    OpeningPreviewRowValidityEnum:
+      enum:
+      - valid
+      - warning
+      - error
+      type: string
+      description: |-
+        * `valid` - valid
+        * `warning` - warning
+        * `error` - error
+    OpeningReconciliation:
+      type: object
+      properties:
+        opening_balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El saldo inicial de la tarjeta (lo que el banco decía que se
+            debía).
+        plans_capital:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El capital que falta de los planes de apertura (ya está dentro
+            del saldo inicial).
+        revolving:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'Saldo inicial menos capital de los planes: lo que el motor
+            trata como saldo revolvente.'
+        revolving_gap:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Negativo si el saldo inicial no alcanza para el capital de
+            los planes.
+        balance:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El saldo actual de la tarjeta en el libro.
+      required:
+      - balance
+      - opening_balance
+      - plans_capital
+      - revolving
+      - revolving_gap
     OriginalAmount:
       type: object
       properties:
@@ -30336,6 +31399,273 @@ components:
         * `remaining` - remaining
         * `final` - final
         * `partial` - partial
+    PayStrategy:
+      type: object
+      properties:
+        card_id:
+          type: string
+          format: uuid
+        statement:
+          $ref: '#/components/schemas/StatementBrief'
+        strategies:
+          type: array
+          items:
+            $ref: '#/components/schemas/StrategyOutcome'
+        cheapest_index:
+          type: integer
+        skipped:
+          type: array
+          items:
+            $ref: '#/components/schemas/Skipped'
+        assumptions:
+          type: array
+          items:
+            type: string
+          description: Los supuestos de la simulación (códigos estables; el cliente
+            los redacta).
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+      required:
+      - assumptions
+      - card_id
+      - cheapest_index
+      - skipped
+      - statement
+      - strategies
+      - warnings
+    PayStrategyRequest:
+      type: object
+      properties:
+        statement:
+          type:
+          - string
+          - 'null'
+          description: El extracto (`AAAA-MM`, el mes de su corte). Sin él, el primero
+            que aún se puede pagar.
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        pay_amount:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'X: lo que quieres pagar este mes.'
+        continue_with:
+          allOf:
+          - $ref: '#/components/schemas/ContinueWithEnum'
+          default: same
+          description: |-
+            Los meses siguientes de la estrategia «pagar X»: el mismo monto (`same`), el mínimo o el total.
+
+            * `same` - same
+            * `minimum` - minimum
+            * `total` - total
+        pay_now:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'Y: lo que pagas ahora cuando difieres el resto. Sin él, el
+            pago mínimo.'
+        defer_terms:
+          type: array
+          items:
+            type: integer
+            maximum: 48
+            minimum: 1
+          description: Los plazos de re-pacto a comparar (hasta 6).
+          maxItems: 6
+        defer_rate:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: La tasa del re-pacto (fracción). Sin ella, la de la tarjeta
+            en el corte siguiente.
+        defer_rate_convention:
+          oneOf:
+          - $ref: '#/components/schemas/RateConventionEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        defer_scope:
+          allOf:
+          - $ref: '#/components/schemas/DeferScopeEnum'
+          default: statement
+          description: |-
+            `statement`: se difiere lo que queda del extracto. `all`: además el capital de las cuotas vigentes.
+
+            * `statement` - statement
+            * `all` - all
+        horizon_months:
+          type: integer
+          maximum: 120
+          minimum: 12
+          default: 120
+    PayTarget:
+      type: object
+      properties:
+        card_id:
+          type: string
+          format: uuid
+        goal:
+          $ref: '#/components/schemas/GoalEnum'
+        feasible:
+          type: boolean
+        amount:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: '`no_interest`: el pago de este mes. `finish_in`: el pago mensual.
+            `max_payment`: la cuota más alta.'
+        months:
+          type:
+          - integer
+          - 'null'
+        terms:
+          type:
+          - integer
+          - 'null'
+          description: '`max_payment`: las cuotas del re-pacto.'
+        earliest_months:
+          type:
+          - integer
+          - 'null'
+        notes:
+          type: array
+          items:
+            type: string
+        outcome:
+          oneOf:
+          - $ref: '#/components/schemas/StrategyOutcome'
+          - type: 'null'
+        comparison:
+          oneOf:
+          - $ref: '#/components/schemas/StrategyOutcome'
+          - type: 'null'
+          description: '`no_interest`: lo que pasaría pagando solo el mínimo.'
+        statement:
+          $ref: '#/components/schemas/StatementBrief'
+        assumptions:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Warning'
+      required:
+      - amount
+      - assumptions
+      - card_id
+      - comparison
+      - earliest_months
+      - feasible
+      - goal
+      - months
+      - notes
+      - outcome
+      - statement
+      - terms
+      - warnings
+    PayTargetRequest:
+      type: object
+      properties:
+        statement:
+          type:
+          - string
+          - 'null'
+          description: El extracto (`AAAA-MM`, el mes de su corte). Sin él, el primero
+            que aún se puede pagar.
+          pattern: ^\d{4}-(0[1-9]|1[0-2])$
+        pay_amount:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'X: lo que quieres pagar este mes.'
+        continue_with:
+          allOf:
+          - $ref: '#/components/schemas/ContinueWithEnum'
+          default: same
+          description: |-
+            Los meses siguientes de la estrategia «pagar X»: el mismo monto (`same`), el mínimo o el total.
+
+            * `same` - same
+            * `minimum` - minimum
+            * `total` - total
+        pay_now:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'Y: lo que pagas ahora cuando difieres el resto. Sin él, el
+            pago mínimo.'
+        defer_terms:
+          type: array
+          items:
+            type: integer
+            maximum: 48
+            minimum: 1
+          description: Los plazos de re-pacto a comparar (hasta 6).
+          maxItems: 6
+        defer_rate:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: La tasa del re-pacto (fracción). Sin ella, la de la tarjeta
+            en el corte siguiente.
+        defer_rate_convention:
+          oneOf:
+          - $ref: '#/components/schemas/RateConventionEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        defer_scope:
+          allOf:
+          - $ref: '#/components/schemas/DeferScopeEnum'
+          default: statement
+          description: |-
+            `statement`: se difiere lo que queda del extracto. `all`: además el capital de las cuotas vigentes.
+
+            * `statement` - statement
+            * `all` - all
+        horizon_months:
+          type: integer
+          maximum: 120
+          minimum: 12
+          default: 120
+        goal:
+          allOf:
+          - $ref: '#/components/schemas/GoalEnum'
+          description: |-
+            `no_interest`: ¿cuánto pagar para no pagar intereses? `finish_in`: ¿cuánto al mes para terminar en N extractos? `max_payment`: ¿qué plazo para que la cuota no pase de X?
+
+            * `no_interest` - no_interest
+            * `finish_in` - finish_in
+            * `max_payment` - max_payment
+        months:
+          type:
+          - integer
+          - 'null'
+          maximum: 120
+          minimum: 1
+          description: '`finish_in`: N.'
+        max_payment:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: '`max_payment`: X, el techo de la cuota mensual.'
+      required:
+      - goal
     PaymentMethod:
       type: object
       properties:
@@ -30537,9 +31867,32 @@ components:
     PlanSummary:
       type: object
       properties:
-        movement_id:
+        id:
           type: string
           format: uuid
+          description: El plan (para borrar un plan de apertura).
+        movement_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: La compra; `null` en un plan de apertura (compra anterior al
+            inicio).
+        opening:
+          type: boolean
+          description: '`true`: compra a cuotas hecha antes de empezar a usar el FMS,
+            registrada a mitad de camino.'
+        description:
+          type:
+          - string
+          - 'null'
+        remaining_principal:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'Solo en un plan de apertura: el capital que faltaba al registrarlo.'
         date:
           type: string
           format: date
@@ -30575,11 +31928,15 @@ components:
       required:
       - billed
       - date
+      - description
       - follows_card_rate
+      - id
       - installments
       - movement_id
       - next_payment
+      - opening
       - purchase_value
+      - remaining_principal
       - total_interest
       - total_real_cost
     Prefs:
@@ -31777,6 +33134,14 @@ components:
       required:
       - id
       - name
+    RemainingSourceEnum:
+      enum:
+      - file
+      - computed
+      type: string
+      description: |-
+        * `file` - file
+        * `computed` - computed
     Reopen:
       type: object
       properties:
@@ -32808,6 +34173,21 @@ components:
           maxLength: 200
       required:
       - reason
+    Skipped:
+      type: object
+      properties:
+        key:
+          type: string
+        defer_terms:
+          type:
+          - integer
+          - 'null'
+        reason:
+          type: string
+      required:
+      - defer_terms
+      - key
+      - reason
     SpentEffect:
       type: object
       properties:
@@ -32912,6 +34292,92 @@ components:
       - period_start
       - purchases
       - total_due
+    StatementBrief:
+      type: object
+      properties:
+        month:
+          type: string
+        cutoff:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        closed:
+          type: boolean
+          description: '`false`: el extracto es una proyección (su corte aún no llega).'
+        estimated:
+          type: boolean
+        total_due:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que falta pagar de él (ya sin lo abonado).
+        minimum_due:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        paid_so_far:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        installments_capital:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        installments_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        revolving:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que arrastra del extracto anterior.
+        revolving_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        fees:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Cuota de manejo y seguro.
+        monthly_rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+          description: La EM con que devenga el saldo que se arrastre (tasa vigente
+            en el corte siguiente).
+        rate:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        rate_convention:
+          type: string
+        plans_capital_after:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: El capital de los planes vigentes que falta tras este extracto.
+      required:
+      - closed
+      - cutoff
+      - due_date
+      - estimated
+      - fees
+      - installments_capital
+      - installments_interest
+      - minimum_due
+      - month
+      - monthly_rate
+      - paid_so_far
+      - plans_capital_after
+      - rate
+      - rate_convention
+      - revolving
+      - revolving_interest
+      - total_due
     StatementDateFormatEnum:
       enum:
       - '%d/%m/%Y'
@@ -32956,6 +34422,213 @@ components:
       description: |-
         * `active` - Active
         * `paused` - Paused
+    StrategyOutcome:
+      type: object
+      properties:
+        key:
+          $ref: '#/components/schemas/StrategyOutcomeKeyEnum'
+        params:
+          $ref: '#/components/schemas/StrategyParams'
+        notes:
+          type: array
+          items:
+            type: string
+          description: '`raised_to_minimum`, `capped_to_total`.'
+        pay_now:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que se paga este mes.
+        months:
+          type: integer
+          description: Cuántos extractos se pagan (el actual cuenta).
+        payoff_date:
+          type: string
+          format: date
+          description: La fecha de pago del último extracto.
+        total_paid:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        total_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Intereses del saldo + de las cuotas vigentes + del re-pacto.
+        interest_revolving:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        interest_installments:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        interest_deferred:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        fees:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Cuota de manejo y seguro mientras haya deuda.
+        total_cost:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: 'Lo pagado más lo que aún se debe al horizonte: lo que se compara.'
+        extra_cost:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que cuesta de más frente a la más barata.
+        peak_payment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        deferred_principal:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        truncated:
+          type: boolean
+          description: '`true`: queda deuda al llegar al horizonte.'
+        remaining:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        cheapest:
+          type: boolean
+        rows:
+          type: array
+          items:
+            $ref: '#/components/schemas/StrategyRow'
+      required:
+      - cheapest
+      - deferred_principal
+      - extra_cost
+      - fees
+      - interest_deferred
+      - interest_installments
+      - interest_revolving
+      - key
+      - months
+      - notes
+      - params
+      - pay_now
+      - payoff_date
+      - peak_payment
+      - remaining
+      - rows
+      - total_cost
+      - total_interest
+      - total_paid
+      - truncated
+    StrategyOutcomeKeyEnum:
+      enum:
+      - total
+      - minimum
+      - amount
+      - defer
+      type: string
+      description: |-
+        * `total` - total
+        * `minimum` - minimum
+        * `amount` - amount
+        * `defer` - defer
+    StrategyParams:
+      type: object
+      properties:
+        pay_now:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        continue_with:
+          $ref: '#/components/schemas/ContinueWithEnum'
+        defer_terms:
+          type:
+          - integer
+          - 'null'
+        defer_rate:
+          type:
+          - string
+          - 'null'
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '0.24'
+        defer_rate_convention:
+          type:
+          - string
+          - 'null'
+        defer_scope:
+          $ref: '#/components/schemas/DeferScopeEnum'
+      required:
+      - continue_with
+      - defer_rate
+      - defer_rate_convention
+      - defer_scope
+      - defer_terms
+      - pay_now
+    StrategyRow:
+      type: object
+      properties:
+        number:
+          type: integer
+          description: 0 = el extracto actual.
+        cutoff:
+          type: string
+          format: date
+        due_date:
+          type: string
+          format: date
+        total_due:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        minimum_due:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        payment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        revolving_interest:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        installments:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Cuotas de los planes vigentes (capital + interés).
+        deferred_installment:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Cuota del plan de re-pacto.
+        fees:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        balance_after:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: Lo que se arrastra tras el pago.
+      required:
+      - balance_after
+      - cutoff
+      - deferred_installment
+      - due_date
+      - fees
+      - installments
+      - minimum_due
+      - number
+      - payment
+      - revolving_interest
+      - total_due
     SubscriptionItem:
       type: object
       properties:
@@ -34167,14 +35840,6 @@ components:
       - exceeds
       - usury
       - usury_known
-    ValidityEnum:
-      enum:
-      - valid
-      - warning
-      type: string
-      description: |-
-        * `valid` - valid
-        * `warning` - warning
     Vehicle:
       type: object
       properties:

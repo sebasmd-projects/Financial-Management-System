@@ -62,6 +62,10 @@ import { HouseholdScreen } from "../household/household-detail";
 import { HouseholdsScreen } from "../household/households-screen";
 import { InvitationsScreen } from "../household/invitations-screen";
 import { PersonalOnly } from "../household/notices";
+import { CardPaymentSimulator } from "./paysim/card-pay-sim";
+import { LoanPaymentSimulator } from "./paysim/loan-pay-sim";
+import { OpeningPlansScreen } from "./paysim/opening-plans";
+import { PaymentSimulatorPicker } from "./paysim/picker";
 import { blockedInScope, scopeKey } from "../household/scope";
 import { useScope } from "../household/scope-store";
 
@@ -115,6 +119,14 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <CardPay id={first} />;
     case "tarjeta-simular":
       return <CardSimulateScreen id={first} />;
+    case "tarjeta-simulador-pagos":
+      return <CardPaymentSimulator id={first} />;
+    case "tarjeta-cuotas-vigentes":
+      return <OpeningPlansScreen id={first} />;
+    case "credito-simulador-pagos":
+      return <LoanPaymentSimulator id={first} />;
+    case "simulador-pagos":
+      return <PaymentSimulatorPicker />;
     case "pagos":
     case "pagos-fijos":
       return <FixedExpensesScreen />;

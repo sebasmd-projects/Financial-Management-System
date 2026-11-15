@@ -133,6 +133,12 @@ export function CardDetail({ id }: { id: string }) {
         <Link className="button button--ghost" href={href("tarjeta-simular", [c.id])}>
           {t.simulate}
         </Link>
+        <Link className="button button--ghost" href={href("tarjeta-simulador-pagos", [c.id])}>
+          {dict.screens["tarjeta-simulador-pagos"]}
+        </Link>
+        <Link className="button button--ghost" href={href("tarjeta-cuotas-vigentes", [c.id])}>
+          {dict.screens["tarjeta-cuotas-vigentes"]}
+        </Link>
         <Link className="button button--ghost" href={`${href("movimientos")}?cuenta=${encodeURIComponent(c.account_id)}`}>
           {t.viewMovements}
         </Link>
@@ -153,12 +159,13 @@ export function CardDetail({ id }: { id: string }) {
         {plans.data && plans.data.length === 0 && <Empty icon="card" title={t.noPlans} />}
         {plans.data && plans.data.length > 0 && (
           <ul className="fin-list">
-            {plans.data.map((plan) => (
-              <li key={plan.movement_id}>
-                <Link href={href("movimiento", [plan.movement_id])} className="fin-row fin-row--plan">
+            {plans.data.map((plan) => {
+              const body = (
+                <>
                   <span className="fin-row__main">
                     <span className="fin-row__title">
-                      {t.purchaseOf} {formatDate(plan.date)}
+                      {plan.description || t.purchaseOf} {formatDate(plan.date)}
+                      {plan.opening && <Badge tone="info">{dict.fin.opening.eyebrow}</Badge>}
                     </span>
                     <span className="fin-row__sub muted">
                       {t.installmentOf.replace("{n}", String(plan.billed)).replace("{total}", String(plan.installments))}
@@ -167,9 +174,18 @@ export function CardDetail({ id }: { id: string }) {
                     </span>
                     <SpentFigure totalRealCost={plan.total_real_cost} purchaseValue={plan.purchase_value} />
                   </span>
-                </Link>
-              </li>
-            ))}
+                </>
+              );
+              return (
+                <li key={plan.id}>
+                  {plan.movement_id ? (
+                    <Link href={href("movimiento", [plan.movement_id])} className="fin-row fin-row--plan">{body}</Link>
+                  ) : (
+                    <Link href={href("tarjeta-cuotas-vigentes", [c.id])} className="fin-row fin-row--plan">{body}</Link>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </Section>

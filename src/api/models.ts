@@ -267,3 +267,22 @@ export type CrossTransfer = S["CrossTransfer"];
 export type CrossTransferResult = S["CrossTransferResult"];
 export type MovedAccount = S["MovedAccount"];
 export type Person = S["Person"];
+
+// Compras a cuotas vigentes (planes de apertura) y simulador de estrategias de pago.
+export type OpeningPlans = S["OpeningPlans"];
+export type OpeningPlanCreate = S["OpeningPlanCreate"];
+export type OpeningPlanCreated = S["OpeningPlanCreated"];
+export type OpeningPreview = S["OpeningPreview"];
+export type OpeningPreviewRow = S["OpeningPreviewRow"];
+export type OpeningImport = S["OpeningImport"];
+export type OpeningReconciliation = S["OpeningReconciliation"];
+export type PayStrategyRequest = S["PayStrategyRequest"];
+export type PayStrategy = S["PayStrategy"];
+export type StrategyOutcome = S["StrategyOutcome"];
+export type StrategyRow = S["StrategyRow"];
+export type StatementBrief = S["StatementBrief"];
+export type PayTargetRequest = S["PayTargetRequest"];
+export type PayTarget = S["PayTarget"];
+export type LoanPayRequest = S["LoanPayRequest"];
+export type LoanPaySim = S["LoanPaySim"];
+export type LoanOutcome = S["LoanOutcome"];

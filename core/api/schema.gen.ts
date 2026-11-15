@@ -713,6 +713,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/cards/{id}/opening-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Compras a cuotas vigentes (anteriores al inicio): los planes de apertura y la cuenta saldo inicial = revolvente + capital de los planes
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsOpeningPlans"];
+        put?: never;
+        /**
+         * Registrar una compra a cuotas vigente a mitad de camino: crea el plan y las cuotas que faltan, sin gasto en el periodo
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsOpeningPlanCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/cards/{id}/opening-plans/{plan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Quitar un plan de apertura (un error de digitación). Con intereses ya cargados, 409 `has_history`
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsOpeningPlanDelete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/cards/{id}/payments": {
         parameters: {
             query?: never;
@@ -843,6 +890,48 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         post: operations["fmsCardSimulate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/cards/{id}/simulators/payment-strategy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Simulador de pagos de la tarjeta: pagar el total, el mínimo, X, o diferir en N cuotas; mes a mes, interés y costo total (sin escribir)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsCardPayStrategy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/cards/{id}/simulators/payment-target": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Las preguntas al revés: ¿cuánto pagar para no pagar intereses, para terminar en N extractos o para que la cuota no pase de X? (sin escribir)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsCardPayTarget"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3725,6 +3814,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/imports/opening-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Importar los planes de apertura: todo o nada y sin duplicar (reimportar el mismo archivo crea 0 planes)
+         * @description Lo común de la vista previa y la confirmación de los planes de apertura: el archivo en memoria, la tarjeta y si el saldo inicial los incluía.
+         */
+        post: operations["fmsOpeningPlansImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/imports/opening-plans/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Vista previa de los planes de apertura: valida cada fila, calcula el capital y la próxima cuota y muestra la cuenta saldo inicial = revolvente + capital. No escribe nada
+         * @description Lo común de la vista previa y la confirmación de los planes de apertura: el archivo en memoria, la tarjeta y si el saldo inicial los incluía.
+         */
+        post: operations["fmsOpeningPlansPreview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/imports/preview": {
         parameters: {
             query?: never;
@@ -4057,6 +4186,27 @@ export interface paths {
         get: operations["fmsLoanSchedule"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/loans/{id}/simulators/payment-strategy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Simulador de pagos del préstamo: solo la cuota o un abono X (reducir plazo o cuota) y «¿cuánto abonar para terminar en N cuotas?» (sin escribir)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsLoanPayStrategy"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7389,6 +7539,13 @@ export interface components {
             /** @example 180000 */
             spent_difference: string | null;
         };
+        /**
+         * @description * `same` - same
+         *     * `minimum` - minimum
+         *     * `total` - total
+         * @enum {string}
+         */
+        ContinueWithEnum: "same" | "minimum" | "total";
         CostCenterUsage: {
             /**
              * Format: uuid
@@ -7878,6 +8035,12 @@ export interface components {
          * @enum {string}
          */
         DecimalSepEnum: "." | ",";
+        /**
+         * @description * `statement` - statement
+         *     * `all` - all
+         * @enum {string}
+         */
+        DeferScopeEnum: "statement" | "all";
         DeleteHousehold: {
             confirm: components["schemas"]["ConfirmEnum"];
         };
@@ -8629,6 +8792,13 @@ export interface components {
             planned_contribution?: string | null;
         };
         /**
+         * @description * `no_interest` - no_interest
+         *     * `finish_in` - finish_in
+         *     * `max_payment` - max_payment
+         * @enum {string}
+         */
+        GoalEnum: "no_interest" | "finish_in" | "max_payment";
+        /**
          * @description * `vehicle` - vehicle
          *     * `vacation` - vacation
          *     * `emergency_fund` - emergency_fund
@@ -8757,12 +8927,13 @@ export interface components {
         /** @description El formato del archivo de un importador: sale de las mismas constantes y del mismo lector que lo procesan. */
         ImportFormat: {
             /**
-             * @description `account` (cuenta de activo) o `card` (tarjeta de crédito).
+             * @description `account` (cuenta de activo), `card` (tarjeta de crédito) u `opening_plans` (compras a cuotas vigentes de una tarjeta).
              *
              *     * `account` - account
              *     * `card` - card
+             *     * `opening_plans` - opening_plans
              */
-            kind: components["schemas"]["Kind9efEnum"];
+            kind: components["schemas"]["ImportFormatKindEnum"];
             file_types: string[];
             extensions: string[];
             encodings: string[];
@@ -8810,9 +8981,10 @@ export interface components {
          *     * `money` - money
          *     * `text` - text
          *     * `integer` - integer
+         *     * `rate` - rate
          * @enum {string}
          */
-        ImportFormatColumnTypeEnum: "date" | "money" | "text" | "integer";
+        ImportFormatColumnTypeEnum: "date" | "money" | "text" | "integer" | "rate";
         ImportFormatDate: {
             /** @description El `strftime` que usa el lector (`%d/%m/%Y`) o `serial` (número de Excel). */
             format: string;
@@ -8821,6 +8993,13 @@ export interface components {
             /** @description El 25 de octubre de 2026 escrito así. */
             example: string;
         };
+        /**
+         * @description * `account` - account
+         *     * `card` - card
+         *     * `opening_plans` - opening_plans
+         * @enum {string}
+         */
+        ImportFormatKindEnum: "account" | "card" | "opening_plans";
         ImportFormatLimits: {
             max_bytes: number;
             max_rows: number;
@@ -9044,10 +9223,16 @@ export interface components {
              *     * `valid` - valid
              *     * `warning` - warning
              */
-            validity: components["schemas"]["ValidityEnum"];
+            validity: components["schemas"]["ImportPreviewRowValidityEnum"];
             /** @description Los códigos del aviso (`already_imported`, `possible_duplicate`, `payment_source_required`...); vacío si la fila es válida. */
             reasons: string[];
         };
+        /**
+         * @description * `valid` - valid
+         *     * `warning` - warning
+         * @enum {string}
+         */
+        ImportPreviewRowValidityEnum: "valid" | "warning";
         ImportRowError: {
             row: number;
             code: string;
@@ -9357,12 +9542,6 @@ export interface components {
          */
         Kind963Enum: "income" | "expense" | "transfer_in" | "transfer_out";
         /**
-         * @description * `account` - account
-         *     * `card` - card
-         * @enum {string}
-         */
-        Kind9efEnum: "account" | "card";
-        /**
          * @description * `handling_fee` - handling_fee
          *     * `insurance` - insurance
          * @enum {string}
@@ -9647,6 +9826,16 @@ export interface components {
             /** @default  */
             late_rate_source: string;
         };
+        LoanFinishIn: {
+            months: number;
+            feasible: boolean;
+            /**
+             * @description El abono único más pequeño que lo logra.
+             * @example 180000
+             */
+            extra: string | null;
+            outcome: components["schemas"]["LoanOutcome"] | null;
+        };
         /**
          * @description * `DTF_EA` - DTF_EA
          *     * `IBR_EA` - IBR_EA
@@ -9754,6 +9943,39 @@ export interface components {
          * @enum {string}
          */
         LoanKindEnum: "personal" | "free_investment" | "mortgage" | "educational" | "vehicle";
+        LoanOutcome: {
+            key: components["schemas"]["LoanOutcomeKeyEnum"];
+            /** @example 180000 */
+            extra_now: string;
+            /** @description Las cuotas que faltan por pagar. */
+            installments: number;
+            /** @example 180000 */
+            first_payment: string;
+            /** @example 180000 */
+            last_payment: string;
+            /** @example 180000 */
+            total_interest: string;
+            /** @example 180000 */
+            interest_saved: string;
+            /** @example 180000 */
+            total_cost: string;
+            /**
+             * @description Lo que se ahorra frente a pagar solo la cuota (costo total).
+             * @example 180000
+             */
+            saved: string;
+            /** Format: date */
+            last_due_date: string;
+            cheapest: boolean;
+            rows: components["schemas"]["LoanRow"][];
+        };
+        /**
+         * @description * `installment` - installment
+         *     * `reduce_term` - reduce_term
+         *     * `reduce_installment` - reduce_installment
+         * @enum {string}
+         */
+        LoanOutcomeKeyEnum: "installment" | "reduce_term" | "reduce_installment";
         LoanPage: {
             count: number;
             page: number;
@@ -9793,6 +10015,34 @@ export interface components {
             late_interest: string;
             /** @default false */
             apply_gmf: boolean;
+        };
+        LoanPayRequest: {
+            /**
+             * @description Un abono extra a capital justo después de pagar la cuota que viene.
+             * @example 180000
+             */
+            extra?: string | null;
+            /** @description ¿Cuánto abonar para terminar en N cuotas? (sin cambiar la cuota). */
+            months?: number | null;
+        };
+        LoanPaySim: {
+            /** Format: uuid */
+            loan_id: string;
+            /**
+             * @description Lo que falta de capital antes de la próxima cuota.
+             * @example 180000
+             */
+            balance: string;
+            installments_left: number;
+            /** @example 180000 */
+            next_payment: string;
+            /** @example 0.24 */
+            rate: string;
+            rate_convention: string;
+            strategies: components["schemas"]["LoanOutcome"][];
+            finish_in: components["schemas"]["LoanFinishIn"] | null;
+            assumptions: string[];
+            warnings: components["schemas"]["Warning"][];
         };
         LoanRate: {
             /** Format: uuid */
@@ -9852,6 +10102,29 @@ export interface components {
              * @description La fecha cuya UVR pone al día el pasivo del libro.
              */
             on: string;
+        };
+        LoanRow: {
+            number: number;
+            /** Format: date */
+            due_date: string;
+            /** @example 180000 */
+            opening: string;
+            /** @example 180000 */
+            capital: string;
+            /** @example 180000 */
+            interest: string;
+            /**
+             * @description Capital + interés.
+             * @example 180000
+             */
+            payment: string;
+            /**
+             * @description Con seguro y cargos.
+             * @example 180000
+             */
+            total: string;
+            /** @example 180000 */
+            closing: string;
         };
         LoanSchedule: {
             /** Format: uuid */
@@ -10542,6 +10815,159 @@ export interface components {
              */
             upfront_fees: string;
         };
+        OpeningImport: {
+            created: number;
+            skipped: number;
+            plans: components["schemas"]["PlanSummary"][];
+            reconciliation: components["schemas"]["OpeningReconciliation"];
+            warnings: components["schemas"]["Warning"][];
+        };
+        OpeningPlanCreate: {
+            /**
+             * Format: date
+             * @description Cuándo se hizo la compra (antes de empezar a usar el FMS).
+             */
+            purchase_date: string;
+            /** @default  */
+            description: string;
+            /**
+             * @description El valor original de la compra.
+             * @example 180000
+             */
+            original: string;
+            /** @description Las cuotas totales del plan. */
+            count: number;
+            /** @description Las cuotas que el banco ya facturó (están en el saldo inicial). Debe ser menor que `count`. */
+            billed: number;
+            /**
+             * @description El saldo de capital que dice el banco. Sin él se calcula con el sistema de cuotas de la tarjeta.
+             * @example 180000
+             */
+            remaining?: string | null;
+            /**
+             * @description La tasa de la compra (fracción: `0.296`). Sin ella el plan sigue la tasa de la tarjeta.
+             * @example 0.24
+             */
+            rate?: string | null;
+            rate_convention?: components["schemas"]["RateConventionEnum"] | components["schemas"]["NullEnum"];
+            /**
+             * Format: date
+             * @description El corte en que se factura la próxima cuota (se ajusta al primer corte de la tarjeta en o después de esa fecha). Sin ella, el primer corte posterior a hoy.
+             */
+            next_date?: string | null;
+            /**
+             * @description `true`: el saldo inicial de la tarjeta **no** incluía esta compra; su capital pendiente se suma al saldo inicial.
+             * @default false
+             */
+            add_to_opening: boolean;
+        };
+        OpeningPlanCreated: {
+            plan: components["schemas"]["PlanSummary"];
+            reconciliation: components["schemas"]["OpeningReconciliation"];
+            /**
+             * Format: date
+             * @description El corte en que se factura la próxima cuota.
+             */
+            first_cutoff: string;
+            warnings: components["schemas"]["Warning"][];
+        };
+        OpeningPlans: {
+            plans: components["schemas"]["PlanSummary"][];
+            reconciliation: components["schemas"]["OpeningReconciliation"];
+        };
+        OpeningPlansUpload: {
+            /**
+             * Format: uri
+             * @description CSV o xlsx con la plantilla de planes de apertura; hasta 10 MB. No se guarda.
+             */
+            file: string;
+            /** Format: uuid */
+            card_id: string;
+            /**
+             * @description `true`: el saldo inicial de la tarjeta no incluía estas compras; su capital se suma al saldo inicial.
+             * @default false
+             */
+            add_to_opening: boolean;
+        };
+        OpeningPreview: {
+            rows: components["schemas"]["OpeningPreviewRow"][];
+            ignored_columns: string[];
+            counts: {
+                [key: string]: number;
+            };
+            /**
+             * @description Σ del capital pendiente de las filas válidas.
+             * @example 180000
+             */
+            plans_capital: string;
+            reconciliation: components["schemas"]["OpeningReconciliation"];
+            /** @description Cómo quedaría la cuenta si se importan las filas válidas (con `add_to_opening` si se pidió). */
+            reconciliation_after: components["schemas"]["OpeningReconciliation"];
+        };
+        OpeningPreviewRow: {
+            /** @description La fila en el archivo (la 1 son los títulos). */
+            number: number;
+            /** Format: date */
+            purchase_date: string | null;
+            description: string;
+            /** @example 180000 */
+            original: string | null;
+            count: number | null;
+            billed: number | null;
+            /**
+             * @description El saldo del archivo o, si no lo trae, el calculado.
+             * @example 180000
+             */
+            remaining: string | null;
+            remaining_source: components["schemas"]["RemainingSourceEnum"] | components["schemas"]["NullEnum"];
+            /** @example 0.24 */
+            rate: string | null;
+            rate_convention: string | null;
+            /** Format: date */
+            first_cutoff: string | null;
+            /** @description Las cuotas que faltan. */
+            left: number | null;
+            /** @example 180000 */
+            next_payment: string | null;
+            /** @example 180000 */
+            total_interest: string | null;
+            validity: components["schemas"]["OpeningPreviewRowValidityEnum"];
+            reasons: string[];
+        };
+        /**
+         * @description * `valid` - valid
+         *     * `warning` - warning
+         *     * `error` - error
+         * @enum {string}
+         */
+        OpeningPreviewRowValidityEnum: "valid" | "warning" | "error";
+        OpeningReconciliation: {
+            /**
+             * @description El saldo inicial de la tarjeta (lo que el banco decía que se debía).
+             * @example 180000
+             */
+            opening_balance: string;
+            /**
+             * @description El capital que falta de los planes de apertura (ya está dentro del saldo inicial).
+             * @example 180000
+             */
+            plans_capital: string;
+            /**
+             * @description Saldo inicial menos capital de los planes: lo que el motor trata como saldo revolvente.
+             * @example 180000
+             */
+            revolving: string;
+            /**
+             * @description Negativo si el saldo inicial no alcanza para el capital de los planes.
+             * @example 180000
+             */
+            revolving_gap: string;
+            /**
+             * @description El saldo actual de la tarjeta en el libro.
+             * @example 180000
+             */
+            balance: string;
+        };
         OriginalAmount: {
             /**
              * @description Lo que cobró el comercio, en su moneda.
@@ -10943,6 +11369,136 @@ export interface components {
          * @enum {string}
          */
         PayModeEnum: "remaining" | "final" | "partial";
+        PayStrategy: {
+            /** Format: uuid */
+            card_id: string;
+            statement: components["schemas"]["StatementBrief"];
+            strategies: components["schemas"]["StrategyOutcome"][];
+            cheapest_index: number;
+            skipped: components["schemas"]["Skipped"][];
+            /** @description Los supuestos de la simulación (códigos estables; el cliente los redacta). */
+            assumptions: string[];
+            warnings: components["schemas"]["Warning"][];
+        };
+        PayStrategyRequest: {
+            /** @description El extracto (`AAAA-MM`, el mes de su corte). Sin él, el primero que aún se puede pagar. */
+            statement?: string | null;
+            /**
+             * @description X: lo que quieres pagar este mes.
+             * @example 180000
+             */
+            pay_amount?: string | null;
+            /**
+             * @description Los meses siguientes de la estrategia «pagar X»: el mismo monto (`same`), el mínimo o el total.
+             *
+             *     * `same` - same
+             *     * `minimum` - minimum
+             *     * `total` - total
+             * @default same
+             */
+            continue_with: components["schemas"]["ContinueWithEnum"];
+            /**
+             * @description Y: lo que pagas ahora cuando difieres el resto. Sin él, el pago mínimo.
+             * @example 180000
+             */
+            pay_now?: string | null;
+            /** @description Los plazos de re-pacto a comparar (hasta 6). */
+            defer_terms?: number[];
+            /**
+             * @description La tasa del re-pacto (fracción). Sin ella, la de la tarjeta en el corte siguiente.
+             * @example 0.24
+             */
+            defer_rate?: string | null;
+            defer_rate_convention?: components["schemas"]["RateConventionEnum"] | components["schemas"]["NullEnum"];
+            /**
+             * @description `statement`: se difiere lo que queda del extracto. `all`: además el capital de las cuotas vigentes.
+             *
+             *     * `statement` - statement
+             *     * `all` - all
+             * @default statement
+             */
+            defer_scope: components["schemas"]["DeferScopeEnum"];
+            /** @default 120 */
+            horizon_months: number;
+        };
+        PayTarget: {
+            /** Format: uuid */
+            card_id: string;
+            goal: components["schemas"]["GoalEnum"];
+            feasible: boolean;
+            /**
+             * @description `no_interest`: el pago de este mes. `finish_in`: el pago mensual. `max_payment`: la cuota más alta.
+             * @example 180000
+             */
+            amount: string | null;
+            months: number | null;
+            /** @description `max_payment`: las cuotas del re-pacto. */
+            terms: number | null;
+            earliest_months: number | null;
+            notes: string[];
+            outcome: components["schemas"]["StrategyOutcome"] | null;
+            /** @description `no_interest`: lo que pasaría pagando solo el mínimo. */
+            comparison: components["schemas"]["StrategyOutcome"] | null;
+            statement: components["schemas"]["StatementBrief"];
+            assumptions: string[];
+            warnings: components["schemas"]["Warning"][];
+        };
+        PayTargetRequest: {
+            /** @description El extracto (`AAAA-MM`, el mes de su corte). Sin él, el primero que aún se puede pagar. */
+            statement?: string | null;
+            /**
+             * @description X: lo que quieres pagar este mes.
+             * @example 180000
+             */
+            pay_amount?: string | null;
+            /**
+             * @description Los meses siguientes de la estrategia «pagar X»: el mismo monto (`same`), el mínimo o el total.
+             *
+             *     * `same` - same
+             *     * `minimum` - minimum
+             *     * `total` - total
+             * @default same
+             */
+            continue_with: components["schemas"]["ContinueWithEnum"];
+            /**
+             * @description Y: lo que pagas ahora cuando difieres el resto. Sin él, el pago mínimo.
+             * @example 180000
+             */
+            pay_now?: string | null;
+            /** @description Los plazos de re-pacto a comparar (hasta 6). */
+            defer_terms?: number[];
+            /**
+             * @description La tasa del re-pacto (fracción). Sin ella, la de la tarjeta en el corte siguiente.
+             * @example 0.24
+             */
+            defer_rate?: string | null;
+            defer_rate_convention?: components["schemas"]["RateConventionEnum"] | components["schemas"]["NullEnum"];
+            /**
+             * @description `statement`: se difiere lo que queda del extracto. `all`: además el capital de las cuotas vigentes.
+             *
+             *     * `statement` - statement
+             *     * `all` - all
+             * @default statement
+             */
+            defer_scope: components["schemas"]["DeferScopeEnum"];
+            /** @default 120 */
+            horizon_months: number;
+            /**
+             * @description `no_interest`: ¿cuánto pagar para no pagar intereses? `finish_in`: ¿cuánto al mes para terminar en N extractos? `max_payment`: ¿qué plazo para que la cuota no pase de X?
+             *
+             *     * `no_interest` - no_interest
+             *     * `finish_in` - finish_in
+             *     * `max_payment` - max_payment
+             */
+            goal: components["schemas"]["GoalEnum"];
+            /** @description `finish_in`: N. */
+            months?: number | null;
+            /**
+             * @description `max_payment`: X, el techo de la cuota mensual.
+             * @example 180000
+             */
+            max_payment?: string | null;
+        };
         PaymentMethod: {
             /** Format: uuid */
             id: string;
@@ -11040,8 +11596,24 @@ export interface components {
             payment: string;
         };
         PlanSummary: {
-            /** Format: uuid */
-            movement_id: string;
+            /**
+             * Format: uuid
+             * @description El plan (para borrar un plan de apertura).
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description La compra; `null` en un plan de apertura (compra anterior al inicio).
+             */
+            movement_id: string | null;
+            /** @description `true`: compra a cuotas hecha antes de empezar a usar el FMS, registrada a mitad de camino. */
+            opening: boolean;
+            description: string | null;
+            /**
+             * @description Solo en un plan de apertura: el capital que faltaba al registrarlo.
+             * @example 180000
+             */
+            remaining_principal: string | null;
             /** Format: date */
             date: string;
             installments: number;
@@ -11606,6 +12178,12 @@ export interface components {
             id: string;
             name: string;
         };
+        /**
+         * @description * `file` - file
+         *     * `computed` - computed
+         * @enum {string}
+         */
+        RemainingSourceEnum: "file" | "computed";
         Reopen: {
             reason: string;
         };
@@ -12150,6 +12728,11 @@ export interface components {
         Skip: {
             reason: string;
         };
+        Skipped: {
+            key: string;
+            defer_terms: number | null;
+            reason: string;
+        };
         SpentEffect: {
             /**
              * Format: date
@@ -12200,6 +12783,54 @@ export interface components {
             /** @example 180000 */
             minimum_due: string;
         };
+        StatementBrief: {
+            month: string;
+            /** Format: date */
+            cutoff: string;
+            /** Format: date */
+            due_date: string;
+            /** @description `false`: el extracto es una proyección (su corte aún no llega). */
+            closed: boolean;
+            estimated: boolean;
+            /**
+             * @description Lo que falta pagar de él (ya sin lo abonado).
+             * @example 180000
+             */
+            total_due: string;
+            /** @example 180000 */
+            minimum_due: string;
+            /** @example 180000 */
+            paid_so_far: string;
+            /** @example 180000 */
+            installments_capital: string;
+            /** @example 180000 */
+            installments_interest: string;
+            /**
+             * @description Lo que arrastra del extracto anterior.
+             * @example 180000
+             */
+            revolving: string;
+            /** @example 180000 */
+            revolving_interest: string;
+            /**
+             * @description Cuota de manejo y seguro.
+             * @example 180000
+             */
+            fees: string;
+            /**
+             * @description La EM con que devenga el saldo que se arrastre (tasa vigente en el corte siguiente).
+             * @example 0.24
+             */
+            monthly_rate: string;
+            /** @example 0.24 */
+            rate: string;
+            rate_convention: string;
+            /**
+             * @description El capital de los planes vigentes que falta tras este extracto.
+             * @example 180000
+             */
+            plans_capital_after: string;
+        };
         /**
          * @description * `%d/%m/%Y` - %d/%m/%Y
          *     * `%m/%d/%Y` - %m/%d/%Y
@@ -12223,6 +12854,113 @@ export interface components {
          * @enum {string}
          */
         StatusB9bEnum: "active" | "paused";
+        StrategyOutcome: {
+            key: components["schemas"]["StrategyOutcomeKeyEnum"];
+            params: components["schemas"]["StrategyParams"];
+            /** @description `raised_to_minimum`, `capped_to_total`. */
+            notes: string[];
+            /**
+             * @description Lo que se paga este mes.
+             * @example 180000
+             */
+            pay_now: string;
+            /** @description Cuántos extractos se pagan (el actual cuenta). */
+            months: number;
+            /**
+             * Format: date
+             * @description La fecha de pago del último extracto.
+             */
+            payoff_date: string;
+            /** @example 180000 */
+            total_paid: string;
+            /**
+             * @description Intereses del saldo + de las cuotas vigentes + del re-pacto.
+             * @example 180000
+             */
+            total_interest: string;
+            /** @example 180000 */
+            interest_revolving: string;
+            /** @example 180000 */
+            interest_installments: string;
+            /** @example 180000 */
+            interest_deferred: string;
+            /**
+             * @description Cuota de manejo y seguro mientras haya deuda.
+             * @example 180000
+             */
+            fees: string;
+            /**
+             * @description Lo pagado más lo que aún se debe al horizonte: lo que se compara.
+             * @example 180000
+             */
+            total_cost: string;
+            /**
+             * @description Lo que cuesta de más frente a la más barata.
+             * @example 180000
+             */
+            extra_cost: string;
+            /** @example 180000 */
+            peak_payment: string;
+            /** @example 180000 */
+            deferred_principal: string;
+            /** @description `true`: queda deuda al llegar al horizonte. */
+            truncated: boolean;
+            /** @example 180000 */
+            remaining: string;
+            cheapest: boolean;
+            rows: components["schemas"]["StrategyRow"][];
+        };
+        /**
+         * @description * `total` - total
+         *     * `minimum` - minimum
+         *     * `amount` - amount
+         *     * `defer` - defer
+         * @enum {string}
+         */
+        StrategyOutcomeKeyEnum: "total" | "minimum" | "amount" | "defer";
+        StrategyParams: {
+            /** @example 180000 */
+            pay_now: string | null;
+            continue_with: components["schemas"]["ContinueWithEnum"];
+            defer_terms: number | null;
+            /** @example 0.24 */
+            defer_rate: string | null;
+            defer_rate_convention: string | null;
+            defer_scope: components["schemas"]["DeferScopeEnum"];
+        };
+        StrategyRow: {
+            /** @description 0 = el extracto actual. */
+            number: number;
+            /** Format: date */
+            cutoff: string;
+            /** Format: date */
+            due_date: string;
+            /** @example 180000 */
+            total_due: string;
+            /** @example 180000 */
+            minimum_due: string;
+            /** @example 180000 */
+            payment: string;
+            /** @example 180000 */
+            revolving_interest: string;
+            /**
+             * @description Cuotas de los planes vigentes (capital + interés).
+             * @example 180000
+             */
+            installments: string;
+            /**
+             * @description Cuota del plan de re-pacto.
+             * @example 180000
+             */
+            deferred_installment: string;
+            /** @example 180000 */
+            fees: string;
+            /**
+             * @description Lo que se arrastra tras el pago.
+             * @example 180000
+             */
+            balance_after: string;
+        };
         SubscriptionItem: {
             recurrence: components["schemas"]["Recurrence"];
             /** @example 180000 */
@@ -12774,12 +13512,6 @@ export interface components {
             usury: string | null;
             exceeds: boolean;
         };
-        /**
-         * @description * `valid` - valid
-         *     * `warning` - warning
-         * @enum {string}
-         */
-        ValidityEnum: "valid" | "warning";
         Vehicle: {
             plate: string;
             brand: string | null;
@@ -15823,6 +16555,201 @@ export interface operations {
             };
         };
     };
+    fmsOpeningPlans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpeningPlans"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsOpeningPlanCreate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpeningPlanCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpeningPlanCreated"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpeningPlanCreated"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsOpeningPlanDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsCardPay: {
         parameters: {
             query?: never;
@@ -16339,6 +17266,146 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Simulation"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCardPayStrategy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PayStrategyRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayStrategy"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCardPayTarget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayTargetRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayTarget"];
                 };
             };
             /** @description Cuerpo inválido o falta `Idempotency-Key`. */
@@ -26480,6 +27547,162 @@ export interface operations {
             };
         };
     };
+    fmsOpeningPlansImport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["OpeningPlansUpload"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpeningImport"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpeningImport"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsOpeningPlansPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["OpeningPlansUpload"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpeningPreview"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsImportPreview: {
         parameters: {
             query?: never;
@@ -27701,6 +28924,76 @@ export interface operations {
             };
             /** @description No existe (o es de otro usuario). */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsLoanPayStrategy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LoanPayRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanPaySim"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
                 headers: {
                     [name: string]: unknown;
                 };

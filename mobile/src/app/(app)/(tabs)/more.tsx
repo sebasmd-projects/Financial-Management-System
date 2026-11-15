@@ -38,6 +38,7 @@ export default function More() {
         <Button label={t.connections} kind="secondary" onPress={() => router.push("/connections")} />
         <Button label={t.rules} kind="secondary" onPress={() => router.push("/rules")} />
         <Button label={t.statements} kind="secondary" onPress={() => router.push("/statements")} />
+        <Button label={t.paySim} kind="secondary" onPress={() => router.push("/pay-sim")} />
         <Button label={t.trash} kind="secondary" onPress={() => router.push("/trash")} />
         <Button label={t.profile} kind="secondary" onPress={() => router.push("/security")} />
         <Button label={es.home.devices} kind="secondary" onPress={() => router.push("/devices")} />

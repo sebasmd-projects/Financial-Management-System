@@ -130,3 +130,15 @@ Plan (y qué se hizo):
 * **API**: las mismas rutas bajo `households/{id}/` (`automation/catalog`, `automation/rules[...]`, `sync/rule-suggestions[/dismiss]`). **Web**: la pantalla
   «Autoconfirmación» sigue el ámbito activo como las demás del Hogar. **App**: la lista de reglas del Hogar (pausar, reactivar, borrar y sugerencias según el rol).
 * Contrato: `core/api/openapi-fms.yaml` sincronizado con el backend (`households/{id}/automation/*` y `households/{id}/sync/rule-suggestions*`).
+
+### 2026-11-15: compras a cuotas vigentes y simulador de pagos
+
+Dos preguntas del propietario sobre las tarjetas y los créditos: «¿ya se tienen en cuenta los históricos con sus cuotas?» y «si quiero pagar X de la tarjeta, ¿dejo todas mis compras a X cuotas o pago Y sobre el total? (igual para los créditos)».
+
+1. **Compras a cuotas vigentes** (anteriores al inicio, a medio pagar). Se registran **a mitad de camino**: fecha de la compra, valor original, cuotas totales, cuotas ya facturadas, saldo de capital del banco (opcional), tasa (opcional: sin ella sigue la de la tarjeta) y próxima cuota (opcional).
+   Crea el plan y **solo las cuotas que faltan**; **no hay gasto en el periodo**. La cuenta: el saldo inicial de la tarjeta ya incluye el capital que falta, así que **saldo inicial = revolvente + capital de las compras a cuotas** (la pantalla lo muestra y avisa si no cuadra); si el saldo inicial no las
+   incluía, se marca «Sumar al saldo inicial». Pantalla: tarjeta → «Compras a cuotas vigentes» (de una en una o con un CSV/Excel y plantilla descargable, con vista previa antes de confirmar). Detalle contable en el README de `finance_credit` del backend.
+2. **Simulador de pagos** (web: Créditos → Simuladores → «Simulador de pagos», desde la tarjeta, el crédito y el Resumen; app: «Más» → «Simular un pago» y Extractos). **No escribe nada.** Tarjeta: pagar el total, el mínimo, X o **diferir** el resto (o todo) a N cuotas con la tasa de la tarjeta o la que escribas;
+   lado a lado, mes a mes y con la más barata marcada, más las preguntas al revés (¿cuánto para no pagar intereses? ¿para terminar en N meses? ¿en cuántas cuotas para que no pase de X?). Crédito: solo la cuota frente a abonar X (reducir plazo o cuota) y «¿cuánto abonar para terminar en N cuotas?».
+   Cada respuesta lista sus **supuestos** (no compras nada nuevo, pagas en la fecha de pago, la tasa vigente en cada corte, el banco acepta diferir) y avisa si la tasa que escribes supera la usura que registraste.
+* Contrato: `core/api/openapi-fms.yaml` sincronizado con el backend.

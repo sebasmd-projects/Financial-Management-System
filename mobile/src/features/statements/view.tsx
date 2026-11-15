@@ -26,6 +26,7 @@ export function StatementsScreen() {
     <Screen>
       <Title>{t.title}</Title>
       <Button label={t.back} kind="ghost" onPress={() => router.back()} />
+      <Button label={es.paySim.title} kind="secondary" onPress={() => router.push("/pay-sim")} />
       {timeline.loading && !timeline.data ? <AppText tone="secondary">{es.common.loading}</AppText> : null}
       {timeline.failure ? (
         <View style={{ gap: space[8] }}>

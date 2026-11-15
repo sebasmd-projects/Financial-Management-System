@@ -1,0 +1,51 @@
+import type { errorsUEs, finUEs } from "./fin-u-es";
+
+export const errorsUEn: typeof errorsUEs = {
+  household_owner: "You own a household that has more members: hand over ownership or delete the household before erasing your data.",
+  confirmation_mismatch: "The phrase does not match. Type it exactly as shown.",
+  erase_cooling_down: "You just erased your data. Wait a few seconds and try again.",
+};
+
+export const finUEn: typeof finUEs = {
+  erase: {
+    zoneTitle: "Danger zone",
+    title: "Erase all my Finances data",
+    intro: "Erases everything financial you have here at once: accounts, transactions, cards, loans, rules, email connections and the trash. Your site account (the chat, the accepted legal texts and the rest) stays, and you can activate Finances again from scratch.",
+    open: "Erase all my Finances data",
+    dialogTitle: "Erase all your Finances data?",
+    loading: "Working out what would be erased…",
+    loadError: "We could not work out what would be erased. Try again.",
+    irreversible: "It is immediate and irreversible. It does not go through the 30-day trash: there is no way to get it back.",
+    willDelete: "This will be erased:",
+    counts: {
+      accounts: "Accounts",
+      movements: "Transactions",
+      cards: "Cards",
+      loans: "Loans",
+      debts: "Personal debts",
+      rules: "Custom rules",
+      connections: "Email connections",
+    },
+    inTrash: "{n} items that are in the trash",
+    nothing: "You have no financial data yet. Your Finances activation is still reset.",
+    leaveTitle: "You will leave these households",
+    leaveBody: "Their key is renewed for the others. What was shared in the household belongs to the household and stays with it ({n} shared accounts): you do not take it with you.",
+    deleteTitle: "These whole households will be erased",
+    deleteBody: "You are the only person in them, so they are destroyed with everything they hold.",
+    blockedTitle: "First hand over or delete these households",
+    blockedBody: "You own them and there are other members. Hand over ownership or delete the household from Households, then come back.",
+    blockedLink: "Go to Households",
+    exportTitle: "Download a copy first",
+    exportBody: "A JSON file with your decrypted data (for your whole account, finances included). After erasing it cannot be recovered.",
+    exportButton: "Export first",
+    exporting: "Preparing the file…",
+    exported: "File downloaded.",
+    exportFailed: "We could not prepare the file. Try again.",
+    backupTitle: "About backups",
+    backupBody: "Encrypted backups taken before today keep your data key wrapped until they expire by rotation; they are not rewritten. Only someone holding both the backup and the master key could read them, and none of that returns to this application.",
+    phraseLabel: "Type “{phrase}” to confirm",
+    phraseHint: "Then we will ask you to confirm your password or code.",
+    confirm: "Erase everything for good",
+    working: "Erasing…",
+  },
+};

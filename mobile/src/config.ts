@@ -28,5 +28,5 @@ export function apiOrigin(): string {
 
 export const FMS_PATH = "/api/fms/v1";
 export const ALLAUTH_PATH = "/_allauth/app/v1";
-/** Páginas del CV que se abren en el navegador (términos y privacidad). */
-export const WEB_PAGES = { terms: "/es/terms", privacy: "/es/privacy" } as const;
+/** Páginas que se abren en el navegador: términos y privacidad (del CV) y el perfil de la web de Finanzas (donde se exporta antes de borrar). */
+export const WEB_PAGES = { terms: "/es/terms", privacy: "/es/privacy", profile: "/es/finanzas/perfil" } as const;

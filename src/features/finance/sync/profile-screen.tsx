@@ -8,6 +8,7 @@ import { fill } from "../helpers";
 import { useResource, useSubmit } from "../hooks";
 import { Banner, Checkbox, ErrorState, FormActions, Loading, ScreenHeader, Section, TextField } from "../kit";
 import type { SyncSettings } from "../../../../core/sync";
+import { EraseSection } from "../erase/erase-section";
 import { idNumberApi, parseIdNumber } from "./id-number";
 
 const idNumber = idNumberApi(api);
@@ -23,6 +24,7 @@ export function ProfileScreen() {
     <div className="screen">
       <ScreenHeader title={dict.screens.perfil} />
       <DocumentSetting />
+      <EraseSection />
     </div>
   );
 }

@@ -398,6 +398,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/FmsActivationRefused'
           description: '`email_unverified`, `mfa_required`, `account_blocked` o `consent_mismatch`.'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsError'
+          description: '`erase_cooling_down`: acaba de borrar sus datos; reintentar
+            tras `retry_after` segundos.'
   /api/fms/v1/assets:
     get:
       operationId: fmsAssets
@@ -14437,6 +14444,107 @@ paths:
               schema:
                 $ref: '#/components/schemas/FmsError'
           description: Sin sesión.
+  /api/fms/v1/me/erase:
+    post:
+      operationId: fmsErase
+      description: 'Destruye las filas (también la papelera) y la llave de datos,
+        borra el perfil y los consentimientos (la próxima visita pide activar de nuevo,
+        con una llave **nueva**), sale de los hogares y revoca los demás dispositivos
+        de la app. Exige **reautenticación reciente** (`403 reauthentication_required`)
+        y la frase de confirmación (`422 confirmation_mismatch`). Si eres propietario
+        de un hogar con más miembros: `409 household_owner` con la lista. Las copias
+        de seguridad anteriores conservan la llave envuelta hasta que caducan. Después,
+        activar tiene que esperar `FMS_DEK_CACHE_SECONDS` (`409 erase_cooling_down`).'
+      summary: Borrar todos mis datos de Finanzas (inmediato e irreversible); la cuenta
+        del sitio se queda
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - me
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FmsEraseRequest'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsEraseResponse'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsError'
+          description: '`household_owner` (con `households`).'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsError'
+          description: '`confirmation_mismatch`.'
+  /api/fms/v1/me/erase/preview:
+    get:
+      operationId: fmsErasePreview
+      description: Base de todo endpoint del FMS que necesita sesión.
+      summary: 'Qué se borraría: recuentos por tipo, la papelera y qué pasa con cada
+        hogar'
+      tags:
+      - me
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsErasePreview'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
   /api/fms/v1/movements:
     get:
       operationId: fmsMovements_2
@@ -25036,6 +25144,151 @@ components:
             $ref: '#/components/schemas/FmsDevice'
       required:
       - devices
+    FmsEraseCounts:
+      type: object
+      properties:
+        accounts:
+          type: integer
+        movements:
+          type: integer
+        cards:
+          type: integer
+        loans:
+          type: integer
+        debts:
+          type: integer
+        rules:
+          type: integer
+        connections:
+          type: integer
+      required:
+      - accounts
+      - cards
+      - connections
+      - debts
+      - loans
+      - movements
+      - rules
+    FmsEraseHousehold:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        role:
+          type: string
+        action:
+          allOf:
+          - $ref: '#/components/schemas/FmsEraseHouseholdActionEnum'
+          description: |-
+            `leave`: sales (su llave se rota); `delete`: eras el único miembro y se destruye con todo lo que tenga; `blocked`: eres propietario y hay más miembros, cede el lugar o borra el hogar antes. Las cuentas que pasaste a un hogar son **del hogar**: no te las llevas.
+
+            * `leave` - leave
+            * `delete` - delete
+            * `blocked` - blocked
+        accounts:
+          type: integer
+          description: Cuentas del hogar (se quedan con él, o se destruyen si el hogar
+            se destruye).
+      required:
+      - accounts
+      - action
+      - id
+      - name
+      - role
+    FmsEraseHouseholdActionEnum:
+      enum:
+      - leave
+      - delete
+      - blocked
+      type: string
+      description: |-
+        * `leave` - leave
+        * `delete` - delete
+        * `blocked` - blocked
+    FmsErasePhrases:
+      type: object
+      properties:
+        es:
+          type: string
+        en:
+          type: string
+      required:
+      - en
+      - es
+    FmsErasePreview:
+      type: object
+      properties:
+        counts:
+          allOf:
+          - $ref: '#/components/schemas/FmsEraseCounts'
+          description: Lo vigente, por tipo (solo tuyo, no de los hogares).
+        in_trash:
+          type: integer
+          description: 'Filas en la papelera: también se destruyen, ya sin los 30
+            días.'
+        retry_after:
+          type: integer
+          description: 'Solo en el `409 erase_cooling_down` de la activación: segundos
+            que faltan.'
+        households:
+          type: array
+          items:
+            $ref: '#/components/schemas/FmsEraseHousehold'
+        households_affected:
+          type: integer
+        blocked:
+          type: boolean
+          description: 'Hay un hogar `blocked`: el borrado dará `409 household_owner`.'
+        export_recommended:
+          type: boolean
+          description: 'Hay algo que perder: exporta antes (la exportación de la cuenta,
+            `cv/v1/me/export`, incluye lo financiero descifrado).'
+        phrases:
+          $ref: '#/components/schemas/FmsErasePhrases'
+      required:
+      - blocked
+      - counts
+      - export_recommended
+      - households
+      - households_affected
+      - in_trash
+      - phrases
+    FmsEraseRequest:
+      type: object
+      properties:
+        confirm:
+          type: string
+          description: 'La frase de confirmación (`phrases` de la vista previa): «BORRAR
+            MIS FINANZAS» o «DELETE MY FINANCES», sin importar mayúsculas.'
+          maxLength: 64
+      required:
+      - confirm
+    FmsEraseResponse:
+      type: object
+      properties:
+        erased:
+          type: boolean
+        already:
+          type: boolean
+          description: '`true`: no había nada que borrar (repetición o ya borrado).'
+        rows:
+          type: integer
+        households_left:
+          type: integer
+        households_deleted:
+          type: integer
+        devices_revoked:
+          type: integer
+      required:
+      - already
+      - devices_revoked
+      - erased
+      - households_deleted
+      - households_left
+      - rows
     FmsError:
       type: object
       properties:
@@ -25053,6 +25306,16 @@ components:
         login_url:
           type: string
           description: 'Solo en el 401: a dónde mandar al usuario a entrar.'
+        retry_after:
+          type: integer
+          description: 'Solo en el `409 erase_cooling_down` de la activación: segundos
+            que faltan.'
+        households:
+          type: array
+          items:
+            $ref: '#/components/schemas/FmsEraseHousehold'
+          description: 'Solo en el `409 household_owner` de `me/erase`: los hogares
+            de los que eres propietario y tienen más miembros.'
       required:
       - code
       - detail

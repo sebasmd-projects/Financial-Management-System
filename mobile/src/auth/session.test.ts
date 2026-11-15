@@ -210,3 +210,16 @@ describe("cerrar sesión y los avisos push", () => {
     expect(ctx.session.getPhase().name).toBe("signed_out");
   });
 });
+
+describe("tras borrar los datos de Finanzas", () => {
+  it("borra lo que hay en memoria, vuelve a leer /me y pasa a la activación", async () => {
+    const { session, wiped, fms } = setup({ stored: "tok" });
+    await session.boot();
+    await session.unlock("x");
+    expect(session.getPhase().name).toBe("ready");
+    (fms.get as jest.Mock).mockResolvedValueOnce({ ok: true, data: { ...meReady, finance_active: false } });
+    await session.afterErase();
+    expect(wiped).toHaveBeenCalled();
+    expect(session.getPhase().name).toBe("setup");
+  });
+});

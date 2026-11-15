@@ -40,10 +40,10 @@ export interface ActivationRequest {
   accept_version: string;
 }
 
-/** Códigos de un 403 de la activación. */
-export type ActivationErrorCode = "email_unverified" | "mfa_required" | "account_blocked" | "consent_mismatch";
+/** Códigos de un 403 de la activación (y el 409 `erase_cooling_down`: acaba de borrar sus datos y debe esperar unos segundos). */
+export type ActivationErrorCode = "email_unverified" | "mfa_required" | "account_blocked" | "consent_mismatch" | "erase_cooling_down";
 
-export const ACTIVATION_ERROR_CODES: readonly ActivationErrorCode[] = ["email_unverified", "mfa_required", "account_blocked", "consent_mismatch"];
+export const ACTIVATION_ERROR_CODES: readonly ActivationErrorCode[] = ["email_unverified", "mfa_required", "account_blocked", "consent_mismatch", "erase_cooling_down"];
 
 export function isActivationErrorCode(value: unknown): value is ActivationErrorCode {
   return typeof value === "string" && (ACTIVATION_ERROR_CODES as readonly string[]).includes(value);

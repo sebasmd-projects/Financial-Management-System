@@ -115,6 +115,7 @@ export const en: Dictionary = {
       mfa_required: "You need two-step verification to activate Finances. Set it up and try again.",
       account_blocked: "Your account is blocked and cannot activate Finances. If you think this is a mistake, contact the site owner.",
       consent_mismatch: "The terms changed while you were reading. Review the new version and accept it again.",
+      erase_cooling_down: "You just erased your Finances data. Wait a few seconds and try again.",
       network: "We could not connect. Check your network and try again.",
       csrf: "We could not validate the request. Reload the page and try again.",
       generic: "We could not activate Finances. Try again in a moment.",

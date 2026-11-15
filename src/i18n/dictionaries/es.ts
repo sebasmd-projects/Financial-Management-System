@@ -115,6 +115,7 @@ export const es = {
       mfa_required: "Necesitas la verificación en dos pasos para activar Finanzas. Configúrala y vuelve a intentarlo.",
       account_blocked: "Tu cuenta está bloqueada y no puede activar Finanzas. Si crees que es un error, contacta al propietario del sitio.",
       consent_mismatch: "Los términos cambiaron mientras leías. Revisa la versión nueva y acéptala de nuevo.",
+      erase_cooling_down: "Acabas de borrar tus datos de Finanzas. Espera unos segundos e inténtalo de nuevo.",
       network: "No pudimos conectar. Revisa tu red e inténtalo de nuevo.",
       csrf: "No pudimos validar la solicitud. Recarga la página e inténtalo de nuevo.",
       generic: "No pudimos activar Finanzas. Inténtalo de nuevo en un momento.",

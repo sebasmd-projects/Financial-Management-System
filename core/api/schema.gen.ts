@@ -4151,6 +4151,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/me/erase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Borrar todos mis datos de Finanzas (inmediato e irreversible); la cuenta del sitio se queda
+         * @description Destruye las filas (también la papelera) y la llave de datos, borra el perfil y los consentimientos (la próxima visita pide activar de nuevo, con una llave **nueva**), sale de los hogares y revoca los demás dispositivos de la app. Exige **reautenticación reciente** (`403 reauthentication_required`) y la frase de confirmación (`422 confirmation_mismatch`). Si eres propietario de un hogar con más miembros: `409 household_owner` con la lista. Las copias de seguridad anteriores conservan la llave envuelta hasta que caducan. Después, activar tiene que esperar `FMS_DEK_CACHE_SECONDS` (`409 erase_cooling_down`).
+         */
+        post: operations["fmsErase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/me/erase/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Qué se borraría: recuentos por tipo, la papelera y qué pasa con cada hogar
+         * @description Base de todo endpoint del FMS que necesita sesión.
+         */
+        get: operations["fmsErasePreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/movements": {
         parameters: {
             query?: never;
@@ -8345,6 +8385,70 @@ export interface components {
         FmsDevices: {
             devices: components["schemas"]["FmsDevice"][];
         };
+        FmsEraseCounts: {
+            accounts: number;
+            movements: number;
+            cards: number;
+            loans: number;
+            debts: number;
+            rules: number;
+            connections: number;
+        };
+        FmsEraseHousehold: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            role: string;
+            /**
+             * @description `leave`: sales (su llave se rota); `delete`: eras el único miembro y se destruye con todo lo que tenga; `blocked`: eres propietario y hay más miembros, cede el lugar o borra el hogar antes. Las cuentas que pasaste a un hogar son **del hogar**: no te las llevas.
+             *
+             *     * `leave` - leave
+             *     * `delete` - delete
+             *     * `blocked` - blocked
+             */
+            action: components["schemas"]["FmsEraseHouseholdActionEnum"];
+            /** @description Cuentas del hogar (se quedan con él, o se destruyen si el hogar se destruye). */
+            accounts: number;
+        };
+        /**
+         * @description * `leave` - leave
+         *     * `delete` - delete
+         *     * `blocked` - blocked
+         * @enum {string}
+         */
+        FmsEraseHouseholdActionEnum: "leave" | "delete" | "blocked";
+        FmsErasePhrases: {
+            es: string;
+            en: string;
+        };
+        FmsErasePreview: {
+            /** @description Lo vigente, por tipo (solo tuyo, no de los hogares). */
+            counts: components["schemas"]["FmsEraseCounts"];
+            /** @description Filas en la papelera: también se destruyen, ya sin los 30 días. */
+            in_trash: number;
+            /** @description Solo en el `409 erase_cooling_down` de la activación: segundos que faltan. */
+            retry_after?: number;
+            households: components["schemas"]["FmsEraseHousehold"][];
+            households_affected: number;
+            /** @description Hay un hogar `blocked`: el borrado dará `409 household_owner`. */
+            blocked: boolean;
+            /** @description Hay algo que perder: exporta antes (la exportación de la cuenta, `cv/v1/me/export`, incluye lo financiero descifrado). */
+            export_recommended: boolean;
+            phrases: components["schemas"]["FmsErasePhrases"];
+        };
+        FmsEraseRequest: {
+            /** @description La frase de confirmación (`phrases` de la vista previa): «BORRAR MIS FINANZAS» o «DELETE MY FINANCES», sin importar mayúsculas. */
+            confirm: string;
+        };
+        FmsEraseResponse: {
+            erased: boolean;
+            /** @description `true`: no había nada que borrar (repetición o ya borrado). */
+            already: boolean;
+            rows: number;
+            households_left: number;
+            households_deleted: number;
+            devices_revoked: number;
+        };
         FmsError: {
             detail: string;
             code: string;
@@ -8352,6 +8456,10 @@ export interface components {
             blockers?: components["schemas"]["FmsBlocker"][];
             /** @description Solo en el 401: a dónde mandar al usuario a entrar. */
             login_url?: string;
+            /** @description Solo en el `409 erase_cooling_down` de la activación: segundos que faltan. */
+            retry_after?: number;
+            /** @description Solo en el `409 household_owner` de `me/erase`: los hogares de los que eres propietario y tienen más miembros. */
+            households?: components["schemas"]["FmsEraseHousehold"][];
         };
         FmsHealth: {
             ok: boolean;
@@ -13231,6 +13339,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FmsActivationRefused"];
+                };
+            };
+            /** @description `erase_cooling_down`: acaba de borrar sus datos; reintentar tras `retry_after` segundos. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsError"];
                 };
             };
         };
@@ -27885,6 +28002,114 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FmsError"];
+                };
+            };
+        };
+    };
+    fmsErase: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FmsEraseRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsEraseResponse"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `household_owner` (con `households`). */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsError"];
+                };
+            };
+            /** @description `confirmation_mismatch`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsError"];
+                };
+            };
+        };
+    };
+    fmsErasePreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsErasePreview"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
         };

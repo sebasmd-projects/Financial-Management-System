@@ -39,6 +39,7 @@ export default function Security() {
       ) : null}
       <View style={{ gap: 8 }}>
         <Button label={es.devices.title} kind="secondary" onPress={() => router.push("/devices")} />
+        <Button label={es.erase.open} kind="danger" onPress={() => router.push("/erase")} />
         <Button label={es.home.signOut} kind="ghost" onPress={() => void session.logout()} />
         <Button label={es.common.back} kind="ghost" onPress={() => router.back()} />
       </View>

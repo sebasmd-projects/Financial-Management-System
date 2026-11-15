@@ -57,6 +57,25 @@ metas, activos y sus hijos, medios de pago, atributos personalizados, recurrenci
 Contrato: `GET deletions/preview`, `POST deletions`, `GET deletions`, `POST deletions/{id}/restore` y `POST deletions/export` (backend, `finance_trash`).
 Código: `core/trash.ts` (lógica y cliente compartidos), `src/features/finance/trash/` (web) y `mobile/src/features/trash/` (app).
 
+### 2026-11-15: «Borrar todos mis datos de Finanzas» (sin cerrar la cuenta del sitio)
+
+Pregunta del propietario: «¿Cómo borro toda mi información financiera?». Hasta hoy solo se podía borrando la cuenta del sitio entera. Decisión:
+
+1. **Una acción propia** (web: Perfil y seguridad → Zona de peligro; app: Seguridad → «Borrar todos mis datos de Finanzas») que destruye **solo lo financiero**
+   (filas, también la papelera, originales y conexiones por correo, historial cifrado, endpoints de push y la llave de datos) y deja la cuenta del sitio
+   (chat, textos legales). La próxima visita pide activar Finanzas de nuevo, con una llave nueva.
+2. **Inmediato e irreversible**: no pasa por la papelera de 30 días (decisión explícita del propietario).
+3. **Antes de borrar**: vista previa del servidor con recuentos por tipo, aviso de las **copias de seguridad** (conservan la llave envuelta hasta que caducan por
+   rotación: ADR-019 §5), **«Exportar primero»** (la exportación de la cuenta del sitio; en la app se abre la web, que es donde se descargan archivos), la frase escrita
+   («BORRAR MIS FINANZAS» / «DELETE MY FINANCES») y **reautenticación reciente**.
+4. **Hogar**: se sale de cada hogar (su llave se renueva); lo compartido es del hogar y se queda. Propietario de un hogar con más miembros: el servidor responde
+   `409 household_owner` y hay que ceder la propiedad o borrar el hogar antes. Único miembro: el hogar se destruye con él.
+5. Queda **una fila de auditoría sin contenido** (quién y cuándo). Los demás dispositivos de la app pierden la sesión; el actual la conserva.
+6. Tras borrar, activar espera unos segundos (`409 erase_cooling_down`): otro proceso del servidor puede recordar la llave vieja.
+
+Contrato: `GET me/erase/preview` y `POST me/erase` (backend, `finance_core/erasure.py`). Código: `core/erase.ts` (lógica y cliente compartidos),
+`src/features/finance/erase/` (web) y `mobile/src/app/(app)/erase.tsx` (app).
+
 ### 2026-11-14: integración con los bancos, solo lectura
 
 Respuestas del propietario a las preguntas del [plan de integración con los bancos](bank-integration-plan.md) (§7 de su primera versión):

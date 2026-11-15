@@ -7,6 +7,7 @@ import { finHelpEs } from "./fin-help-es";
 import { errorsXEs, finXEs } from "./fin-x-es";
 import { errorsFEs, finFEs } from "./fin-f-es";
 import { errorsTEs, finTEs } from "./fin-t-es";
+import { errorsUEs, finUEs } from "./fin-u-es";
 import { errorsSEs, finSEs } from "./fin-s-es";
 
 /** Textos de las pantallas financieras de FMS-1 (español, es-CO). `fin-en.ts` tiene que cumplir el mismo tipo. */
@@ -21,6 +22,7 @@ export const finEs = {
     ...errorsXEs,
     ...errorsFEs,
     ...errorsTEs,
+    ...errorsUEs,
     ...errorsSEs,
     generic: "No pudimos completar la acción. Inténtalo de nuevo en un momento.",
     network: "No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo: no se duplicará nada.",
@@ -608,6 +610,7 @@ export const finEs = {
   ...finXEs,
   ...finFEs,
   ...finTEs,
+  ...finUEs,
   ...finSEs,
 };
 

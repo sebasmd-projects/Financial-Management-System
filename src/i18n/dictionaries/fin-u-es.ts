@@ -1,0 +1,51 @@
+/** Textos de «Borrar todos mis datos de Finanzas» (propietario, 2026-11-15): la zona de peligro de Perfil y seguridad y su diálogo.
+ * `fin-u-en.ts` cumple el mismo tipo. */
+export const errorsUEs = {
+  household_owner: "Eres propietario de un hogar que tiene más miembros: cede la propiedad o borra el hogar antes de borrar tus datos.",
+  confirmation_mismatch: "La frase no coincide. Escríbela tal cual aparece.",
+  erase_cooling_down: "Acabas de borrar tus datos. Espera unos segundos e inténtalo de nuevo.",
+};
+
+export const finUEs = {
+  erase: {
+    zoneTitle: "Zona de peligro",
+    title: "Borrar todos mis datos de Finanzas",
+    intro: "Borra de una vez todo lo financiero que tienes aquí: cuentas, movimientos, tarjetas, créditos, reglas, conexiones por correo y la papelera. Tu cuenta del sitio (el chat, los textos legales aceptados y lo demás) se queda, y podrás activar Finanzas de nuevo desde cero.",
+    open: "Borrar todos mis datos de Finanzas",
+    dialogTitle: "¿Borrar todos tus datos de Finanzas?",
+    loading: "Calculando qué se borraría…",
+    loadError: "No pudimos calcular qué se borraría. Inténtalo de nuevo.",
+    irreversible: "Es inmediato e irreversible. No pasa por la papelera de 30 días: no hay forma de recuperarlo.",
+    willDelete: "Se borrará:",
+    counts: {
+      accounts: "Cuentas",
+      movements: "Movimientos",
+      cards: "Tarjetas",
+      loans: "Créditos",
+      debts: "Deudas personales",
+      rules: "Reglas propias",
+      connections: "Conexiones por correo",
+    },
+    inTrash: "{n} elementos que están en la papelera",
+    nothing: "Todavía no tienes datos financieros. Igual se reinicia tu activación de Finanzas.",
+    leaveTitle: "Saldrás de estos hogares",
+    leaveBody: "Su llave se renueva para los demás. Lo que se compartió en el hogar es del hogar y se queda con él ({n} cuentas compartidas): no te lo llevas.",
+    deleteTitle: "Se borrarán estos hogares enteros",
+    deleteBody: "Eres la única persona en ellos, así que se destruyen con todo lo que tienen.",
+    blockedTitle: "Antes tienes que ceder o borrar estos hogares",
+    blockedBody: "Eres propietario y hay más miembros. Cede la propiedad o borra el hogar desde Hogares y vuelve aquí.",
+    blockedLink: "Ir a Hogares",
+    exportTitle: "Descarga una copia antes",
+    exportBody: "Un archivo JSON con tus datos descifrados (de toda tu cuenta, incluidas las finanzas). Después de borrar no se puede recuperar.",
+    exportButton: "Exportar primero",
+    exporting: "Preparando el archivo…",
+    exported: "Archivo descargado.",
+    exportFailed: "No pudimos preparar el archivo. Inténtalo de nuevo.",
+    backupTitle: "Sobre las copias de seguridad",
+    backupBody: "Las copias de seguridad cifradas hechas antes de hoy conservan tu llave de datos envuelta hasta que caducan por rotación; no se reescriben. Solo podría leerlas quien tenga a la vez la copia y la llave maestra, y nada de eso vuelve a esta aplicación.",
+    phraseLabel: "Escribe «{phrase}» para confirmar",
+    phraseHint: "Después te pediremos confirmar tu contraseña o tu código.",
+    confirm: "Borrar todo definitivamente",
+    working: "Borrando…",
+  },
+};

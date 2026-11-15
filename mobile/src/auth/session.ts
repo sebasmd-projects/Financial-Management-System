@@ -184,6 +184,12 @@ export function createSession(deps: SessionDeps) {
 
     refresh: loadMe,
 
+    /** Tras «Borrar todos mis datos de Finanzas»: se borra lo que la app tenga en memoria y se vuelve a leer `/me` (ya no está activo: pasa a la activación). */
+    async afterErase(): Promise<void> {
+      wipe();
+      await loadMe();
+    },
+
     async logout(): Promise<void> {
       if (deps.token.get()) {
         try {

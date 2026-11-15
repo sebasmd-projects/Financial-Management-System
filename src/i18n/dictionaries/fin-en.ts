@@ -7,6 +7,7 @@ import { finHelpEn } from "./fin-help-en";
 import { errorsXEn, finXEn } from "./fin-x-en";
 import { errorsFEn, finFEn } from "./fin-f-en";
 import { errorsTEn, finTEn } from "./fin-t-en";
+import { errorsUEn, finUEn } from "./fin-u-en";
 import { errorsSEn, finSEn } from "./fin-s-en";
 import type { FinDictionary } from "./fin-es";
 
@@ -22,6 +23,7 @@ export const finEn: FinDictionary = {
     ...errorsXEn,
     ...errorsFEn,
     ...errorsTEn,
+    ...errorsUEn,
     ...errorsSEn,
     generic: "We could not complete the action. Please try again in a moment.",
     network: "There is no connection to the server. Check your network and try again: nothing will be duplicated.",
@@ -609,5 +611,6 @@ export const finEn: FinDictionary = {
   ...finXEn,
   ...finFEn,
   ...finTEn,
+  ...finUEn,
   ...finSEn,
 };

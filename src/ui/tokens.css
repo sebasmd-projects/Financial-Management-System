@@ -28,9 +28,9 @@
   --color-positive: #12704a;
   --color-positive-container: #ddf3e7;
   --color-on-positive-container: #0c5236;
-  --color-negative: #b3261e;
-  --color-negative-container: #fbe4e1;
-  --color-on-negative-container: #8c1d18;
+  --color-negative: #9a1d4b;
+  --color-negative-container: #fbe4ec;
+  --color-on-negative-container: #7a1539;
   --color-warning: #8a5a00;
   --color-warning-container: #fbefd0;
   --color-on-warning-container: #6b4600;
@@ -45,7 +45,7 @@
   --chart-4: #8a5a00;
   --chart-5: #6d3fb5;
   --chart-6: #12704a;
-  --chart-7: #a1440b;
+  --chart-7: #5d6b00;
   --chart-8: #55524a;
 
   /* Elevación (claro: sombras; oscuro: más blanco sobre surface) */
@@ -125,9 +125,9 @@
     --color-positive: #5fd39a;
     --color-positive-container: #0f3d29;
     --color-on-positive-container: #a6ebc8;
-    --color-negative: #ff8a80;
-    --color-negative-container: #4a1512;
-    --color-on-negative-container: #ffc9c4;
+    --color-negative: #ff93b4;
+    --color-negative-container: #4a1228;
+    --color-on-negative-container: #ffd0de;
     --color-warning: #f2c14e;
     --color-warning-container: #453300;
     --color-on-warning-container: #fbe3a6;
@@ -140,7 +140,7 @@
     --chart-4: #f2c14e;
     --chart-5: #c9a6ff;
     --chart-6: #5fd39a;
-    --chart-7: #ffa873;
+    --chart-7: #c8d96a;
     --chart-8: #b9bcc6;
     --elevation-1: 0 0 0 1px rgba(255, 255, 255, 0.04);
     --elevation-2: 0 0 0 1px rgba(255, 255, 255, 0.08);
@@ -169,9 +169,9 @@
   --color-positive: #5fd39a;
   --color-positive-container: #0f3d29;
   --color-on-positive-container: #a6ebc8;
-  --color-negative: #ff8a80;
-  --color-negative-container: #4a1512;
-  --color-on-negative-container: #ffc9c4;
+  --color-negative: #ff93b4;
+  --color-negative-container: #4a1228;
+  --color-on-negative-container: #ffd0de;
   --color-warning: #f2c14e;
   --color-warning-container: #453300;
   --color-on-warning-container: #fbe3a6;
@@ -184,7 +184,7 @@
   --chart-4: #f2c14e;
   --chart-5: #c9a6ff;
   --chart-6: #5fd39a;
-  --chart-7: #ffa873;
+  --chart-7: #c8d96a;
   --chart-8: #b9bcc6;
   --elevation-1: 0 0 0 1px rgba(255, 255, 255, 0.04);
   --elevation-2: 0 0 0 1px rgba(255, 255, 255, 0.08);

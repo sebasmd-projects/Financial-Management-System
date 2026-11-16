@@ -22,9 +22,9 @@ export const lightColors = {
   positive: "#12704a",
   positiveContainer: "#ddf3e7",
   onPositiveContainer: "#0c5236",
-  negative: "#b3261e",
-  negativeContainer: "#fbe4e1",
-  onNegativeContainer: "#8c1d18",
+  negative: "#9a1d4b",
+  negativeContainer: "#fbe4ec",
+  onNegativeContainer: "#7a1539",
   warning: "#8a5a00",
   warningContainer: "#fbefd0",
   onWarningContainer: "#6b4600",
@@ -37,7 +37,7 @@ export const lightColors = {
   chart4: "#8a5a00",
   chart5: "#6d3fb5",
   chart6: "#12704a",
-  chart7: "#a1440b",
+  chart7: "#5d6b00",
   chart8: "#55524a",
 } as const;
 
@@ -60,9 +60,9 @@ export const darkColors = {
   positive: "#5fd39a",
   positiveContainer: "#0f3d29",
   onPositiveContainer: "#a6ebc8",
-  negative: "#ff8a80",
-  negativeContainer: "#4a1512",
-  onNegativeContainer: "#ffc9c4",
+  negative: "#ff93b4",
+  negativeContainer: "#4a1228",
+  onNegativeContainer: "#ffd0de",
   warning: "#f2c14e",
   warningContainer: "#453300",
   onWarningContainer: "#fbe3a6",
@@ -75,7 +75,7 @@ export const darkColors = {
   chart4: "#f2c14e",
   chart5: "#c9a6ff",
   chart6: "#5fd39a",
-  chart7: "#ffa873",
+  chart7: "#c8d96a",
   chart8: "#b9bcc6",
 } as const;
 

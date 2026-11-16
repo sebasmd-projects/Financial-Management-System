@@ -1025,8 +1025,8 @@ columna están calculados (WCAG 2.1) sobre el fondo indicado.
 | `on-accent` | `#FFFFFF` | `#141311` | Icono sobre `accent` | 6,59 / 8,20 |
 | `positive` | `#12704A` | `#5FD39A` | Ingreso, pagado, al día | 6,10 / 9,05 |
 | `positive-container` / `on-…` | `#DDF3E7` / `#0C5236` | `#0F3D29` / `#A6EBC8` | Fondos de éxito | 7,93 / 8,92 |
-| `negative` | `#B3261E` | `#FF8A80` | Vencido, saldo negativo, error | 6,54 / 7,39 |
-| `negative-container` / `on-…` | `#FBE4E1` / `#8C1D18` | `#4A1512` / `#FFC9C4` | Fondos de vencido | 7,50 / 10,24 |
+| `negative` | `#9A1D4B` | `#FF93B4` | Vencido, saldo negativo, error | 7,92 / 8,10 |
+| `negative-container` / `on-…` | `#FBE4EC` / `#7A1539` | `#4A1228` / `#FFD0DE` | Fondos de vencido | 8,73 / 10,88 |
 | `warning` | `#8A5A00` | `#F2C14E` | Pronto a vencer, 80 % | 5,93 / 10,05 |
 | `warning-container` / `on-…` | `#FBEFD0` / `#6B4600` | `#453300` / `#FBE3A6` | Fondos de atención | 7,34 / 9,64 |
 | `info` | `#1F5FA8` | `#8CBFF5` | Conciliado, sugerido | 6,44 / 8,74 |
@@ -1043,7 +1043,7 @@ rótulo directo o trama, nunca solo color:
 | 4 ocre | `#8A5A00` | `#F2C14E` |
 | 5 violeta | `#6D3FB5` | `#C9A6FF` |
 | 6 selva | `#12704A` | `#5FD39A` |
-| 7 teja | `#A1440B` | `#FFA873` |
+| 7 oliva | `#5D6B00` | `#C8D96A` |
 | 8 piedra | `#55524A` | `#B9BCC6` |
 
 Reglas: los egresos **no** se pintan de rojo por defecto (`text-primary` con signo «−»); `negative` se reserva para vencido, saldo bajo

@@ -11,6 +11,8 @@ import { compareAmounts, formatCop } from "@/lib/money";
 import { formatDate, formatDateLong, todayBogota } from "@/lib/dates";
 import { formatForeign, formatRate } from "@/lib/decimal";
 import { useI18n } from "@/i18n/provider";
+import { CounterpartyLine } from "../counterparties/counterparty-line";
+import { NameDialog } from "../counterparties/name-dialog";
 import { setDraft } from "../draft-store";
 import { effectPhrase, fill, movementAccounts, signedAmount, transferAccounts } from "../helpers";
 import { CategoryCombobox } from "../category-combobox";
@@ -40,6 +42,9 @@ export function MovementDetail({ id }: { id: string }) {
   const [action, setAction] = useState<Action>(null);
   const [annullingTransfer, setAnnullingTransfer] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [naming, setNaming] = useState(false);
+  const [namedNotice, setNamedNotice] = useState<string | null>(null);
+  const canNameIt = canWrite;
   const back = { href: href("movimientos"), label: dict.screens.movimientos };
 
   if (movement.loading && !movement.data) return <div className="screen"><ScreenHeader title={dict.screens.movimiento} back={back} /><Loading /></div>;
@@ -175,7 +180,11 @@ export function MovementDetail({ id }: { id: string }) {
           rows={[
             { label: dict.fin.form.account, value: m.type === "transfer" ? `${m.account.name} → ${m.to_account?.name ?? ""}` : m.account.name },
             ...(m.category ? [{ label: dict.fin.form.category, value: m.category.path.join(" › ") }] : []),
-            ...(m.counterparty ? [{ label: dict.fin.form.counterparty, value: m.counterparty.name }] : []),
+            ...(m.counterparty
+              ? [{ label: dict.fin.form.counterparty, value: <CounterpartyLine name={m.counterparty.name} identifier={m.counterparty.identifier} /> }]
+              : m.type !== "transfer" && canNameIt
+                ? [{ label: dict.fin.form.counterparty, value: <button type="button" className="button button--ghost" onClick={() => setNaming(true)}>{dict.fin.cp.nameIt}</button> }]
+                : []),
             ...(m.nature ? [{ label: dict.fin.form.nature, value: dict.fin.form.natures[m.nature as "fixed" | "variable"] ?? m.nature }] : []),
             ...(m.classification ? [{ label: dict.fin.form.classification, value: dict.fin.form.classifications[m.classification as "necessary" | "discretionary"] ?? m.classification }] : []),
             ...(m.tags.length > 0 ? [{ label: dict.fin.form.tags, value: m.tags.map((tag) => `#${tag.name}`).join(" ") }] : []),
@@ -210,6 +219,8 @@ export function MovementDetail({ id }: { id: string }) {
           }}
         />
       )}
+      {namedNotice && <Banner tone="positive">{namedNotice}</Banner>}
+      {naming && <NameDialog open target={{ kind: "movement", movementId: m.id }} onClose={() => setNaming(false)} onDone={(message) => { setNaming(false); setNamedNotice(message); movement.reload(); }} />}
       <RemoveDialog open={removing} kind="movement" id={m.id} name={title} onClose={() => setRemoving(false)} onDone={() => { setRemoving(false); router.push(back.href); }} />
       <Modal open={action === "confirm"} title={t.confirm} onClose={() => setAction(null)}>
         <ConfirmForm movement={m} onDone={done} onCancel={() => setAction(null)} />

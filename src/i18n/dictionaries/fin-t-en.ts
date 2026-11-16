@@ -43,6 +43,7 @@ export const finTEn: typeof finTEs = {
       maintenance_record: "Maintenance record",
       payment_method: "Payment method",
       custom_attribute: "Attribute",
+      counterparty: "Counterparty",
       recurrence: "Recurrence",
       scenario: "Scenario",
       rule: "Rule",

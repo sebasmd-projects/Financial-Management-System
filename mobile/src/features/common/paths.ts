@@ -30,6 +30,7 @@ export const paths = {
   cardsTimeline: `/cards/statements/timeline${query({ months_back: 6 })}`,
   movements: "/movements",
   movementsSearch: "/movements/search",
+  movementCounterparty: (movementId: string) => `/movements/${encodeURIComponent(movementId)}/counterparty`,
   recentMovements: `/movements${query({ page_size: 30 })}`,
   notifications: (unread: boolean) => `/notifications${query({ unread: unread ? true : undefined })}`,
   notificationsRead: "/notifications/read",

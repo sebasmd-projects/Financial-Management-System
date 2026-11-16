@@ -24,6 +24,7 @@ export const SIMULATORS = [
 export const CONFIG_SCREENS = [
   { slug: "categorias", en: "categories" },
   { slug: "etiquetas", en: "tags" },
+  { slug: "contrapartes", en: "counterparties" },
   { slug: "instituciones", en: "institutions" },
   { slug: "monedas", en: "currencies" },
   { slug: "reglas", en: "rules" },

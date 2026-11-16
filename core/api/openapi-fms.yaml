@@ -4248,7 +4248,7 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: Tus counterparties
+      summary: Tus contrapartes con sus cuentas (canal y últimos 4)
       parameters:
       - in: query
         name: page
@@ -4258,6 +4258,11 @@ paths:
         name: page_size
         schema:
           type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Parte del nombre o los últimos dígitos de una cuenta.
       tags:
       - counterparties
       security:
@@ -4268,7 +4273,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NamedPage'
+                $ref: '#/components/schemas/CounterpartyPage'
           description: ''
         '401':
           content:
@@ -4288,8 +4293,7 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: 'Crear: el nombre va cifrado y no se repite (sin mayúsculas ni espacios
-        de más)'
+      summary: 'Crear: el nombre va cifrado y no se repite; las cuentas son opcionales'
       parameters:
       - in: header
         name: Idempotency-Key
@@ -4304,7 +4308,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NamedCreate'
+              $ref: '#/components/schemas/CounterpartyCreate'
         required: true
       security:
       - appSessionToken: []
@@ -4314,13 +4318,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Named'
+                $ref: '#/components/schemas/Counterparty'
           description: ''
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Named'
+                $ref: '#/components/schemas/Counterparty'
           description: ''
         '400':
           content:
@@ -4341,6 +4345,12 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active`, `account_blocked` o
             `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
         '409':
           content:
             application/json:
@@ -4354,12 +4364,57 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/counterparties/{id}:
+    get:
+      operationId: fmsCounterpartyGet
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Una contraparte con sus cuentas
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - counterparties
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Counterparty'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
     patch:
       operationId: fmsCounterpartyPatch
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: Renombrar o archivar
+      summary: 'Renombrar o archivar (los movimientos apuntan a la contraparte: el
+        nombre nuevo se ve en todos)'
       parameters:
       - in: path
         name: id
@@ -4373,7 +4428,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedNamedPatch'
+              $ref: '#/components/schemas/PatchedCounterpartyPatch'
       security:
       - appSessionToken: []
       - cvSession: []
@@ -4382,7 +4437,361 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Named'
+                $ref: '#/components/schemas/Counterparty'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsCounterpartyDelete
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Eliminar (papelera de 30 días): los movimientos conservan el texto
+        de su descripción y pierden el nombre; restaurar los vuelve a enlazar'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - counterparties
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/counterparties/{id}/identifiers:
+    post:
+      operationId: fmsCounterpartyIdentifierAdd
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Agregar una cuenta (canal y valor). Si es de otra contraparte: `409
+        identifier_taken` con su nombre actual'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - counterparties
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentifierCreate'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Counterparty'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/counterparties/{id}/identifiers/{identifier_id}:
+    delete:
+      operationId: fmsCounterpartyIdentifierRemove
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Quitar una cuenta: los movimientos conservan la contraparte'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: identifier_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - counterparties
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/counterparties/{id}/merge:
+    post:
+      operationId: fmsCounterpartyMerge
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Fusionar esta contraparte en otra: movimientos, recurrencias, deudas
+        y cuentas pasan a la otra'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - counterparties
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Merge'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Counterparty'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/counterparties/lookup:
+    get:
+      operationId: fmsCounterpartyLookup
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: ¿Ya tiene nombre esta cuenta? Para colocarlo solo al escribir la cuenta
+        en un movimiento
+      parameters:
+      - in: query
+        name: channel
+        schema:
+          type: string
+        required: true
+      - in: query
+        name: value
+        schema:
+          type: string
+        required: true
+      tags:
+      - counterparties
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lookup'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/counterparties/name:
+    post:
+      operationId: fmsCounterpartyName
+      description: 'Si la cuenta no existe se crea (con la contraparte de ese nombre,
+        si ya existe se le agrega). Si ya tiene **otro** nombre: `409 identifier_taken`
+        con `current_name`; vuelve a llamar con `on_conflict=rename` (actualizar «anterior»
+        → «nuevo») o `move` («Crear otro»).'
+      summary: «Ponerle nombre» a una cuenta (desde un movimiento o la vista previa
+        de una importación)
+      tags:
+      - counterparties
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NameRequest'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedResult'
           description: ''
         '400':
           content:
@@ -8464,7 +8873,7 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: Tus counterparties
+      summary: Tus contrapartes con sus cuentas (canal y últimos 4)
       parameters:
       - in: path
         name: household_id
@@ -8480,6 +8889,11 @@ paths:
         name: page_size
         schema:
           type: integer
+      - in: query
+        name: q
+        schema:
+          type: string
+        description: Parte del nombre o los últimos dígitos de una cuenta.
       tags:
       - households
       security:
@@ -8490,7 +8904,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NamedPage'
+                $ref: '#/components/schemas/CounterpartyPage'
           description: ''
         '401':
           content:
@@ -8510,8 +8924,7 @@ paths:
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: 'Crear: el nombre va cifrado y no se repite (sin mayúsculas ni espacios
-        de más)'
+      summary: 'Crear: el nombre va cifrado y no se repite; las cuentas son opcionales'
       parameters:
       - in: header
         name: Idempotency-Key
@@ -8532,7 +8945,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NamedCreate'
+              $ref: '#/components/schemas/CounterpartyCreate'
         required: true
       security:
       - appSessionToken: []
@@ -8542,13 +8955,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Named'
+                $ref: '#/components/schemas/Counterparty'
           description: ''
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Named'
+                $ref: '#/components/schemas/Counterparty'
           description: ''
         '400':
           content:
@@ -8569,6 +8982,12 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active`, `account_blocked` o
             `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
         '409':
           content:
             application/json:
@@ -8582,12 +9001,63 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/households/{household_id}/counterparties/{id}:
+    get:
+      operationId: fmsCounterpartyGet_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Una contraparte con sus cuentas
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Counterparty'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
     patch:
       operationId: fmsCounterpartyPatch_2
       description: |-
         Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
         crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
-      summary: Renombrar o archivar
+      summary: 'Renombrar o archivar (los movimientos apuntan a la contraparte: el
+        nombre nuevo se ve en todos)'
       parameters:
       - in: path
         name: household_id
@@ -8607,7 +9077,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedNamedPatch'
+              $ref: '#/components/schemas/PatchedCounterpartyPatch'
       security:
       - appSessionToken: []
       - cvSession: []
@@ -8616,7 +9086,398 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Named'
+                $ref: '#/components/schemas/Counterparty'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+    delete:
+      operationId: fmsCounterpartyDelete_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Eliminar (papelera de 30 días): los movimientos conservan el texto
+        de su descripción y pierden el nombre; restaurar los vuelve a enlazar'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/counterparties/{id}/identifiers:
+    post:
+      operationId: fmsCounterpartyIdentifierAdd_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Agregar una cuenta (canal y valor). Si es de otra contraparte: `409
+        identifier_taken` con su nombre actual'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdentifierCreate'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Counterparty'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/counterparties/{id}/identifiers/{identifier_id}:
+    delete:
+      operationId: fmsCounterpartyIdentifierRemove_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Quitar una cuenta: los movimientos conservan la contraparte'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: identifier_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/counterparties/{id}/merge:
+    post:
+      operationId: fmsCounterpartyMerge_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: 'Fusionar esta contraparte en otra: movimientos, recurrencias, deudas
+        y cuentas pasan a la otra'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Merge'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Counterparty'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/counterparties/lookup:
+    get:
+      operationId: fmsCounterpartyLookup_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: ¿Ya tiene nombre esta cuenta? Para colocarlo solo al escribir la cuenta
+        en un movimiento
+      parameters:
+      - in: query
+        name: channel
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: value
+        schema:
+          type: string
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lookup'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/counterparties/name:
+    post:
+      operationId: fmsCounterpartyName_2
+      description: 'Si la cuenta no existe se crea (con la contraparte de ese nombre,
+        si ya existe se le agrega). Si ya tiene **otro** nombre: `409 identifier_taken`
+        con `current_name`; vuelve a llamar con `on_conflict=rename` (actualizar «anterior»
+        → «nuevo») o `move` («Crear otro»).'
+      summary: «Ponerle nombre» a una cuenta (desde un movimiento o la vista previa
+        de una importación)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NameRequest'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedResult'
           description: ''
         '400':
           content:
@@ -10984,6 +11845,82 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/MovementConfirm'
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/households/{household_id}/movements/{id}/counterparty:
+    post:
+      operationId: fmsMovementCounterparty
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: '«Ponerle nombre» desde un movimiento: la cuenta sale de su descripción
+        o notas si no se da'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovementNameRequest'
+        required: true
       security:
       - appSessionToken: []
       - cvSession: []
@@ -13468,6 +14405,52 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ImportBatch'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/imports/{id}/recurrence-suggestions:
+    get:
+      operationId: fmsImportRecurrenceSuggestions
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Recurrentes que parecen haber en lo importado (mismo destino, monto
+        ±10 %, intervalo regular, 2 o más). Solo se proponen
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - imports
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetectedRecurrences'
           description: ''
         '401':
           content:
@@ -16222,6 +17205,76 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: Valida pero no se puede aplicar (`code` dice por qué).
+  /api/fms/v1/movements/{id}/counterparty:
+    post:
+      operationId: fmsMovementCounterparty_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: '«Ponerle nombre» desde un movimiento: la cuenta sale de su descripción
+        o notas si no se da'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - movements
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovementNameRequest'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Movement'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: El estado actual no lo permite.
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/movements/{id}/edit/apply:
     post:
       operationId: fmsMovementEditApply_2
@@ -18540,6 +19593,77 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: No existe (o es de otro usuario).
+  /api/fms/v1/recurrences/detected:
+    post:
+      operationId: fmsRecurrenceDetectedCreate
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Crear la recurrencia detectada que confirmaste y enlazar sus movimientos
+        como pagados (nunca se crea sola)
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve
+          el original (200) sin crear otro.
+        required: true
+      tags:
+      - recurrences
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DetectedRecurrenceCreate'
+        required: true
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetectedRecurrenceResult'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetectedRecurrenceResult'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Cuerpo inválido o falta `Idempotency-Key`.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '422':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Valida pero no se puede aplicar (`code` dice por qué).
   /api/fms/v1/recurrences/generate:
     post:
       operationId: fmsRecurrenceGenerate
@@ -23601,6 +24725,32 @@ components:
       - id
       - name
       - path
+    ChannelEnum:
+      enum:
+      - nequi
+      - daviplata
+      - bancolombia
+      - davivienda
+      - bbva
+      - banco_bogota
+      - av_villas
+      - bre_b
+      - qr
+      - pse
+      - other
+      type: string
+      description: |-
+        * `nequi` - nequi
+        * `daviplata` - daviplata
+        * `bancolombia` - bancolombia
+        * `davivienda` - davivienda
+        * `bbva` - bbva
+        * `banco_bogota` - banco_bogota
+        * `av_villas` - av_villas
+        * `bre_b` - bre_b
+        * `qr` - qr
+        * `pse` - pse
+        * `other` - other
     Charge:
       type: object
       properties:
@@ -23981,6 +25131,97 @@ components:
       - last
       - rows
       - total
+    Counterparty:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        archived:
+          type: boolean
+        identifiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdentifierRef'
+        movements:
+          type: integer
+          description: Cuántos movimientos vigentes tiene.
+      required:
+      - archived
+      - id
+      - identifiers
+      - movements
+      - name
+    CounterpartyAccount:
+      type: object
+      description: 'La cuenta destino que escribe el usuario: canal y valor (celular,
+        cuenta, referencia o comercio del QR/PSE).'
+      properties:
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        value:
+          type: string
+          maxLength: 60
+      required:
+      - channel
+      - value
+    CounterpartyConflictEnum:
+      enum:
+      - rename
+      - move
+      type: string
+      description: |-
+        * `rename` - rename
+        * `move` - move
+    CounterpartyCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        identifiers:
+          type: array
+          items:
+            $ref: '#/components/schemas/CounterpartyAccount'
+      required:
+      - name
+    CounterpartyPage:
+      type: object
+      properties:
+        count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Counterparty'
+      required:
+      - count
+      - page
+      - page_size
+      - results
+    CounterpartyRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        identifier:
+          oneOf:
+          - $ref: '#/components/schemas/IdentifierRef'
+          - type: 'null'
+          description: La cuenta con que se hizo («Nequi ··3769»).
+      required:
+      - id
+      - identifier
+      - name
     CreditInstallment:
       type: object
       properties:
@@ -25098,6 +26339,7 @@ components:
       - loan
       - debt
       - category
+      - counterparty
       - budget
       - goal
       - asset
@@ -25118,6 +26360,7 @@ components:
         * `loan` - loan
         * `debt` - debt
         * `category` - category
+        * `counterparty` - counterparty
         * `budget` - budget
         * `goal` - goal
         * `asset` - asset
@@ -25130,6 +26373,174 @@ components:
         * `recurrence` - recurrence
         * `scenario` - scenario
         * `rule` - rule
+    DetectedParty:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+      - id
+      - name
+    DetectedRecurrence:
+      type: object
+      description: 'Una recurrencia que parece haber en lo importado (2026-11-16):
+        **solo se propone**; crearla es `POST recurrences/detected`.'
+      properties:
+        counterparty:
+          $ref: '#/components/schemas/DetectedParty'
+        type:
+          $ref: '#/components/schemas/AmountTypeEnum'
+        account_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+          description: La mediana de los pagos que cuadran (±10 %).
+        frequency:
+          $ref: '#/components/schemas/FrequencyEnum'
+        interval_days:
+          type: integer
+          description: Los días entre pagos (7, 15, 30...).
+        interval:
+          type:
+          - integer
+          - 'null'
+        day:
+          type:
+          - integer
+          - 'null'
+        last_day:
+          type: boolean
+        weekday:
+          type:
+          - integer
+          - 'null'
+        start_date:
+          type: string
+          format: date
+        occurrences:
+          type: integer
+          description: Cuántos pagos cuadran (al menos 2).
+        dates:
+          type: array
+          items:
+            type: string
+            format: date
+        rows:
+          type: array
+          items:
+            type: integer
+          description: Las filas del archivo que cuadran (vista previa).
+        movement_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Los movimientos que se enlazarán como pagados.
+        category_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+      required:
+      - account_id
+      - amount
+      - category_id
+      - counterparty
+      - dates
+      - day
+      - frequency
+      - interval
+      - interval_days
+      - last_day
+      - movement_ids
+      - occurrences
+      - rows
+      - start_date
+      - type
+      - weekday
+    DetectedRecurrenceCreate:
+      type: object
+      properties:
+        counterparty_id:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/AmountTypeEnum'
+        name:
+          type: string
+          maxLength: 80
+        account_id:
+          type: string
+          format: uuid
+        category_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        expected_amount:
+          type: string
+          pattern: ^-?(0|[1-9][0-9]{0,24})(\.[0-9]{1,12})?$
+          example: '180000'
+        frequency:
+          $ref: '#/components/schemas/FrequencyEnum'
+        interval:
+          type:
+          - integer
+          - 'null'
+        day:
+          type:
+          - integer
+          - 'null'
+        last_day:
+          type: boolean
+        weekday:
+          type:
+          - integer
+          - 'null'
+        start_date:
+          type: string
+          format: date
+        movement_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 200
+      required:
+      - account_id
+      - counterparty_id
+      - expected_amount
+      - frequency
+      - start_date
+      - type
+    DetectedRecurrenceResult:
+      type: object
+      properties:
+        recurrence:
+          $ref: '#/components/schemas/Recurrence'
+        linked:
+          type: integer
+          description: Cuántos movimientos quedaron como ocurrencias pagadas.
+      required:
+      - linked
+      - recurrence
+    DetectedRecurrences:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/DetectedRecurrence'
+      required:
+      - results
     DryRun:
       type: object
       properties:
@@ -26884,6 +28295,61 @@ components:
       - name
       - role
       - rotating
+    IdentifierCreate:
+      type: object
+      description: 'La cuenta destino que escribe el usuario: canal y valor (celular,
+        cuenta, referencia o comercio del QR/PSE).'
+      properties:
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        value:
+          type: string
+          maxLength: 60
+        on_conflict:
+          description: |-
+            `move`: la cuenta pertenecía a otra contraparte y pasa a esta.
+
+            * `rename` - rename
+            * `move` - move
+          oneOf:
+          - $ref: '#/components/schemas/OnConflictEnum'
+          - $ref: '#/components/schemas/NullEnum'
+      required:
+      - channel
+      - value
+    IdentifierHint:
+      type: object
+      properties:
+        channel:
+          type: string
+        value:
+          type: string
+          description: El valor que trae el propio archivo del usuario.
+        last4:
+          type: string
+        name_hint:
+          type: string
+          description: Un nombre que se puede proponer (el comercio de un QR o PSE).
+      required:
+      - channel
+      - last4
+      - name_hint
+      - value
+    IdentifierRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        channel:
+          type: string
+        last4:
+          type: string
+          description: Los últimos 4 dígitos; vacío en un QR o un PSE (sin dígitos).
+      required:
+      - channel
+      - id
+      - last4
     ImportActionEnum:
       enum:
       - import
@@ -27387,6 +28853,13 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ImportPreviewRow'
+        recurrence_suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DetectedRecurrence'
+          description: 'Recurrentes que parecen haber en el archivo y el historial
+            (mismo destino, monto ±10 %, intervalo regular). Solo se proponen: se
+            crean tras importar.'
         errors:
           type: array
           items:
@@ -27447,6 +28920,7 @@ components:
       - meta
       - needs_mapping
       - notes
+      - recurrence_suggestions
       - rows
       - sample
       - sign_detected
@@ -27494,6 +28968,22 @@ components:
           type:
           - string
           - 'null'
+        identifier:
+          oneOf:
+          - $ref: '#/components/schemas/IdentifierRef'
+          - type: 'null'
+          description: La cuenta destino de la fila, ya con nombre («Nequi ··3769»).
+        identifier_hint:
+          oneOf:
+          - $ref: '#/components/schemas/IdentifierHint'
+          - type: 'null'
+          description: 'La cuenta que trae sin nombre todavía: ofrece «Ponerle nombre»
+            (`POST counterparties/name`).'
+        recurrence:
+          oneOf:
+          - $ref: '#/components/schemas/RecurrenceRef'
+          - type: 'null'
+          description: La recurrencia cuyo pendiente confirmaría este cargo.
         category_id:
           type:
           - string
@@ -27576,6 +29066,8 @@ components:
       - counterparty
       - date
       - description
+      - identifier
+      - identifier_hint
       - installments
       - issue
       - kind
@@ -27584,6 +29076,7 @@ components:
       - period_end
       - period_start
       - reasons
+      - recurrence
       - reference
       - refund_of_id
       - refund_of_row
@@ -29347,6 +30840,20 @@ components:
       description: |-
         * `es` - es
         * `en` - en
+    Lookup:
+      type: object
+      properties:
+        counterparty:
+          oneOf:
+          - $ref: '#/components/schemas/Counterparty'
+          - type: 'null'
+        identifier:
+          oneOf:
+          - $ref: '#/components/schemas/IdentifierRef'
+          - type: 'null'
+      required:
+      - counterparty
+      - identifier
     MailLink:
       type: object
       properties:
@@ -29574,6 +31081,15 @@ components:
       - role
       - user_id
       - you
+    Merge:
+      type: object
+      properties:
+        into:
+          type: string
+          format: uuid
+          description: La contraparte que se queda con todo.
+      required:
+      - into
     MonthPoint:
       type: object
       properties:
@@ -29677,7 +31193,7 @@ components:
           - 'null'
         counterparty:
           oneOf:
-          - $ref: '#/components/schemas/Ref'
+          - $ref: '#/components/schemas/CounterpartyRef'
           - type: 'null'
         category:
           oneOf:
@@ -29910,6 +31426,16 @@ components:
           - string
           - 'null'
           maxLength: 80
+        counterparty_account:
+          oneOf:
+          - $ref: '#/components/schemas/CounterpartyAccount'
+          - type: 'null'
+          description: 'Con una cuenta conocida se coloca el nombre elegido; con otro
+            nombre: `409 identifier_taken` salvo `counterparty_conflict`.'
+        counterparty_conflict:
+          oneOf:
+          - $ref: '#/components/schemas/CounterpartyConflictEnum'
+          - $ref: '#/components/schemas/NullEnum'
         nature:
           default: ''
           oneOf:
@@ -30003,6 +31529,16 @@ components:
           - string
           - 'null'
           maxLength: 80
+        counterparty_account:
+          oneOf:
+          - $ref: '#/components/schemas/CounterpartyAccount'
+          - type: 'null'
+          description: 'Con una cuenta conocida se coloca el nombre elegido; con otro
+            nombre: `409 identifier_taken` salvo `counterparty_conflict`.'
+        counterparty_conflict:
+          oneOf:
+          - $ref: '#/components/schemas/CounterpartyConflictEnum'
+          - $ref: '#/components/schemas/NullEnum'
         nature:
           oneOf:
           - $ref: '#/components/schemas/NatureEnum'
@@ -30064,6 +31600,27 @@ components:
         * `income` - income
         * `expense` - expense
         * `transfer` - transfer
+    MovementNameRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        channel:
+          oneOf:
+          - $ref: '#/components/schemas/ChannelEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        value:
+          type:
+          - string
+          - 'null'
+          maxLength: 60
+        on_conflict:
+          oneOf:
+          - $ref: '#/components/schemas/OnConflictEnum'
+          - $ref: '#/components/schemas/NullEnum'
+      required:
+      - name
     MovementOriginEnum:
       enum:
       - manual
@@ -30197,6 +31754,35 @@ components:
         * `income` - Income
         * `expense` - Expense
         * `transfer` - Transfer
+    NameRequest:
+      type: object
+      description: 'La cuenta destino que escribe el usuario: canal y valor (celular,
+        cuenta, referencia o comercio del QR/PSE).'
+      properties:
+        channel:
+          $ref: '#/components/schemas/ChannelEnum'
+        value:
+          type: string
+          maxLength: 60
+        name:
+          type: string
+          maxLength: 80
+        on_conflict:
+          description: |-
+            Tras `409 identifier_taken`: `rename` («¿Actualizar anterior → nuevo?») o `move` («Crear otro»).
+
+            * `rename` - rename
+            * `move` - move
+          oneOf:
+          - $ref: '#/components/schemas/OnConflictEnum'
+          - $ref: '#/components/schemas/NullEnum'
+        apply_history:
+          type: boolean
+          default: true
+      required:
+      - channel
+      - name
+      - value
     Named:
       type: object
       properties:
@@ -30237,6 +31823,20 @@ components:
       - page
       - page_size
       - results
+    NamedResult:
+      type: object
+      properties:
+        counterparty:
+          $ref: '#/components/schemas/Counterparty'
+        identifier:
+          $ref: '#/components/schemas/IdentifierRef'
+        updated:
+          type: integer
+          description: Movimientos viejos sin nombre que quedaron con esta contraparte.
+      required:
+      - counterparty
+      - identifier
+      - updated
     NatureEnum:
       enum:
       - fixed
@@ -30691,6 +32291,14 @@ components:
       - rate
       - rate_convention
       - term
+    OnConflictEnum:
+      enum:
+      - rename
+      - move
+      type: string
+      description: |-
+        * `rename` - rename
+        * `move` - move
     OpeningImport:
       type: object
       properties:
@@ -31351,6 +32959,14 @@ components:
           - $ref: '#/components/schemas/BlankEnum'
         archived:
           type: boolean
+    PatchedCounterpartyPatch:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 80
+        archived:
+          type: boolean
     PatchedCustomAttributePatch:
       type: object
       description: 'El tipo no cambia: invalidaría los valores ya guardados.'
@@ -31572,6 +33188,16 @@ components:
           - string
           - 'null'
           maxLength: 80
+        counterparty_account:
+          oneOf:
+          - $ref: '#/components/schemas/CounterpartyAccount'
+          - type: 'null'
+          description: 'Con una cuenta conocida se coloca el nombre elegido; con otro
+            nombre: `409 identifier_taken` salvo `counterparty_conflict`.'
+        counterparty_conflict:
+          oneOf:
+          - $ref: '#/components/schemas/CounterpartyConflictEnum'
+          - $ref: '#/components/schemas/NullEnum'
         nature:
           oneOf:
           - $ref: '#/components/schemas/NatureEnum'
@@ -33624,6 +35250,17 @@ components:
       - page
       - page_size
       - results
+    RecurrenceRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+      - id
+      - name
     RecurrenceStatusEnum:
       enum:
       - active

@@ -41,6 +41,7 @@ import { CardPay } from "./cards/card-pay";
 import { CardSimulateScreen } from "./cards/card-purchase";
 import { CardStatement } from "./cards/card-statement";
 import { CategoriesScreen, TagsScreen } from "./catalog/catalog-screens";
+import { CounterpartiesScreen } from "./counterparties/counterparties-screen";
 import { NotificationsScreen } from "./notifications/notifications-screen";
 import { RulesScreen } from "./notifications/rules-screen";
 import { ImportScreen } from "./import/import-screen";
@@ -200,6 +201,8 @@ function render(routeId: RouteId, params: readonly string[]): ReactNode {
       return <CategoriesScreen />;
     case "config-etiquetas":
       return <TagsScreen />;
+    case "config-contrapartes":
+      return <CounterpartiesScreen />;
     case "config-monedas":
       return <CurrenciesScreen />;
     case "config-auditoria":

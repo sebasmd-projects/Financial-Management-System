@@ -7,6 +7,7 @@ import type { Account, Category, Movement, Page } from "@/api/models";
 import { paths } from "@/api/paths";
 import { formatDate, formatPeriod, periodOf, periodRange, shiftPeriod, todayBogota } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
+import { AccountLine } from "../counterparties/counterparty-line";
 import type { RouteId } from "@/nav/routes";
 import { Icon } from "@/ui/icons";
 import { dayNet, groupByDate, signedAmount, disambiguate } from "../helpers";
@@ -225,6 +226,7 @@ export function MovementRow({ movement }: { movement: Movement }) {
     <Link href={href("movimiento", [movement.id])} className="fin-row fin-row--movement">
       <span className="fin-row__main">
         <span className="fin-row__title">{title}</span>
+        {movement.counterparty?.identifier && <AccountLine identifier={movement.counterparty.identifier} />}
         <span className="fin-row__sub muted">{subtitle}</span>
         {scope.kind === "household" && <AuthorLine createdBy={movement.created_by} updatedBy={movement.updated_by} />}
         <span className="fin-row__badges">

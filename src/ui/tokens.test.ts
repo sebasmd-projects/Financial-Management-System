@@ -35,8 +35,8 @@ for (const line of spec.slice(spec.indexOf("Paleta categórica"), spec.indexOf("
 }
 
 describe("tokens.css = especificación §4.1", () => {
-  it("la tabla de la especificación se leyó entera (27 colores + 8 series)", () => {
-    expect(Object.keys(expected.claro).length).toBe(35);
+  it("la tabla de la especificación se leyó entera (28 colores + 8 series)", () => {
+    expect(Object.keys(expected.claro).length).toBe(36);
   });
   it.each(Object.keys(expected.claro))("%s (claro y oscuro)", (token) => {
     expect(themes.claro[token], `claro ${token}`).toBe(expected.claro[token]);

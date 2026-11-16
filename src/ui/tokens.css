@@ -29,6 +29,7 @@
   --color-positive-container: #ddf3e7;
   --color-on-positive-container: #0c5236;
   --color-negative: #9a1d4b;
+  --color-on-negative: #ffffff;
   --color-negative-container: #fbe4ec;
   --color-on-negative-container: #7a1539;
   --color-warning: #8a5a00;
@@ -126,6 +127,7 @@
     --color-positive-container: #0f3d29;
     --color-on-positive-container: #a6ebc8;
     --color-negative: #ff93b4;
+    --color-on-negative: #141311;
     --color-negative-container: #4a1228;
     --color-on-negative-container: #ffd0de;
     --color-warning: #f2c14e;
@@ -170,6 +172,7 @@
   --color-positive-container: #0f3d29;
   --color-on-positive-container: #a6ebc8;
   --color-negative: #ff93b4;
+  --color-on-negative: #141311;
   --color-negative-container: #4a1228;
   --color-on-negative-container: #ffd0de;
   --color-warning: #f2c14e;

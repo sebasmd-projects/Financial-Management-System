@@ -13,7 +13,7 @@
 }
 .row-menu__list a:hover, .row-menu__list button:hover { background: var(--color-surface-2); }
 .row-menu__danger { color: var(--color-negative) !important; }
-.button--danger { background: var(--color-negative); color: #fff; border-color: var(--color-negative); }
+.button--danger { background: var(--color-negative); color: var(--color-on-negative); border-color: var(--color-negative); }
 .fin-star { display: inline-flex; align-items: center; gap: var(--space-4); }
 .fin-star .icon { color: var(--color-accent, currentColor); fill: currentColor; }
 .fin-actions-end { display: flex; flex-wrap: wrap; gap: var(--space-8); }

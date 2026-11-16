@@ -31,7 +31,7 @@ const published: [string, string, number, number][] = [
   ["primary", "surface", 8.39, 8.11],
   ["on-primary", "primary", 8.39, 7.4],
   ["on-primary-container", "primary-container", 10.44, 9.13],
-  ["on-accent", "accent", 5.82, 7.2],
+  ["on-accent", "accent", 6.59, 8.2],
   ["positive", "surface", 6.1, 9.05],
   ["on-positive-container", "positive-container", 7.93, 8.92],
   ["negative", "surface", 6.54, 7.39],

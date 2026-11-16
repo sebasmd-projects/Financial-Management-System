@@ -1,5 +1,5 @@
 /**
- * Tokens de diseño «Añil y Guayaba» de la web (`src/ui/tokens.css`, docs/design-spec.md §4), en valores que React Native entiende.
+ * Tokens de diseño «Añil y Coral» de la web (`src/ui/tokens.css`, docs/design-spec.md §4), en valores que React Native entiende.
  * `tokens.test.ts` los compara con el CSS: si la web cambia un color y aquí no, falla. Los egresos NO se pintan de rojo:
  * `negative` es solo para vencido, saldo bajo cero y error (§4.1).
  */
@@ -17,7 +17,7 @@ export const lightColors = {
   onPrimary: "#ffffff",
   primaryContainer: "#e3e6fb",
   onPrimaryContainer: "#1c2580",
-  accent: "#b8324f",
+  accent: "#ae2d18",
   onAccent: "#ffffff",
   positive: "#12704a",
   positiveContainer: "#ddf3e7",
@@ -32,7 +32,7 @@ export const lightColors = {
   infoContainer: "#e0ecfa",
   onInfoContainer: "#17497f",
   chart1: "#2f3eb8",
-  chart2: "#b8324f",
+  chart2: "#ae2d18",
   chart3: "#0e7c86",
   chart4: "#8a5a00",
   chart5: "#6d3fb5",
@@ -55,8 +55,8 @@ export const darkColors = {
   onPrimary: "#121a66",
   primaryContainer: "#2a3170",
   onPrimaryContainer: "#dde0ff",
-  accent: "#ff8fa3",
-  onAccent: "#4a0a1a",
+  accent: "#ff8d6c",
+  onAccent: "#141311",
   positive: "#5fd39a",
   positiveContainer: "#0f3d29",
   onPositiveContainer: "#a6ebc8",
@@ -70,7 +70,7 @@ export const darkColors = {
   infoContainer: "#12335a",
   onInfoContainer: "#cfe4fb",
   chart1: "#a5aeff",
-  chart2: "#ff8fa3",
+  chart2: "#ff8d6c",
   chart3: "#5fd0da",
   chart4: "#f2c14e",
   chart5: "#c9a6ff",

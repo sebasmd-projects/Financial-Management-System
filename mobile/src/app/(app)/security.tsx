@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { View } from "react-native";
+import { Linking, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useAllauth, usePhase, useSession } from "@/auth/use-session";
+import { WEB_PAGES, apiOrigin } from "@/config";
 import { es } from "@/i18n/es";
 import { AppText, Button, Card, Notice, Screen, Title } from "@/ui/primitives";
 
@@ -39,6 +40,8 @@ export default function Security() {
       ) : null}
       <View style={{ gap: 8 }}>
         <Button label={es.devices.title} kind="secondary" onPress={() => router.push("/devices")} />
+        <Button label={es.export.open} kind="secondary" onPress={() => void Linking.openURL(`${apiOrigin()}${WEB_PAGES.export}`).catch(() => undefined)} />
+        <AppText kind="caption" tone="secondary">{es.export.hint}</AppText>
         <Button label={es.erase.open} kind="danger" onPress={() => router.push("/erase")} />
         <Button label={es.home.signOut} kind="ghost" onPress={() => void session.logout()} />
         <Button label={es.common.back} kind="ghost" onPress={() => router.back()} />

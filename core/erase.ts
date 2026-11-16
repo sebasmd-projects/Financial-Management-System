@@ -23,9 +23,6 @@ export const erasePaths = {
   erase: "/me/erase",
 } as const;
 
-/** La exportación de la cuenta del sitio (incluye lo financiero descifrado). Pide reautenticación reciente (401 de allauth). */
-export const ACCOUNT_EXPORT_PATH = "/_allauth/cv/v1/me/export";
-
 /** Lo mínimo que se pide al cliente de la API: el de la web y el de la app lo cumplen. */
 export interface EraseClient {
   get<T>(path: string, options?: RequestOptions): Promise<ApiResult<T>>;

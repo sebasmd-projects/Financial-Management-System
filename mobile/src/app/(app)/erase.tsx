@@ -103,7 +103,7 @@ export default function Erase() {
             <Card>
               <AppText kind="titleS">{t.exportTitle}</AppText>
               <AppText tone="secondary">{t.exportBody}</AppText>
-              <Button label={t.exportOpen} kind="secondary" onPress={() => void Linking.openURL(`${apiOrigin()}${WEB_PAGES.profile}`).catch(() => undefined)} />
+              <Button label={t.exportOpen} kind="secondary" onPress={() => void Linking.openURL(`${apiOrigin()}${WEB_PAGES.export}`).catch(() => undefined)} />
             </Card>
           ) : null}
           <Card>

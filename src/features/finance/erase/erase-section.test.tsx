@@ -21,6 +21,9 @@ const PREVIEW: ErasePreview = {
 };
 const DONE = { erased: true, already: false, rows: 130, households_left: 1, households_deleted: 0, devices_revoked: 0 };
 
+const saved = vi.hoisted(() => vi.fn());
+vi.mock("@/api/download", async (original) => ({ ...(await original<typeof import("@/api/download")>()), saveBlob: saved }));
+
 const load = vi.fn();
 const store = { load, abort: () => undefined, subscribe: () => () => undefined, getState: () => ({ status: "loading" }) } as unknown as SessionStore;
 
@@ -29,6 +32,7 @@ afterEach(() => {
   mounted?.unmount();
   mounted = null;
   load.mockReset();
+  saved.mockReset();
 });
 const dialog = () => document.querySelector("dialog")?.textContent ?? "";
 const submit = () => byText(document.body, "button", "Borrar todo definitivamente") as HTMLButtonElement;
@@ -102,6 +106,23 @@ describe("borrar todos mis datos de Finanzas", () => {
     await wait();
     expect(dialog()).toContain("Eres propietario de un hogar que tiene más miembros");
     expect(load).not.toHaveBeenCalledWith({ quiet: true });
+  });
+
+  it("«Exportar primero» usa el mismo export de Finanzas (ZIP): lo pide y, al estar listo, lo baja solo", async () => {
+    const ready = { id: "j1", household_id: null, status: "ready", progress: 100, step: "done", error_code: "", created_at: "2026-11-16T10:00:00Z", finished_at: null, expires_at: null, size: 10, download_url: "/api/fms/v1/me/export/j1/download?t=tk", download_expires_at: null };
+    await open({
+      [PREVIEW_URL]: { status: 200, json: PREVIEW },
+      "POST /api/fms/v1/me/export": { status: 201, json: ready },
+      "GET /api/fms/v1/me/export/j1/download?t=tk": { status: 200, body: "ZIP" },
+    });
+    click(byText(document.body, "button", "Exportar primero"));
+    await wait();
+    const urls = mounted?.mock.calls.map((c) => `${c.method} ${c.url}`) ?? [];
+    expect(urls).toContain("POST /api/fms/v1/me/export");
+    expect(urls.some((u) => u.includes("/_allauth/cv/v1/me/export"))).toBe(false); // ya no baja la cuenta entera del sitio
+    expect(saved).toHaveBeenCalledTimes(1);
+    expect(dialog()).toContain("Archivo descargado");
+    expect(mounted?.mock.calls.filter((c) => c.url.endsWith("/me/erase"))).toEqual([]); // exportar no borra nada
   });
 
   it("una cuenta sin datos no ofrece exportar", async () => {

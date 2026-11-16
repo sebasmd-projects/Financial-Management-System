@@ -2742,6 +2742,73 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/fms/v1/households/{household_id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * El último «Exportar todos mis datos» de este ámbito (o `null`)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsExportLatest"];
+        put?: never;
+        /**
+         * Pedir «Exportar todos mis datos de Finanzas» (o los de un hogar): un ZIP que se arma aparte
+         * @description Crea un trabajo asíncrono que arma un ZIP con `finanzas.json` (todo descifrado y sin secretos), un CSV por cuenta de activo y por tarjeta en el formato del importador, los planes de apertura de cada tarjeta y un `LEEME.txt`. El archivo queda **cifrado en reposo**, se baja **una vez** y se destruye al bajarlo o a las 24 h. Exige **reautenticación reciente** (`403 reauthentication_required`) y cuenta **3 por día** (`429`). Si ya hay un trabajo en curso para ese ámbito, lo devuelve. En un hogar, cualquier miembro (también un visor) puede.
+         */
+        post: operations["fmsExportAll"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/export/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estado del trabajo y, si el archivo está listo, un enlace de descarga de un solo uso (15 minutos)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsExportJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/export/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Descargar el ZIP con el enlace firmado (una sola vez; el archivo se destruye)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsExportDownload"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/fms/v1/households/{household_id}/invitations": {
         parameters: {
             query?: never;
@@ -4333,6 +4400,73 @@ export interface paths {
          * @description Base de todo endpoint del FMS que necesita sesión.
          */
         get: operations["fmsErasePreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/me/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * El último «Exportar todos mis datos» de este ámbito (o `null`)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsExportLatest_2"];
+        put?: never;
+        /**
+         * Pedir «Exportar todos mis datos de Finanzas» (o los de un hogar): un ZIP que se arma aparte
+         * @description Crea un trabajo asíncrono que arma un ZIP con `finanzas.json` (todo descifrado y sin secretos), un CSV por cuenta de activo y por tarjeta en el formato del importador, los planes de apertura de cada tarjeta y un `LEEME.txt`. El archivo queda **cifrado en reposo**, se baja **una vez** y se destruye al bajarlo o a las 24 h. Exige **reautenticación reciente** (`403 reauthentication_required`) y cuenta **3 por día** (`429`). Si ya hay un trabajo en curso para ese ámbito, lo devuelve. En un hogar, cualquier miembro (también un visor) puede.
+         */
+        post: operations["fmsExportAll_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/me/export/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estado del trabajo y, si el archivo está listo, un enlace de descarga de un solo uso (15 minutos)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsExportJob_2"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/me/export/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Descargar el ZIP con el enlace firmado (una sola vez; el archivo se destruye)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsExportDownload_2"];
         put?: never;
         post?: never;
         delete?: never;
@@ -8623,6 +8757,46 @@ export interface components {
             retry_after?: number;
             /** @description Solo en el `409 household_owner` de `me/erase`: los hogares de los que eres propietario y tienen más miembros. */
             households?: components["schemas"]["FmsEraseHousehold"][];
+        };
+        FmsExportJob: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            household_id: string | null;
+            status: components["schemas"]["FmsExportJobStatusEnum"];
+            progress: number;
+            /** @description `collecting`, `files`, `packing` o `done`. */
+            step: string;
+            /** @description `not_a_member`, `no_key`, `stuck` o `failed` si `status` es `failed`. */
+            error_code: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            finished_at: string | null;
+            /**
+             * Format: date-time
+             * @description Desde aquí el archivo se destruye (24 h después de estar listo).
+             */
+            expires_at: string | null;
+            /** @description Bytes del ZIP (0 mientras se arma). */
+            size: number;
+            /** @description Solo con `status: ready`: un enlace firmado de **un solo uso** que vale 15 minutos (pedir el estado otra vez da uno nuevo y anula el anterior). */
+            download_url: string | null;
+            /** Format: date-time */
+            download_expires_at: string | null;
+        };
+        /**
+         * @description * `pending` - pending
+         *     * `running` - running
+         *     * `ready` - ready
+         *     * `downloaded` - downloaded
+         *     * `expired` - expired
+         *     * `failed` - failed
+         * @enum {string}
+         */
+        FmsExportJobStatusEnum: "pending" | "running" | "ready" | "downloaded" | "expired" | "failed";
+        FmsExportLatest: {
+            latest: components["schemas"]["FmsExportJob"] | null;
         };
         FmsHealth: {
             ok: boolean;
@@ -23820,6 +23994,230 @@ export interface operations {
             };
         };
     };
+    fmsExportLatest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsExportLatest"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsExportAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsExportJob"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsExportJob"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Demasiadas peticiones (cupo de la ruta). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsExportJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsExportJob"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsExportDownload: {
+        parameters: {
+            query: {
+                /** @description El token de `download_url`. */
+                t: string;
+            };
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description El ZIP (`application/zip`). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsHouseholdInvite: {
         parameters: {
             query?: never;
@@ -29398,6 +29796,224 @@ export interface operations {
             };
             /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsExportLatest_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsExportLatest"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsExportAll_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsExportJob"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsExportJob"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Demasiadas peticiones (cupo de la ruta). */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsExportJob_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FmsExportJob"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsExportDownload_2: {
+        parameters: {
+            query: {
+                /** @description El token de `download_url`. */
+                t: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description El ZIP (`application/zip`). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            410: {
                 headers: {
                     [name: string]: unknown;
                 };

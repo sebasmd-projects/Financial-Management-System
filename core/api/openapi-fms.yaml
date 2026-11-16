@@ -9607,6 +9607,229 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
           description: El estado actual no lo permite.
+  /api/fms/v1/households/{household_id}/export:
+    get:
+      operationId: fmsExportLatest
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: El último «Exportar todos mis datos» de este ámbito (o `null`)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsExportLatest'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    post:
+      operationId: fmsExportAll
+      description: Crea un trabajo asíncrono que arma un ZIP con `finanzas.json` (todo
+        descifrado y sin secretos), un CSV por cuenta de activo y por tarjeta en el
+        formato del importador, los planes de apertura de cada tarjeta y un `LEEME.txt`.
+        El archivo queda **cifrado en reposo**, se baja **una vez** y se destruye
+        al bajarlo o a las 24 h. Exige **reautenticación reciente** (`403 reauthentication_required`)
+        y cuenta **3 por día** (`429`). Si ya hay un trabajo en curso para ese ámbito,
+        lo devuelve. En un hogar, cualquier miembro (también un visor) puede.
+      summary: 'Pedir «Exportar todos mis datos de Finanzas» (o los de un hogar):
+        un ZIP que se arma aparte'
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsExportJob'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsExportJob'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Demasiadas peticiones (cupo de la ruta).
+  /api/fms/v1/households/{household_id}/export/{id}:
+    get:
+      operationId: fmsExportJob
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Estado del trabajo y, si el archivo está listo, un enlace de descarga
+        de un solo uso (15 minutos)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsExportJob'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/households/{household_id}/export/{id}/download:
+    get:
+      operationId: fmsExportDownload
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Descargar el ZIP con el enlace firmado (una sola vez; el archivo se
+        destruye)
+      parameters:
+      - in: path
+        name: household_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: t
+        schema:
+          type: string
+        description: El token de `download_url`.
+        required: true
+      tags:
+      - households
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: El ZIP (`application/zip`).
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '410':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
   /api/fms/v1/households/{household_id}/invitations:
     post:
       operationId: fmsHouseholdInvite
@@ -15050,6 +15273,203 @@ paths:
                 $ref: '#/components/schemas/Error'
           description: '`mfa_required`, `finance_not_active`, `account_blocked` o
             `reauthentication_required`.'
+  /api/fms/v1/me/export:
+    get:
+      operationId: fmsExportLatest_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: El último «Exportar todos mis datos» de este ámbito (o `null`)
+      tags:
+      - me
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsExportLatest'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+    post:
+      operationId: fmsExportAll_2
+      description: Crea un trabajo asíncrono que arma un ZIP con `finanzas.json` (todo
+        descifrado y sin secretos), un CSV por cuenta de activo y por tarjeta en el
+        formato del importador, los planes de apertura de cada tarjeta y un `LEEME.txt`.
+        El archivo queda **cifrado en reposo**, se baja **una vez** y se destruye
+        al bajarlo o a las 24 h. Exige **reautenticación reciente** (`403 reauthentication_required`)
+        y cuenta **3 por día** (`429`). Si ya hay un trabajo en curso para ese ámbito,
+        lo devuelve. En un hogar, cualquier miembro (también un visor) puede.
+      summary: 'Pedir «Exportar todos mis datos de Finanzas» (o los de un hogar):
+        un ZIP que se arma aparte'
+      tags:
+      - me
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsExportJob'
+          description: ''
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsExportJob'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Demasiadas peticiones (cupo de la ruta).
+  /api/fms/v1/me/export/{id}:
+    get:
+      operationId: fmsExportJob_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Estado del trabajo y, si el archivo está listo, un enlace de descarga
+        de un solo uso (15 minutos)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - me
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FmsExportJob'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+  /api/fms/v1/me/export/{id}/download:
+    get:
+      operationId: fmsExportDownload_2
+      description: |-
+        Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+        crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+      summary: Descargar el ZIP con el enlace firmado (una sola vez; el archivo se
+        destruye)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: query
+        name: t
+        schema:
+          type: string
+        description: El token de `download_url`.
+        required: true
+      tags:
+      - me
+      security:
+      - appSessionToken: []
+      - cvSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+          description: El ZIP (`application/zip`).
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Sin sesión.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: '`mfa_required`, `finance_not_active`, `account_blocked` o
+            `reauthentication_required`.'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
+        '410':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: No existe (o es de otro usuario).
   /api/fms/v1/movements:
     get:
       operationId: fmsMovements_2
@@ -25842,6 +26262,97 @@ components:
       required:
       - code
       - detail
+    FmsExportJob:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        household_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        status:
+          $ref: '#/components/schemas/FmsExportJobStatusEnum'
+        progress:
+          type: integer
+          maximum: 100
+          minimum: 0
+        step:
+          type: string
+          description: '`collecting`, `files`, `packing` o `done`.'
+        error_code:
+          type: string
+          description: '`not_a_member`, `no_key`, `stuck` o `failed` si `status` es
+            `failed`.'
+        created_at:
+          type: string
+          format: date-time
+        finished_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        expires_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Desde aquí el archivo se destruye (24 h después de estar listo).
+        size:
+          type: integer
+          description: Bytes del ZIP (0 mientras se arma).
+        download_url:
+          type:
+          - string
+          - 'null'
+          description: 'Solo con `status: ready`: un enlace firmado de **un solo uso**
+            que vale 15 minutos (pedir el estado otra vez da uno nuevo y anula el
+            anterior).'
+        download_expires_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+      required:
+      - created_at
+      - download_expires_at
+      - download_url
+      - error_code
+      - expires_at
+      - finished_at
+      - household_id
+      - id
+      - progress
+      - size
+      - status
+      - step
+    FmsExportJobStatusEnum:
+      enum:
+      - pending
+      - running
+      - ready
+      - downloaded
+      - expired
+      - failed
+      type: string
+      description: |-
+        * `pending` - pending
+        * `running` - running
+        * `ready` - ready
+        * `downloaded` - downloaded
+        * `expired` - expired
+        * `failed` - failed
+    FmsExportLatest:
+      type: object
+      properties:
+        latest:
+          oneOf:
+          - $ref: '#/components/schemas/FmsExportJob'
+          - type: 'null'
+      required:
+      - latest
     FmsHealth:
       type: object
       properties:

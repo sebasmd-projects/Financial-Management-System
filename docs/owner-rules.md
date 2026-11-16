@@ -66,7 +66,7 @@ Pregunta del propietario: «¿Cómo borro toda mi información financiera?». Ha
    (chat, textos legales). La próxima visita pide activar Finanzas de nuevo, con una llave nueva.
 2. **Inmediato e irreversible**: no pasa por la papelera de 30 días (decisión explícita del propietario).
 3. **Antes de borrar**: vista previa del servidor con recuentos por tipo, aviso de las **copias de seguridad** (conservan la llave envuelta hasta que caducan por
-   rotación: ADR-019 §5), **«Exportar primero»** (la exportación de la cuenta del sitio; en la app se abre la web, que es donde se descargan archivos), la frase escrita
+   rotación: ADR-019 §5), **«Exportar primero»** (el mismo «Exportar todos mis datos de Finanzas»: un ZIP asíncrono con `finanzas.json` y un CSV por cuenta y tarjeta, de un solo uso; en la app se abre la web, que es donde se descargan archivos), la frase escrita
    («BORRAR MIS FINANZAS» / «DELETE MY FINANCES») y **reautenticación reciente**.
 4. **Hogar**: se sale de cada hogar (su llave se renueva); lo compartido es del hogar y se queda. Propietario de un hogar con más miembros: el servidor responde
    `409 household_owner` y hay que ceder la propiedad o borrar el hogar antes. Único miembro: el hogar se destruye con él.
@@ -75,6 +75,22 @@ Pregunta del propietario: «¿Cómo borro toda mi información financiera?». Ha
 
 Contrato: `GET me/erase/preview` y `POST me/erase` (backend, `finance_core/erasure.py`). Código: `core/erase.ts` (lógica y cliente compartidos),
 `src/features/finance/erase/` (web) y `mobile/src/app/(app)/erase.tsx` (app).
+
+### 2026-11-16: «Exportar todos mis datos de Finanzas»
+
+Decisión del propietario: «Así como se pueden borrar todos los datos, se debe también poder exportar todos los datos».
+
+1. **Un ZIP, armado aparte** (Celery): `finanzas.json` (todo descifrado, la papelera marcada `in_trash`, la auditoría descifrada, las conexiones de correo **sin** direcciones, tokens ni correos
+   originales), un CSV por cuenta de activo y por tarjeta **en el formato del importador** (se pueden volver a importar), el CSV de los planes de apertura de cada tarjeta y un `LEEME.txt` (es/en) que
+   dice que **el ZIP no va cifrado**. No lleva los comprobantes (solo su nombre, tipo y tamaño).
+2. **Reautenticación reciente**, **3 por día** por usuario (los dos ámbitos comparten cupo) y una fila de auditoría sin contenido.
+3. **De un solo uso**: el archivo vive cifrado en el servidor; el estado trae un enlace firmado de 15 minutos que se gasta al bajar, y el archivo se destruye al bajarlo o a las 24 horas.
+4. **Hogar**: cualquier miembro con lectura (también un visor) exporta lo del hogar en la configuración del hogar; la exportación personal lista los hogares.
+5. **Web y app**: en `/perfil`, «Exportar mis datos de Finanzas» va encima de la zona de peligro; «Exportar primero» del diálogo de borrar usa esta misma exportación y baja el ZIP solo al estar listo.
+   La app no descarga archivos: abre el apartado de la web.
+
+Contrato: `POST|GET me/export`, `GET me/export/{id}` y `.../download` (y `households/{id}/export…`). Código: `core/export.ts` (lógica y cliente compartidos), `src/features/finance/export/` (web),
+`mobile/src/app/(app)/security.tsx` y `erase.tsx` (la app abre la web).
 
 ### 2026-11-14: integración con los bancos, solo lectura
 

@@ -11,6 +11,7 @@ import { toInt } from "@/lib/ints";
 import { fill } from "../finance/helpers";
 import { useHref, useResource, useSubmit } from "../finance/hooks";
 import { Badge, Banner, ErrorState, FormActions, Loading, ScreenHeader, Section, SelectField, TextField } from "../finance/kit";
+import { ExportSection } from "../finance/export/export-section";
 import { ConfirmDialog } from "./confirm-dialog";
 import { CrossTransferDialog } from "./cross-transfer";
 import { assignableRoles, canManageRole, canRemove, canWriteRole, invitableRoles, type Role } from "./scope";
@@ -139,6 +140,8 @@ function HouseholdBody({ household, back, reload }: { household: HouseholdDetail
       <Section title={t.detail.keyTitle}>
         <p className="muted">{t.detail.keyBody}</p>
       </Section>
+
+      <ExportSection scope={{ kind: "household", id: household.id }} id="export" />
 
       <Section title={t.detail.delete}>
         <div className="actions">

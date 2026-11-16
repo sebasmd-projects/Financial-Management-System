@@ -435,6 +435,11 @@ export const es = {
     rateOutdated: "La última tasa de una tarjeta variable tiene más de 35 días.",
   },
 
+  export: {
+    open: "Exportar mis datos de Finanzas",
+    hint: "Un ZIP con todo lo tuyo descifrado (finanzas.json y un CSV por cuenta y tarjeta). Se pide y se descarga desde la web de Finanzas; la app no descarga archivos.",
+  },
+
   erase: {
     open: "Borrar todos mis datos de Finanzas",
     title: "Borrar mis datos de Finanzas",
@@ -453,7 +458,7 @@ export const es = {
     blockedTitle: "Antes cede o borra estos hogares",
     blockedBody: "Eres propietario y hay más miembros. Cede la propiedad o borra el hogar y vuelve aquí.",
     exportTitle: "Descarga una copia antes",
-    exportBody: "La exportación (un archivo JSON con tus datos descifrados) se descarga desde la web de Finanzas: abre Perfil y seguridad y pulsa «Exportar primero».",
+    exportBody: "La exportación (un ZIP con todos tus datos de Finanzas descifrados) se descarga desde la web: abre «Exportar mis datos de Finanzas» en Perfil y seguridad.",
     exportOpen: "Abrir la web de Finanzas",
     backupTitle: "Sobre las copias de seguridad",
     backupBody: "Las copias de seguridad cifradas hechas antes de hoy conservan tu llave de datos envuelta hasta que caducan por rotación; no se reescriben. Solo podría leerlas quien tenga a la vez la copia y la llave maestra, y nada de eso vuelve a la app.",

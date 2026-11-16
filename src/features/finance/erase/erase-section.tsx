@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { api } from "@/api";
-import { saveBlob } from "@/api/download";
-import { reauth } from "@/api/reauth";
 import { useI18n } from "@/i18n/provider";
 import { useSessionStore } from "@/features/session/provider";
 import { fmsHref } from "@/nav/routes";
@@ -12,7 +10,8 @@ import { canErase, countRows, eraseApi, hasAnything, householdGroups, phraseFor,
 import { fill } from "../helpers";
 import { useResource, useSubmit } from "../hooks";
 import { Banner, ErrorState, FormActions, Loading, Modal, Section, TextField } from "../kit";
-import { exportAccountData, type ExportOutcome } from "./export-first";
+import { PERSONAL_EXPORT } from "../../../../core/export";
+import { useFinanceExport } from "../export/use-export";
 
 const client = eraseApi(api);
 
@@ -47,8 +46,9 @@ function EraseDialog({ onClose }: { onClose: () => void }) {
   const preview = useResource<ErasePreview>("/me/erase/preview", { unscoped: true });
   const submit = useSubmit();
   const [typed, setTyped] = useState("");
-  const [exporting, setExporting] = useState(false);
-  const [exported, setExported] = useState<ExportOutcome | null>(null);
+  // «Exportar primero» es el mismo «Exportar todos mis datos de Finanzas» (ZIP): al estar listo se baja solo.
+  const exportAll = useFinanceExport(PERSONAL_EXPORT, { auto: true, resume: false });
+  const exporting = exportAll.phase === "working";
   const data = preview.data;
   const phrase = phraseFor(locale, data);
   const ready = canErase(data, typed, locale);
@@ -59,19 +59,6 @@ function EraseDialog({ onClose }: { onClose: () => void }) {
     const result = await submit.run({ erase: true }, (key) => client.erase(typed, key, { locale }));
     // La compuerta lee `/me`: Finanzas ya no está activa y cambia a la activación (este diálogo se desmonta).
     if (result.ok) await store.load({ quiet: true });
-  }
-
-  async function onExport() {
-    setExporting(true);
-    setExported(null);
-    const outcome = await exportAccountData({
-      fetch: (input, init) => globalThis.fetch(input, init),
-      ask: () => reauth.request(),
-      save: saveBlob,
-      today: () => new Date().toISOString().slice(0, 10),
-    });
-    setExporting(false);
-    setExported(outcome);
   }
 
   return (
@@ -88,11 +75,11 @@ function EraseDialog({ onClose }: { onClose: () => void }) {
               <div>
                 <h3 className="title-s">{t.exportTitle}</h3>
                 <p className="muted">{t.exportBody}</p>
-                <button type="button" className="button button--ghost" disabled={exporting} onClick={() => void onExport()}>
+                <button type="button" className="button button--ghost" disabled={exporting} onClick={() => void exportAll.start()}>
                   {exporting ? t.exporting : t.exportButton}
                 </button>
                 <p role="status" aria-live="polite">
-                  {exported === "ok" ? t.exported : exported === "error" ? t.exportFailed : ""}
+                  {exportAll.phase === "done" ? t.exported : exportAll.phase === "failed" ? (exportAll.error ?? t.exportFailed) : ""}
                 </p>
               </div>
             )}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useId, useState } from "react";
 import { api } from "@/api";
 import { errorText } from "@/api/errors";
-import type { Account, ImportBatch, ImportMapping, ImportPreview, ImportPreviewRow, ImportSavedMapping, Page } from "@/api/models";
+import type { Account, DetectedRecurrence, ImportBatch, ImportMapping, ImportPreview, ImportPreviewRow, ImportSavedMapping, Page } from "@/api/models";
 import { paths, roots } from "@/api/paths";
 import { formatDate } from "@/lib/dates";
 import { useI18n } from "@/i18n/provider";
@@ -14,9 +14,16 @@ import { Badge, Banner, Empty, ErrorState, FormActions, Loading, Modal, Pager, S
 import { buildUpload, fileProblem, overridesBody, tally, toggleRow, uploadFingerprint, withEdit, ACCEPTED_EXTENSIONS, type RowEdit, type SignChoice } from "./logic";
 import { FormatGuide } from "./format-guide";
 import { MappingStep } from "./mapping-step";
+import { RecurrenceSuggestions } from "../counterparties/recurrence-suggestions";
 import { ReviewStep } from "./review-step";
 
 type Stage = "file" | "mapping" | "review" | "done";
+
+/** Las recurrentes que parecen haber en lo que se acaba de importar (se piden al servidor solo cuando hay un lote ya aplicado). */
+function useSuggestionsAfter(batch: ImportBatch | null): { items: DetectedRecurrence[] } {
+  const found = useResource<{ results: DetectedRecurrence[] }>(batch ? paths.importRecurrenceSuggestions(batch.id) : null);
+  return { items: found.data?.results ?? [] };
+}
 
 function sizeText(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -55,6 +62,7 @@ export function ImportScreen() {
   const [notice, setNotice] = useState<string | null>(null);
   const fileId = useId();
 
+  const afterSuggestions = useSuggestionsAfter(result);
   const usable = movementAccounts(accounts.items);
   const account = usable.find((a) => a.id === accountId) ?? usable[0] ?? null;
   const isCard = account?.kind === "credit_card";
@@ -233,6 +241,10 @@ export function ImportScreen() {
             onSign={changeSign}
             onEdit={changeRow}
             busy={analyzing}
+            onNamed={(message) => {
+              setNotice(message);
+              void analyze(sentMapping(), save, { sign, edits });
+            }}
           />
           {nothing && <p className="hint">{t.review.nothing}</p>}
           <p className="hint">{t.review.commitHint}</p>
@@ -256,6 +268,7 @@ export function ImportScreen() {
             <li>{fill(t.done.skipped, { count: String(result.skipped_count) })}</li>
           </ul>
           {result.created_count === 0 && result.confirmed_count === 0 && <p className="hint">{t.done.zero}</p>}
+          {afterSuggestions.items.length > 0 && <RecurrenceSuggestions suggestions={afterSuggestions.items} canCreate />}
           <FormActions>
             <Link className="button button--primary" href={href("movimientos")}>
               {t.done.viewMovements}

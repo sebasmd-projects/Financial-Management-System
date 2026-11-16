@@ -90,6 +90,7 @@ const HOUSEHOLD_ROUTES: ReadonlySet<RouteId> = new Set<RouteId>([
   "config-autoconfirmacion",
   "movimientos-por-revisar",
   "config-etiquetas",
+  "config-contrapartes",
   "notificaciones",
   "hogares",
   "hogar",

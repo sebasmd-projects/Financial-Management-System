@@ -6,6 +6,10 @@ import { formatDate } from "@/lib/dates";
 import { formatCop } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { fill } from "../helpers";
+import { useCanWrite } from "../../household/scope-store";
+import { identifierText } from "../counterparties/logic";
+import { NameDialog, type NameTarget } from "../counterparties/name-dialog";
+import { RecurrenceSuggestions } from "../counterparties/recurrence-suggestions";
 import { Badge, Banner, Money, Pager, Section, Segmented } from "../kit";
 import { CardRowFields, KindSummary, SignControl } from "./card-rows";
 import { effectiveAction, filterEntries, isBlocked, previewEntries, storedAs, tally, type EntryFilter, type RowEdit, type SignChoice } from "./logic";
@@ -56,6 +60,7 @@ export function ReviewStep({
   onSign,
   onEdit,
   busy = false,
+  onNamed,
 }: {
   preview: ImportPreview;
   choices: ReadonlyMap<number, "import" | "skip">;
@@ -66,9 +71,14 @@ export function ReviewStep({
   onSign?: (sign: SignChoice) => void;
   onEdit?: (row: ImportPreviewRow, patch: RowEdit) => void;
   busy?: boolean;
+  /** «Ponerle nombre» a una cuenta de una fila: se guardó (el padre vuelve a calcular la vista previa para que se vea el nombre). */
+  onNamed?: (message: string) => void;
 }) {
   const { dict } = useI18n();
   const t = dict.fin.imp.review;
+  const cp = dict.fin.cp;
+  const canWrite = useCanWrite();
+  const [naming, setNaming] = useState<NameTarget | null>(null);
   const [filter, setFilter] = useState<EntryFilter>("all");
   const [page, setPage] = useState(1);
   const counts = tally(preview.rows, choices);
@@ -103,6 +113,7 @@ export function ReviewStep({
       {filterOptions.length > 1 && (
         <Segmented legend={t.filter} variant="chips" value={filter} onChange={(v) => { setFilter(v as EntryFilter); setPage(1); }} options={filterOptions} />
       )}
+      <RecurrenceSuggestions suggestions={preview.recurrence_suggestions} canCreate={false} />
       <h3 className="title-s">{t.tableTitle}</h3>
       {visible.length === 0 && <p className="muted">{t.empty}</p>}
       <ul className="fin-list">
@@ -141,7 +152,22 @@ export function ReviewStep({
                     {t.matches[row.match]}
                   </Badge>
                   {row.counterparty && <Badge>{row.counterparty}</Badge>}
+                  {row.identifier && <Badge tone="info">{identifierText(row.identifier, cp)}</Badge>}
+                  {row.recurrence && <Badge tone="info">{fill(cp.import.recurrenceOf, { name: row.recurrence.name })}</Badge>}
                 </span>
+                {row.identifier_hint && onNamed && canWrite && (
+                  <span className="fin-row__sub">
+                    <span className="muted">{fill(cp.import.unknown, { account: identifierText(row.identifier_hint, cp) })} </span>
+                    <button
+                      type="button"
+                      className="button button--ghost"
+                      onClick={() => setNaming({ kind: "account", channel: row.identifier_hint!.channel, value: row.identifier_hint!.value, accountText: identifierText(row.identifier_hint!, cp), nameHint: row.identifier_hint!.name_hint })}
+                    >
+                      {cp.nameIt}
+                      <span className="visually-hidden"> {fill(t.row, { number: String(row.number) })}</span>
+                    </button>
+                  </span>
+                )}
                 <span className="fin-row__sub muted">{t.matchHints[row.match]}</span>
                 <span className="fin-row__sub" data-testid={`stored-${row.number}`}>{t.storedAs[storedAs(row, choices)]}</span>
                 {row.reasons.filter((reason) => t.reasons[reason]).map((reason) => (
@@ -155,6 +181,17 @@ export function ReviewStep({
         })}
       </ul>
       <Pager page={page} count={shown.length} pageSize={PAGE} onPage={setPage} />
+      {naming && (
+        <NameDialog
+          open
+          target={naming}
+          onClose={() => setNaming(null)}
+          onDone={(message) => {
+            setNaming(null);
+            onNamed?.(message);
+          }}
+        />
+      )}
     </div>
   );
 }

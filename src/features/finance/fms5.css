@@ -31,3 +31,12 @@
 .paysim-table th[scope="row"] { white-space: nowrap; }
 .paysim-assumptions { padding: var(--space-8) 0; }
 @media (max-width: 480px) { .paysim-grid { grid-template-columns: 1fr; } }
+
+/* Contrapartes con nombre por cuenta destino (2026-11-16). */
+.cp-line { display: grid; gap: 2px; }
+.cp-line__name { font-weight: 700; }
+.cp-line__account { font-size: var(--text-s, 0.875rem); }
+.cp-accounts { display: flex; flex-wrap: wrap; gap: var(--space-8); margin: 0; padding: 0; list-style: none; }
+.cp-account { display: inline-flex; align-items: center; gap: var(--space-4); }
+.cp-suggestion { display: grid; gap: var(--space-8); padding: var(--space-12); border: 1px dashed var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-surface); }
+.cp-suggestion__dates { margin: 0; color: var(--color-text-secondary); }

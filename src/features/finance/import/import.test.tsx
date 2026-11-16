@@ -16,9 +16,9 @@ const page = (results: unknown[]) => ({ status: 200, json: { count: results.leng
 const ACCOUNT = { id: "a-1", type: "asset", kind: "savings", system_key: "", name: "Ahorros Bancolombia", last4: null, institution: null, parent_id: null, currency: "COP", gmf_exempt: false, liquid: true, enforce_funds: false, status: "active", posted_balance: "3420000.00", projected_balance: "3420000.00" };
 const HEADERS = ["Fecha", "Descripción", "Valor", "Saldo"];
 const validityOf = (match: ImportMatch): Pick<ImportPreviewRow, "validity" | "reasons"> => (match === "duplicate" ? { validity: "warning", reasons: ["already_imported"] } : match === "possible_duplicate" ? { validity: "warning", reasons: ["possible_duplicate"] } : { validity: "valid", reasons: [] });
-const row = (number: number, match: ImportMatch, action: ImportAction, amount = "-182300.00", description = "ÉXITO CHAPINERO"): ImportPreviewRow => ({ number, date: "2026-11-02", amount, description, reference: "", match, candidate_id: null, action, counterparty: null, category_id: null, kind: null, installments: null, period_start: null, period_end: null, refund_of_id: null, refund_of_row: null, counter_account: null, issue: "", ...validityOf(match) });
+const row = (number: number, match: ImportMatch, action: ImportAction, amount = "-182300.00", description = "ÉXITO CHAPINERO"): ImportPreviewRow => ({ number, date: "2026-11-02", amount, description, reference: "", match, candidate_id: null, action, counterparty: null, identifier: null, identifier_hint: null, recurrence: null, category_id: null, kind: null, installments: null, period_start: null, period_end: null, refund_of_id: null, refund_of_row: null, counter_account: null, issue: "", ...validityOf(match) });
 
-const NEEDS_MAPPING: ImportPreview = { kind: "csv", needs_mapping: true, headers: HEADERS, sample: [["02/11/2026", "ÉXITO", "-182.300,00", "1.000,00"]], mapping: null, mapping_source: "none", suggested_mapping: { date: "Fecha", description: "Descripción", amount: "Valor", balance: "Saldo", decimal_sep: ",", thousands_sep: "." }, rows: [], errors: [], notes: [], meta: {}, counts: {}, summary: { rows_read: 0, valid: 0, warnings: 0, errors: 0 }, target: "account", card: null, sign_detected: null, sign_used: null, kind_counts: {} };
+const NEEDS_MAPPING: ImportPreview = { kind: "csv", needs_mapping: true, headers: HEADERS, sample: [["02/11/2026", "ÉXITO", "-182.300,00", "1.000,00"]], mapping: null, mapping_source: "none", suggested_mapping: { date: "Fecha", description: "Descripción", amount: "Valor", balance: "Saldo", decimal_sep: ",", thousands_sep: "." }, rows: [], recurrence_suggestions: [], errors: [], notes: [], meta: {}, counts: {}, summary: { rows_read: 0, valid: 0, warnings: 0, errors: 0 }, target: "account", card: null, sign_detected: null, sign_used: null, kind_counts: {} };
 const REVIEW: ImportPreview = {
   kind: "xlsx",
   needs_mapping: false,
@@ -27,6 +27,7 @@ const REVIEW: ImportPreview = {
   mapping: { date: "Fecha", description: "Descripción", amount: "Valor", debit: "", credit: "", reference: "", balance: "", date_format: "%d/%m/%Y", decimal_sep: ",", thousands_sep: ".", header_row: 0, installments: "" },
   mapping_source: "provided",
   suggested_mapping: null,
+  recurrence_suggestions: [],
   rows: [row(2, "new", "import"), row(3, "matches_pending", "confirm", "-45000.00", "NETFLIX"), row(4, "possible_duplicate", "skip", "-10000.00", "TIENDA"), row(5, "duplicate", "skip", "-5000.00", "=HYPERLINK(\"http://x\")")],
   errors: [{ row: 9, code: "invalid_date" }],
   notes: ["formulas_ignored"],

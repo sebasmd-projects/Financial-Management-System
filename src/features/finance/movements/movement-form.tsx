@@ -13,6 +13,7 @@ import { todayBogota } from "@/lib/dates";
 import { absAmount, addAmounts, formatCop, negateAmount } from "@/lib/money";
 import { useI18n } from "@/i18n/provider";
 import { Icon } from "@/ui/icons";
+import { AccountFields, useAccountLookup } from "../counterparties/account-fields";
 import { AttributeFields } from "../classification/attribute-fields";
 import { attributesBody } from "../classification/logic";
 import { ForeignFields, useForeign } from "../currencies/fx-fields";
@@ -82,6 +83,11 @@ export function MovementForm() {
   const [foreign, setForeign] = useState<ForeignState>(EMPTY_FOREIGN);
   const [attrValues, setAttrValues] = useState<Record<string, string>>({});
   const [costCenterId, setCostCenterId] = useState("");
+  // La cuenta destino (2026-11-16): canal y valor; se consulta si ya tiene nombre y, con otro nombre, la persona elige actualizar o crear otro.
+  const [acctChannel, setAcctChannel] = useState("nequi");
+  const [acctValue, setAcctValue] = useState("");
+  const [acctConflict, setAcctConflict] = useState<"rename" | "move" | null>(null);
+  const knownAccount = useAccountLookup(acctChannel, acctValue);
 
   const accounts = useAll<Account>(paths.accounts());
   const categories = useAll<Category>(paths.categories({ archived: false }));
@@ -93,6 +99,13 @@ export function MovementForm() {
   const recents = useResource<Page<Movement>>(paths.movements({ page_size: 30 }));
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setState((current) => ({ ...current, [key]: value }));
+  // Una cuenta con nombre coloca ese nombre sola cuando la contraparte está vacía (ajuste durante el render: se hace una vez por nombre).
+  const knownName = knownAccount?.counterparty?.name ?? null;
+  const [filledFor, setFilledFor] = useState<string | null>(null);
+  if (knownName !== null && knownName !== filledFor) {
+    setFilledFor(knownName);
+    if (state.counterparty.trim() === "") setState((current) => ({ ...current, counterparty: knownName }));
+  }
 
   const usable = movementAccounts(accounts.items);
   const recentItems = (recents.data?.results ?? []).filter((m) => !m.voided && m.type !== "transfer");
@@ -171,6 +184,7 @@ export function MovementForm() {
           account_id: account.id,
           ...(state.categoryId ? { category_id: state.categoryId } : {}),
           ...(state.counterparty.trim() ? { counterparty: state.counterparty.trim() } : {}),
+          ...(acctValue.trim() ? { counterparty_account: { channel: acctChannel, value: acctValue.trim() }, ...(acctConflict ? { counterparty_conflict: acctConflict } : {}) } : {}),
           ...(state.nature ? { nature: state.nature } : {}),
           ...(state.classification ? { classification: state.classification } : {}),
           ...(state.paymentMethodId ? { payment_method_id: state.paymentMethodId } : {}),
@@ -186,6 +200,8 @@ export function MovementForm() {
       setForeign((current) => ({ ...current, amount: "" }));
       setAttrValues({});
       setCostCenterId("");
+      setAcctValue("");
+      setAcctConflict(null);
       setState((current) => ({ ...current, amount: "", description: "", counterparty: "", notes: "", tags: "", categoryId: "", nature: "", classification: "", paymentMethodId: "", gmf: null }));
       recents.reload();
       accounts.reload();
@@ -321,7 +337,19 @@ export function MovementForm() {
           {!isTransfer && touched && attributes.problems.length > 0 && !moreOpen && <p className="field__error" role="alert">{dict.fin.cls.form.requiredOpen}</p>}
           {moreOpen && (
             <div id="more-details" className="fin-form fin-more">
-              {!isTransfer && <TextField label={t.counterparty} value={state.counterparty} onChange={(v) => set("counterparty", v)} maxLength={80} />}
+              {!isTransfer && <TextField label={t.counterparty} value={state.counterparty} onChange={(v) => { set("counterparty", v); setAcctConflict(null); }} maxLength={80} />}
+              {!isTransfer && (
+                <AccountFields
+                  channel={acctChannel}
+                  value={acctValue}
+                  name={state.counterparty}
+                  onChannel={(v) => { setAcctChannel(v); setAcctConflict(null); }}
+                  onValue={(v) => { setAcctValue(v); setAcctConflict(null); }}
+                  known={knownAccount}
+                  conflict={acctConflict}
+                  onConflict={setAcctConflict}
+                />
+              )}
               <TextField label={t.description} value={state.description} onChange={(v) => set("description", v)} maxLength={200} />
               {!isTransfer && (
                 <>

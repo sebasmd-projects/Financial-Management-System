@@ -1171,14 +1171,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Tus counterparties
+         * Tus contrapartes con sus cuentas (canal y últimos 4)
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         get: operations["fmsCounterparties"];
         put?: never;
         /**
-         * Crear: el nombre va cifrado y no se repite (sin mayúsculas ni espacios de más)
+         * Crear: el nombre va cifrado y no se repite; las cuentas son opcionales
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
@@ -1196,18 +1196,132 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Una contraparte con sus cuentas
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsCounterpartyGet"];
+        put?: never;
+        post?: never;
+        /**
+         * Eliminar (papelera de 30 días): los movimientos conservan el texto de su descripción y pierden el nombre; restaurar los vuelve a enlazar
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsCounterpartyDelete"];
+        options?: never;
+        head?: never;
+        /**
+         * Renombrar o archivar (los movimientos apuntan a la contraparte: el nombre nuevo se ve en todos)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        patch: operations["fmsCounterpartyPatch"];
+        trace?: never;
+    };
+    "/api/fms/v1/counterparties/{id}/identifiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
         get?: never;
+        put?: never;
+        /**
+         * Agregar una cuenta (canal y valor). Si es de otra contraparte: `409 identifier_taken` con su nombre actual
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsCounterpartyIdentifierAdd"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/counterparties/{id}/identifiers/{identifier_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Quitar una cuenta: los movimientos conservan la contraparte
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsCounterpartyIdentifierRemove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/counterparties/{id}/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Fusionar esta contraparte en otra: movimientos, recurrencias, deudas y cuentas pasan a la otra
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsCounterpartyMerge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/counterparties/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * ¿Ya tiene nombre esta cuenta? Para colocarlo solo al escribir la cuenta en un movimiento
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsCounterpartyLookup"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/counterparties/name": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
         /**
-         * Renombrar o archivar
-         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
-         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         * «Ponerle nombre» a una cuenta (desde un movimiento o la vista previa de una importación)
+         * @description Si la cuenta no existe se crea (con la contraparte de ese nombre, si ya existe se le agrega). Si ya tiene **otro** nombre: `409 identifier_taken` con `current_name`; vuelve a llamar con `on_conflict=rename` (actualizar «anterior» → «nuevo») o `move` («Crear otro»).
          */
-        patch: operations["fmsCounterpartyPatch"];
+        post: operations["fmsCounterpartyName"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/fms/v1/credit/installments": {
@@ -2407,14 +2521,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Tus counterparties
+         * Tus contrapartes con sus cuentas (canal y últimos 4)
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         get: operations["fmsCounterparties_2"];
         put?: never;
         /**
-         * Crear: el nombre va cifrado y no se repite (sin mayúsculas ni espacios de más)
+         * Crear: el nombre va cifrado y no se repite; las cuentas son opcionales
          * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
@@ -2432,18 +2546,132 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * Una contraparte con sus cuentas
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsCounterpartyGet_2"];
+        put?: never;
+        post?: never;
+        /**
+         * Eliminar (papelera de 30 días): los movimientos conservan el texto de su descripción y pierden el nombre; restaurar los vuelve a enlazar
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsCounterpartyDelete_2"];
+        options?: never;
+        head?: never;
+        /**
+         * Renombrar o archivar (los movimientos apuntan a la contraparte: el nombre nuevo se ve en todos)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        patch: operations["fmsCounterpartyPatch_2"];
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/counterparties/{id}/identifiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
         get?: never;
+        put?: never;
+        /**
+         * Agregar una cuenta (canal y valor). Si es de otra contraparte: `409 identifier_taken` con su nombre actual
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsCounterpartyIdentifierAdd_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/counterparties/{id}/identifiers/{identifier_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Quitar una cuenta: los movimientos conservan la contraparte
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        delete: operations["fmsCounterpartyIdentifierRemove_2"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/counterparties/{id}/merge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Fusionar esta contraparte en otra: movimientos, recurrencias, deudas y cuentas pasan a la otra
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsCounterpartyMerge_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/counterparties/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * ¿Ya tiene nombre esta cuenta? Para colocarlo solo al escribir la cuenta en un movimiento
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsCounterpartyLookup_2"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/counterparties/name": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
         /**
-         * Renombrar o archivar
-         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
-         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         * «Ponerle nombre» a una cuenta (desde un movimiento o la vista previa de una importación)
+         * @description Si la cuenta no existe se crea (con la contraparte de ese nombre, si ya existe se le agrega). Si ya tiene **otro** nombre: `409 identifier_taken` con `current_name`; vuelve a llamar con `on_conflict=rename` (actualizar «anterior» → «nuevo») o `move` («Crear otro»).
          */
-        patch: operations["fmsCounterpartyPatch_2"];
+        post: operations["fmsCounterpartyName_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/fms/v1/households/{household_id}/cross-transfers": {
@@ -3096,6 +3324,27 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         post: operations["fmsMovementConfirm"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/households/{household_id}/movements/{id}/counterparty": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * «Ponerle nombre» desde un movimiento: la cuenta sale de su descripción o notas si no se da
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsMovementCounterparty"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3831,6 +4080,27 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         get: operations["fmsImport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/imports/{id}/recurrence-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recurrentes que parecen haber en lo importado (mismo destino, monto ±10 %, intervalo regular, 2 o más). Solo se proponen
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        get: operations["fmsImportRecurrenceSuggestions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4636,6 +4906,27 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         post: operations["fmsMovementConfirm_2"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/fms/v1/movements/{id}/counterparty": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * «Ponerle nombre» desde un movimiento: la cuenta sale de su descripción o notas si no se da
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsMovementCounterparty_2"];
         delete?: never;
         options?: never;
         head?: never;
@@ -5474,6 +5765,27 @@ export interface paths {
          *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
          */
         patch: operations["fmsRecurrencePatch"];
+        trace?: never;
+    };
+    "/api/fms/v1/recurrences/detected": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Crear la recurrencia detectada que confirmaste y enlazar sus movimientos como pagados (nunca se crea sola)
+         * @description Base de los endpoints de **datos** financieros: segundo factor verificado y perfil activado (``permissions.FmsReady``). Los que
+         *     crean usan ``idempotent``: exigen ``Idempotency-Key``; repetirla devuelve el original (200).
+         */
+        post: operations["fmsRecurrenceDetectedCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/fms/v1/recurrences/generate": {
@@ -7505,6 +7817,21 @@ export interface components {
             name: string;
             path: string[];
         };
+        /**
+         * @description * `nequi` - nequi
+         *     * `daviplata` - daviplata
+         *     * `bancolombia` - bancolombia
+         *     * `davivienda` - davivienda
+         *     * `bbva` - bbva
+         *     * `banco_bogota` - banco_bogota
+         *     * `av_villas` - av_villas
+         *     * `bre_b` - bre_b
+         *     * `qr` - qr
+         *     * `pse` - pse
+         *     * `other` - other
+         * @enum {string}
+         */
+        ChannelEnum: "nequi" | "daviplata" | "bancolombia" | "davivienda" | "bbva" | "banco_bogota" | "av_villas" | "bre_b" | "qr" | "pse" | "other";
         Charge: {
             kind: components["schemas"]["ChargeKindEnum"];
             /** Format: date */
@@ -7704,6 +8031,43 @@ export interface components {
             rows: components["schemas"]["CostCenterUsage"][];
             /** @example 180000 */
             total: string;
+        };
+        Counterparty: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            archived: boolean;
+            identifiers: components["schemas"]["IdentifierRef"][];
+            /** @description Cuántos movimientos vigentes tiene. */
+            movements: number;
+        };
+        /** @description La cuenta destino que escribe el usuario: canal y valor (celular, cuenta, referencia o comercio del QR/PSE). */
+        CounterpartyAccount: {
+            channel: components["schemas"]["ChannelEnum"];
+            value: string;
+        };
+        /**
+         * @description * `rename` - rename
+         *     * `move` - move
+         * @enum {string}
+         */
+        CounterpartyConflictEnum: "rename" | "move";
+        CounterpartyCreate: {
+            name: string;
+            identifiers?: components["schemas"]["CounterpartyAccount"][];
+        };
+        CounterpartyPage: {
+            count: number;
+            page: number;
+            page_size: number;
+            results: components["schemas"]["Counterparty"][];
+        };
+        CounterpartyRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @description La cuenta con que se hizo («Nequi ··3769»). */
+            identifier: components["schemas"]["IdentifierRef"] | null;
         };
         CreditInstallment: {
             kind: components["schemas"]["CreditInstallmentKindEnum"];
@@ -8252,6 +8616,7 @@ export interface components {
          *     * `loan` - loan
          *     * `debt` - debt
          *     * `category` - category
+         *     * `counterparty` - counterparty
          *     * `budget` - budget
          *     * `goal` - goal
          *     * `asset` - asset
@@ -8266,7 +8631,70 @@ export interface components {
          *     * `rule` - rule
          * @enum {string}
          */
-        DeletionRequestKindEnum: "movement" | "account" | "card" | "loan" | "debt" | "category" | "budget" | "goal" | "asset" | "asset_valuation" | "vehicle_cost" | "maintenance_item" | "maintenance_record" | "payment_method" | "custom_attribute" | "recurrence" | "scenario" | "rule";
+        DeletionRequestKindEnum: "movement" | "account" | "card" | "loan" | "debt" | "category" | "counterparty" | "budget" | "goal" | "asset" | "asset_valuation" | "vehicle_cost" | "maintenance_item" | "maintenance_record" | "payment_method" | "custom_attribute" | "recurrence" | "scenario" | "rule";
+        DetectedParty: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        /** @description Una recurrencia que parece haber en lo importado (2026-11-16): **solo se propone**; crearla es `POST recurrences/detected`. */
+        DetectedRecurrence: {
+            counterparty: components["schemas"]["DetectedParty"];
+            type: components["schemas"]["AmountTypeEnum"];
+            /** Format: uuid */
+            account_id: string | null;
+            /**
+             * @description La mediana de los pagos que cuadran (±10 %).
+             * @example 180000
+             */
+            amount: string;
+            frequency: components["schemas"]["FrequencyEnum"];
+            /** @description Los días entre pagos (7, 15, 30...). */
+            interval_days: number;
+            interval: number | null;
+            day: number | null;
+            last_day: boolean;
+            weekday: number | null;
+            /** Format: date */
+            start_date: string;
+            /** @description Cuántos pagos cuadran (al menos 2). */
+            occurrences: number;
+            dates: string[];
+            /** @description Las filas del archivo que cuadran (vista previa). */
+            rows: number[];
+            /** @description Los movimientos que se enlazarán como pagados. */
+            movement_ids: string[];
+            /** Format: uuid */
+            category_id: string | null;
+        };
+        DetectedRecurrenceCreate: {
+            /** Format: uuid */
+            counterparty_id: string;
+            type: components["schemas"]["AmountTypeEnum"];
+            name?: string;
+            /** Format: uuid */
+            account_id: string;
+            /** Format: uuid */
+            category_id?: string | null;
+            /** @example 180000 */
+            expected_amount: string;
+            frequency: components["schemas"]["FrequencyEnum"];
+            interval?: number | null;
+            day?: number | null;
+            last_day?: boolean;
+            weekday?: number | null;
+            /** Format: date */
+            start_date: string;
+            movement_ids?: string[];
+        };
+        DetectedRecurrenceResult: {
+            recurrence: components["schemas"]["Recurrence"];
+            /** @description Cuántos movimientos quedaron como ocurrencias pagadas. */
+            linked: number;
+        };
+        DetectedRecurrences: {
+            results: components["schemas"]["DetectedRecurrence"][];
+        };
         DryRun: {
             trigger: components["schemas"]["CustomRuleTriggerEnum"];
             evaluated: number;
@@ -9054,6 +9482,33 @@ export interface components {
             /** @description `true` mientras se reescriben las celdas con la llave nueva tras salir un miembro. */
             rotating: boolean;
         };
+        /** @description La cuenta destino que escribe el usuario: canal y valor (celular, cuenta, referencia o comercio del QR/PSE). */
+        IdentifierCreate: {
+            channel: components["schemas"]["ChannelEnum"];
+            value: string;
+            /**
+             * @description `move`: la cuenta pertenecía a otra contraparte y pasa a esta.
+             *
+             *     * `rename` - rename
+             *     * `move` - move
+             */
+            on_conflict?: components["schemas"]["OnConflictEnum"] | components["schemas"]["NullEnum"];
+        };
+        IdentifierHint: {
+            channel: string;
+            /** @description El valor que trae el propio archivo del usuario. */
+            value: string;
+            last4: string;
+            /** @description Un nombre que se puede proponer (el comercio de un QR o PSE). */
+            name_hint: string;
+        };
+        IdentifierRef: {
+            /** Format: uuid */
+            id: string;
+            channel: string;
+            /** @description Los últimos 4 dígitos; vacío en un QR o un PSE (sin dígitos). */
+            last4: string;
+        };
         /**
          * @description * `import` - import
          *     * `confirm` - confirm
@@ -9293,6 +9748,8 @@ export interface components {
                 [key: string]: string;
             } | null;
             rows: components["schemas"]["ImportPreviewRow"][];
+            /** @description Recurrentes que parecen haber en el archivo y el historial (mismo destino, monto ±10 %, intervalo regular). Solo se proponen: se crean tras importar. */
+            recurrence_suggestions: components["schemas"]["DetectedRecurrence"][];
             errors: components["schemas"]["ImportRowError"][];
             notes: string[];
             meta: {
@@ -9350,6 +9807,12 @@ export interface components {
              */
             action: components["schemas"]["ImportActionEnum"];
             counterparty: string | null;
+            /** @description La cuenta destino de la fila, ya con nombre («Nequi ··3769»). */
+            identifier: components["schemas"]["IdentifierRef"] | null;
+            /** @description La cuenta que trae sin nombre todavía: ofrece «Ponerle nombre» (`POST counterparties/name`). */
+            identifier_hint: components["schemas"]["IdentifierHint"] | null;
+            /** @description La recurrencia cuyo pendiente confirmaría este cargo. */
+            recurrence: components["schemas"]["RecurrenceRef"] | null;
             /**
              * Format: uuid
              * @description Categoría sugerida por su contraparte (solo se propone).
@@ -10359,6 +10822,10 @@ export interface components {
          * @enum {string}
          */
         LocaleEnum: "es" | "en";
+        Lookup: {
+            counterparty: components["schemas"]["Counterparty"] | null;
+            identifier: components["schemas"]["IdentifierRef"] | null;
+        };
         MailLink: {
             provider: string;
             /** @description Abre el mensaje (Gmail) o el buzón; con `noopener`. */
@@ -10445,6 +10912,13 @@ export interface components {
             joined_at: string;
             you: boolean;
         };
+        Merge: {
+            /**
+             * Format: uuid
+             * @description La contraparte que se queda con todo.
+             */
+            into: string;
+        };
         MonthPoint: {
             /** Format: date */
             month: string;
@@ -10502,7 +10976,7 @@ export interface components {
             };
             description: string | null;
             notes: string | null;
-            counterparty: components["schemas"]["Ref"] | null;
+            counterparty: components["schemas"]["CounterpartyRef"] | null;
             category: components["schemas"]["CategoryRef"] | null;
             nature: string;
             classification: string;
@@ -10603,6 +11077,9 @@ export interface components {
             description?: string | null;
             notes?: string | null;
             counterparty?: string | null;
+            /** @description Con una cuenta conocida se coloca el nombre elegido; con otro nombre: `409 identifier_taken` salvo `counterparty_conflict`. */
+            counterparty_account?: components["schemas"]["CounterpartyAccount"] | null;
+            counterparty_conflict?: components["schemas"]["CounterpartyConflictEnum"] | components["schemas"]["NullEnum"];
             /** @default  */
             nature: components["schemas"]["NatureEnum"] | components["schemas"]["BlankEnum"];
             /** @default  */
@@ -10640,6 +11117,9 @@ export interface components {
             description?: string | null;
             notes?: string | null;
             counterparty?: string | null;
+            /** @description Con una cuenta conocida se coloca el nombre elegido; con otro nombre: `409 identifier_taken` salvo `counterparty_conflict`. */
+            counterparty_account?: components["schemas"]["CounterpartyAccount"] | null;
+            counterparty_conflict?: components["schemas"]["CounterpartyConflictEnum"] | components["schemas"]["NullEnum"];
             nature?: components["schemas"]["NatureEnum"] | components["schemas"]["BlankEnum"];
             classification?: components["schemas"]["ClassificationEnum"] | components["schemas"]["BlankEnum"];
             tags?: string[];
@@ -10669,6 +11149,12 @@ export interface components {
          * @enum {string}
          */
         MovementFilterTypeEnum: "income" | "expense" | "transfer";
+        MovementNameRequest: {
+            name: string;
+            channel?: components["schemas"]["ChannelEnum"] | components["schemas"]["NullEnum"];
+            value?: string | null;
+            on_conflict?: components["schemas"]["OnConflictEnum"] | components["schemas"]["NullEnum"];
+        };
         /**
          * @description * `manual` - Manual
          *     * `transfer` - Transfer
@@ -10743,6 +11229,21 @@ export interface components {
          * @enum {string}
          */
         MovementTypeEnum: "income" | "expense" | "transfer";
+        /** @description La cuenta destino que escribe el usuario: canal y valor (celular, cuenta, referencia o comercio del QR/PSE). */
+        NameRequest: {
+            channel: components["schemas"]["ChannelEnum"];
+            value: string;
+            name: string;
+            /**
+             * @description Tras `409 identifier_taken`: `rename` («¿Actualizar anterior → nuevo?») o `move` («Crear otro»).
+             *
+             *     * `rename` - rename
+             *     * `move` - move
+             */
+            on_conflict?: components["schemas"]["OnConflictEnum"] | components["schemas"]["NullEnum"];
+            /** @default true */
+            apply_history: boolean;
+        };
         Named: {
             /** Format: uuid */
             id: string;
@@ -10757,6 +11258,12 @@ export interface components {
             page: number;
             page_size: number;
             results: components["schemas"]["Named"][];
+        };
+        NamedResult: {
+            counterparty: components["schemas"]["Counterparty"];
+            identifier: components["schemas"]["IdentifierRef"];
+            /** @description Movimientos viejos sin nombre que quedaron con esta contraparte. */
+            updated: number;
         };
         /**
          * @description * `fixed` - Fixed
@@ -10989,6 +11496,12 @@ export interface components {
              */
             upfront_fees: string;
         };
+        /**
+         * @description * `rename` - rename
+         *     * `move` - move
+         * @enum {string}
+         */
+        OnConflictEnum: "rename" | "move";
         OpeningImport: {
             created: number;
             skipped: number;
@@ -11304,6 +11817,10 @@ export interface components {
             default_classification?: components["schemas"]["ClassificationEnum"] | components["schemas"]["BlankEnum"];
             archived?: boolean;
         };
+        PatchedCounterpartyPatch: {
+            name?: string;
+            archived?: boolean;
+        };
         /** @description El tipo no cambia: invalidaría los valores ya guardados. */
         PatchedCustomAttributePatch: {
             name?: string;
@@ -11397,6 +11914,9 @@ export interface components {
             description?: string | null;
             notes?: string | null;
             counterparty?: string | null;
+            /** @description Con una cuenta conocida se coloca el nombre elegido; con otro nombre: `409 identifier_taken` salvo `counterparty_conflict`. */
+            counterparty_account?: components["schemas"]["CounterpartyAccount"] | null;
+            counterparty_conflict?: components["schemas"]["CounterpartyConflictEnum"] | components["schemas"]["NullEnum"];
             nature?: components["schemas"]["NatureEnum"] | components["schemas"]["BlankEnum"];
             classification?: components["schemas"]["ClassificationEnum"] | components["schemas"]["BlankEnum"];
             tags?: string[];
@@ -12339,6 +12859,11 @@ export interface components {
             page: number;
             page_size: number;
             results: components["schemas"]["Recurrence"][];
+        };
+        RecurrenceRef: {
+            /** Format: uuid */
+            id: string;
+            name: string;
         };
         /**
          * @description * `active` - Active
@@ -18376,6 +18901,8 @@ export interface operations {
             query?: {
                 page?: number;
                 page_size?: number;
+                /** @description Parte del nombre o los últimos dígitos de una cuenta. */
+                q?: string;
             };
             header?: never;
             path?: never;
@@ -18388,7 +18915,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NamedPage"];
+                    "application/json": components["schemas"]["CounterpartyPage"];
                 };
             };
             /** @description Sin sesión. */
@@ -18423,7 +18950,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["NamedCreate"];
+                "application/json": components["schemas"]["CounterpartyCreate"];
             };
         };
         responses: {
@@ -18432,7 +18959,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Named"];
+                    "application/json": components["schemas"]["Counterparty"];
                 };
             };
             201: {
@@ -18440,7 +18967,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Named"];
+                    "application/json": components["schemas"]["Counterparty"];
                 };
             };
             /** @description Cuerpo inválido o falta `Idempotency-Key`. */
@@ -18470,6 +18997,15 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
             /** @description El estado actual no lo permite. */
             409: {
                 headers: {
@@ -18490,6 +19026,110 @@ export interface operations {
             };
         };
     };
+    fmsCounterpartyGet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Counterparty"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyDelete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsCounterpartyPatch: {
         parameters: {
             query?: never;
@@ -18501,7 +19141,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedNamedPatch"];
+                "application/json": components["schemas"]["PatchedCounterpartyPatch"];
             };
         };
         responses: {
@@ -18510,7 +19150,348 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Named"];
+                    "application/json": components["schemas"]["Counterparty"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyIdentifierAdd: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentifierCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Counterparty"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyIdentifierRemove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                identifier_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyMerge: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Merge"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Counterparty"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyLookup: {
+        parameters: {
+            query: {
+                channel: string;
+                value: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Lookup"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyName: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NameRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NamedResult"];
                 };
             };
             /** @description Cuerpo inválido o falta `Idempotency-Key`. */
@@ -22833,6 +23814,8 @@ export interface operations {
             query?: {
                 page?: number;
                 page_size?: number;
+                /** @description Parte del nombre o los últimos dígitos de una cuenta. */
+                q?: string;
             };
             header?: never;
             path: {
@@ -22847,7 +23830,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["NamedPage"];
+                    "application/json": components["schemas"]["CounterpartyPage"];
                 };
             };
             /** @description Sin sesión. */
@@ -22884,7 +23867,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["NamedCreate"];
+                "application/json": components["schemas"]["CounterpartyCreate"];
             };
         };
         responses: {
@@ -22893,7 +23876,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Named"];
+                    "application/json": components["schemas"]["Counterparty"];
                 };
             };
             201: {
@@ -22901,7 +23884,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Named"];
+                    "application/json": components["schemas"]["Counterparty"];
                 };
             };
             /** @description Cuerpo inválido o falta `Idempotency-Key`. */
@@ -22931,6 +23914,15 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
             /** @description El estado actual no lo permite. */
             409: {
                 headers: {
@@ -22942,6 +23934,112 @@ export interface operations {
             };
             /** @description Valida pero no se puede aplicar (`code` dice por qué). */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyGet_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Counterparty"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyDelete_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -22963,7 +24061,7 @@ export interface operations {
         };
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["PatchedNamedPatch"];
+                "application/json": components["schemas"]["PatchedCounterpartyPatch"];
             };
         };
         responses: {
@@ -22972,7 +24070,355 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Named"];
+                    "application/json": components["schemas"]["Counterparty"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyIdentifierAdd_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IdentifierCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Counterparty"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyIdentifierRemove_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+                identifier_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyMerge_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Merge"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Counterparty"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyLookup_2: {
+        parameters: {
+            query: {
+                channel: string;
+                value: string;
+            };
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Lookup"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsCounterpartyName_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NameRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NamedResult"];
                 };
             };
             /** @description Cuerpo inválido o falta `Idempotency-Key`. */
@@ -25336,6 +26782,86 @@ export interface operations {
         requestBody?: {
             content: {
                 "application/json": components["schemas"]["MovementConfirm"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Movement"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsMovementCounterparty: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                household_id: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MovementNameRequest"];
             };
         };
         responses: {
@@ -27820,6 +29346,54 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportBatch"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsImportRecurrenceSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DetectedRecurrences"];
                 };
             };
             /** @description Sin sesión. */
@@ -30784,6 +32358,85 @@ export interface operations {
             };
         };
     };
+    fmsMovementCounterparty_2: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MovementNameRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Movement"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description El estado actual no lo permite. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     fmsMovementEditApply_2: {
         parameters: {
             query?: never;
@@ -33272,6 +34925,85 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Recurrence"];
+                };
+            };
+            /** @description Cuerpo inválido o falta `Idempotency-Key`. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Sin sesión. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description `mfa_required`, `finance_not_active`, `account_blocked` o `reauthentication_required`. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description No existe (o es de otro usuario). */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Valida pero no se puede aplicar (`code` dice por qué). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    fmsRecurrenceDetectedCreate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description 8 a 128 caracteres (`A-Za-z0-9._:-`). Repetir la petición devuelve el original (200) sin crear otro. */
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DetectedRecurrenceCreate"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DetectedRecurrenceResult"];
+                };
+            };
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DetectedRecurrenceResult"];
                 };
             };
             /** @description Cuerpo inválido o falta `Idempotency-Key`. */

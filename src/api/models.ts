@@ -286,3 +286,16 @@ export type PayTarget = S["PayTarget"];
 export type LoanPayRequest = S["LoanPayRequest"];
 export type LoanPaySim = S["LoanPaySim"];
 export type LoanOutcome = S["LoanOutcome"];
+
+// Contrapartes con nombre por cuenta destino y recurrentes detectadas (2026-11-16)
+export type Counterparty = S["Counterparty"];
+export type CounterpartyCreate = S["CounterpartyCreate"];
+export type CounterpartyPatch = S["PatchedCounterpartyPatch"];
+export type CounterpartyIdentifier = S["IdentifierRef"];
+export type CounterpartyIdentifierCreate = S["IdentifierCreate"];
+export type CounterpartyNameRequest = S["NameRequest"];
+export type CounterpartyNamed = S["NamedResult"];
+export type CounterpartyLookup = S["Lookup"];
+export type DetectedRecurrence = S["DetectedRecurrence"];
+export type DetectedRecurrenceCreate = S["DetectedRecurrenceCreate"];
+export type DetectedRecurrenceResult = S["DetectedRecurrenceResult"];

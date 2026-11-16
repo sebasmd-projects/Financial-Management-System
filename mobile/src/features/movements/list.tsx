@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 import type { components } from "@core/api/schema.gen";
+import { identifierText } from "@core/counterparties";
 import { formatDate, formatPeriod, periodOf, shiftPeriod, todayBogota } from "@core/dates";
 import { useFms } from "@/auth/use-session";
 import { useDataVersion } from "@/features/common/invalidate";
@@ -18,6 +19,7 @@ import { Money } from "@/ui/money";
 import { AppText, Button, Chip, Notice } from "@/ui/primitives";
 import { Sheet } from "@/ui/sheet";
 import { DeleteSheet } from "@/features/trash/delete-sheet";
+import { NameSheet } from "@/features/counterparties/name-sheet";
 import { groupByDay, hasFilters, NO_FILTERS, searchBody, signedAmount, type Filters, type Movement, type StatusFilter, type TypeFilter } from "./logic";
 
 const t = es.movements;
@@ -39,6 +41,7 @@ export function MovementsList() {
   const [state, setState] = useState<{ key: string; items: Movement[]; page: number; count: number; failure: "network" | "server" | null }>({ key: "", items: [], page: 0, count: 0, failure: null });
   const [loadingMore, setLoadingMore] = useState(false);
   const [deleting, setDeleting] = useState<Movement | null>(null);
+  const [naming, setNaming] = useState<Movement | null>(null);
   const households = useHouseholds();
   const accounts = useResource<{ results: Account[] }>(scopedPath(paths.accounts, scope));
   // Cada cambio de filtros, ámbito o datos es una consulta nueva; mientras llega, `loading` es verdadero.
@@ -114,7 +117,7 @@ export function MovementsList() {
               <Money value={group.net} kind="caption" tone="secondary" sign="always" />
             </View>
             {group.items.map((movement) => (
-              <MovementRow key={movement.id} movement={movement} onDelete={() => setDeleting(movement)} />
+              <MovementRow key={movement.id} movement={movement} onDelete={() => setDeleting(movement)} onName={canWrite(scope, households) ? () => setNaming(movement) : undefined} />
             ))}
           </View>
         )}
@@ -129,12 +132,13 @@ export function MovementsList() {
         onClose={() => setDeleting(null)}
         onDone={() => setDeleting(null)}
       />
+      <NameSheet open={naming !== null} movementId={naming?.id ?? ""} onClose={() => setNaming(null)} onDone={() => setNaming(null)} />
       <FilterSheet open={open} onClose={() => setOpen(false)} filters={filters} onChange={setFilters} accounts={movementAccounts(accounts.data?.results ?? [])} />
     </View>
   );
 }
 
-function MovementRow({ movement, onDelete }: { movement: Movement; onDelete: () => void }) {
+function MovementRow({ movement, onDelete, onName }: { movement: Movement; onDelete: () => void; onName?: () => void }) {
   const c = useTheme();
   const signed = signedAmount(movement);
   const title = movement.counterparty?.name ?? movement.description ?? movement.category?.name ?? t.untitled;
@@ -144,15 +148,21 @@ function MovementRow({ movement, onDelete }: { movement: Movement; onDelete: () 
   return (
     <View style={[styles.row, { borderColor: c.border }]}>
       <View style={styles.rowMain}>
-        <Text numberOfLines={1} style={[type.body, { color: c.textPrimary }]}>
+        <Text numberOfLines={1} style={[type.body, { color: c.textPrimary }, movement.counterparty ? { fontWeight: "700" } : null]}>
           {title}
         </Text>
+        {movement.counterparty?.identifier ? (
+          <Text numberOfLines={1} style={[type.caption, { color: c.textSecondary }]}>
+            {identifierText(movement.counterparty.identifier, es.counterparties)}
+          </Text>
+        ) : null}
         <Text numberOfLines={1} style={[type.caption, { color: c.textSecondary }]}>
           {sub}
           {pending || annulled ? ` · ${annulled ? t.voided : t.status.pendiente}` : ""}
         </Text>
       </View>
       <Money value={signed.value} sign={signed.sign} tone={pending || annulled ? "secondary" : "primary"} style={annulled ? { textDecorationLine: "line-through" } : undefined} />
+      {onName && !movement.counterparty && movement.type !== "transfer" ? <Chip label={es.counterparties.nameIt} a11yLabel={es.counterparties.nameItOf(title)} onPress={onName} /> : null}
       <Chip label={t.delete} a11yLabel={t.deleteOf(title)} onPress={onDelete} />
     </View>
   );

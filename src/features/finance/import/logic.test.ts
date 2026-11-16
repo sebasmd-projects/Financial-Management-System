@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { ImportPreviewRow } from "@/api/models";
 import { buildUpload, editsBody, kindsForAmount, isBlocked, withEdit, effectiveAction, fileProblem, initialMapping, mappingProblems, mappingToApi, overridesBody, tally, previewEntries, filterEntries, storedAs, formatFor, toggleRow, uploadFingerprint, EMPTY_MAPPING, MAX_UPLOAD_BYTES } from "./logic";
 
-const row = (number: number, match: ImportPreviewRow["match"], action: ImportPreviewRow["action"]): ImportPreviewRow => ({ number, date: "2026-11-02", amount: "-182300.00", description: "ÉXITO", reference: "", match, candidate_id: null, action, counterparty: null, category_id: null, kind: null, installments: null, period_start: null, period_end: null, refund_of_id: null, refund_of_row: null, counter_account: null, issue: "", validity: "valid", reasons: [] });
+const row = (number: number, match: ImportPreviewRow["match"], action: ImportPreviewRow["action"]): ImportPreviewRow => ({ number, date: "2026-11-02", amount: "-182300.00", description: "ÉXITO", reference: "", match, candidate_id: null, action, counterparty: null, identifier: null, identifier_hint: null, recurrence: null, category_id: null, kind: null, installments: null, period_start: null, period_end: null, refund_of_id: null, refund_of_row: null, counter_account: null, issue: "", validity: "valid", reasons: [] });
 const HEADERS = ["Fecha", "Descripción", "Valor", "Saldo"];
 
 describe("archivo", () => {

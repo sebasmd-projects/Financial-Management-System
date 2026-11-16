@@ -43,6 +43,7 @@ export const finTEs = {
       maintenance_record: "Registro de mantenimiento",
       payment_method: "Medio de pago",
       custom_attribute: "Atributo",
+      counterparty: "Contraparte",
       recurrence: "Recurrencia",
       scenario: "Escenario",
       rule: "Regla",

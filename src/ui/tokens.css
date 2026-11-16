@@ -1,5 +1,5 @@
 /*
- * Tokens de diseño «Añil y Coral» (docs/design-spec.md §4). Valores EXACTOS de la especificación; `tokens.test.ts` y
+ * Tokens de diseño «Añil y Blanco» (docs/design-spec.md §4). Valores EXACTOS de la especificación; `tokens.test.ts` y
  * `contrast.test.ts` los comparan con ella. 1 dp = 1 px CSS; los tamaños de texto van en rem para que escalen (§6).
  *
  * Tema: sigue al sistema (`prefers-color-scheme`) y se puede fijar con `data-theme="light|dark"` en <html>.
@@ -23,7 +23,7 @@
   --color-on-primary: #ffffff;
   --color-primary-container: #e3e6fb;
   --color-on-primary-container: #1c2580;
-  --color-accent: #ae2d18;
+  --color-accent: #141311;
   --color-on-accent: #ffffff;
   --color-positive: #12704a;
   --color-positive-container: #ddf3e7;
@@ -41,7 +41,7 @@
 
   /* Paleta categórica de gráficas (8 series) */
   --chart-1: #2f3eb8;
-  --chart-2: #ae2d18;
+  --chart-2: #767676;
   --chart-3: #0e7c86;
   --chart-4: #8a5a00;
   --chart-5: #6d3fb5;
@@ -121,7 +121,7 @@
     --color-on-primary: #121a66;
     --color-primary-container: #2a3170;
     --color-on-primary-container: #dde0ff;
-    --color-accent: #ff8d6c;
+    --color-accent: #fbf9f4;
     --color-on-accent: #141311;
     --color-positive: #5fd39a;
     --color-positive-container: #0f3d29;
@@ -137,7 +137,7 @@
     --color-info-container: #12335a;
     --color-on-info-container: #cfe4fb;
     --chart-1: #a5aeff;
-    --chart-2: #ff8d6c;
+    --chart-2: #8a8a8a;
     --chart-3: #5fd0da;
     --chart-4: #f2c14e;
     --chart-5: #c9a6ff;
@@ -166,7 +166,7 @@
   --color-on-primary: #121a66;
   --color-primary-container: #2a3170;
   --color-on-primary-container: #dde0ff;
-  --color-accent: #ff8d6c;
+  --color-accent: #fbf9f4;
   --color-on-accent: #141311;
   --color-positive: #5fd39a;
   --color-positive-container: #0f3d29;
@@ -182,7 +182,7 @@
   --color-info-container: #12335a;
   --color-on-info-container: #cfe4fb;
   --chart-1: #a5aeff;
-  --chart-2: #ff8d6c;
+  --chart-2: #8a8a8a;
   --chart-3: #5fd0da;
   --chart-4: #f2c14e;
   --chart-5: #c9a6ff;

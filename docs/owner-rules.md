@@ -158,3 +158,8 @@ Dos preguntas del propietario sobre las tarjetas y los créditos: «¿ya se tien
    lado a lado, mes a mes y con la más barata marcada, más las preguntas al revés (¿cuánto para no pagar intereses? ¿para terminar en N meses? ¿en cuántas cuotas para que no pase de X?). Crédito: solo la cuota frente a abonar X (reducir plazo o cuota) y «¿cuánto abonar para terminar en N cuotas?».
    Cada respuesta lista sus **supuestos** (no compras nada nuevo, pagas en la fecha de pago, la tasa vigente en cada corte, el banco acepta diferir) y avisa si la tasa que escribes supera la usura que registraste.
 * Contrato: `core/api/openapi-fms.yaml` sincronizado con el backend.
+
+Decisión del propietario (2026-11-16): el acento de la interfaz no es rosado ni coral sino **blanco**. En el tema oscuro, `accent` es
+blanco cálido (`#FBF9F4`) con `on-accent` en tinta (`#141311`); en el claro, donde el blanco no se distingue del fondo, su contraparte
+monocromática: tinta casi negra (`#141311`) con `on-accent` blanco. La serie 2 de las gráficas es un gris neutro. Los semánticos
+(`negative` carmesí, `positive` verde) no cambian.

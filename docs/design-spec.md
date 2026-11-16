@@ -8,7 +8,7 @@ horaria `America/Bogota`, semana que empieza el lunes. Este documento es una esp
 - **Usuario**: uno solo con 2FA; el modelo queda listo para «hogar» (todo registro cuelga de un `Household`).
 - **Referencias visuales del propietario** («Paier», tableros de patrimonio, pronóstico y «Prognose»): solo referencia. De ellas se
   toman tres patrones, no su aspecto: tabla de pronóstico con real frente a proyectado, corte necesario frente a discrecional y selector de
-  escenario. La identidad visual de este documento («Añil y Coral», §4) es propia.
+  escenario. La identidad visual de este documento («Añil y Blanco», §4) es propia.
 
 Índice: 0 Criterio rector · 1 Arquitectura de información · 2 Resumen sin scroll · 3 Pantallas y flujos · 4 Tokens · 5 Componentes ·
 6 Accesibilidad · 7 Glosario y reglas de negocio · 8 Modelo de dominio · 9 Cortes de entrega (v1, v2, v3) · 10 Preguntas abiertas.
@@ -999,9 +999,9 @@ sesión vencida (vuelve al destino tras ingresar).
 
 ---
 
-## 4. Tokens de diseño — identidad «Añil y Coral»
+## 4. Tokens de diseño — identidad «Añil y Blanco»
 
-Concepto: papel cálido y tinta añil para lo estructural, coral solo para la acción de crear («+»), y semánticos reservados para estados
+Concepto: papel cálido y tinta añil para lo estructural, blanco (en el tema claro, su contraparte, la tinta casi negra) solo para la acción de crear («+»), y semánticos reservados para estados
 financieros. Sin tarjeta-héroe oscura ni degradados: la jerarquía la dan el tamaño de la cifra y el espacio. Los contrastes de la última
 columna están calculados (WCAG 2.1) sobre el fondo indicado.
 
@@ -1021,8 +1021,8 @@ columna están calculados (WCAG 2.1) sobre el fondo indicado.
 | `primary` (añil) | `#2F3EB8` | `#A5AEFF` | Acciones, enlaces, progreso | 8,39 / 8,11 |
 | `on-primary` | `#FFFFFF` | `#121A66` | Texto sobre `primary` | 8,39 / 7,40 |
 | `primary-container` / `on-…` | `#E3E6FB` / `#1C2580` | `#2A3170` / `#DDE0FF` | Selección, ficha activa | 10,44 / 9,13 |
-| `accent` (coral) | `#AE2D18` | `#FF8D6C` | Solo el «+» y la marca | — |
-| `on-accent` | `#FFFFFF` | `#141311` | Icono sobre `accent` | 6,59 / 8,20 |
+| `accent` (blanco; tinta en claro) | `#141311` | `#FBF9F4` | Solo el «+» y la marca | — |
+| `on-accent` | `#FFFFFF` | `#141311` | Icono sobre `accent` | 18,57 / 17,65 |
 | `positive` | `#12704A` | `#5FD39A` | Ingreso, pagado, al día | 6,10 / 9,05 |
 | `positive-container` / `on-…` | `#DDF3E7` / `#0C5236` | `#0F3D29` / `#A6EBC8` | Fondos de éxito | 7,93 / 8,92 |
 | `negative` | `#9A1D4B` | `#FF93B4` | Vencido, saldo negativo, error | 7,92 / 8,10 |
@@ -1039,7 +1039,7 @@ rótulo directo o trama, nunca solo color:
 | Serie | Claro | Oscuro |
 |---|---|---|
 | 1 añil | `#2F3EB8` | `#A5AEFF` |
-| 2 coral | `#AE2D18` | `#FF8D6C` |
+| 2 gris | `#767676` | `#8A8A8A` |
 | 3 turquesa | `#0E7C86` | `#5FD0DA` |
 | 4 ocre | `#8A5A00` | `#F2C14E` |
 | 5 violeta | `#6D3FB5` | `#C9A6FF` |

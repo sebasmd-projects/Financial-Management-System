@@ -9,6 +9,7 @@ import { errorsFEs, finFEs } from "./fin-f-es";
 import { errorsTEs, finTEs } from "./fin-t-es";
 import { errorsUEs, finUEs } from "./fin-u-es";
 import { errorsSEs, finSEs } from "./fin-s-es";
+import { errorsPEs, finPEs } from "./fin-p-es";
 
 /** Textos de las pantallas financieras de FMS-1 (español, es-CO). `fin-en.ts` tiene que cumplir el mismo tipo. */
 export const finEs = {
@@ -24,6 +25,7 @@ export const finEs = {
     ...errorsTEs,
     ...errorsUEs,
     ...errorsSEs,
+    ...errorsPEs,
     generic: "No pudimos completar la acción. Inténtalo de nuevo en un momento.",
     network: "No hay conexión con el servidor. Revisa tu red e inténtalo de nuevo: no se duplicará nada.",
     csrf: "No pudimos validar la solicitud. Recarga la página e inténtalo de nuevo.",
@@ -612,6 +614,7 @@ export const finEs = {
   ...finTEs,
   ...finUEs,
   ...finSEs,
+  ...finPEs,
 };
 
 export type FinDictionary = typeof finEs;

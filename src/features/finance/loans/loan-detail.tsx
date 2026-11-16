@@ -142,6 +142,11 @@ export function LoanDetail({ id }: { id: string }) {
         <Link className="button button--ghost" href={href("simulador-comparar")}>
           {dict.fin.credit.detail.whatIf}
         </Link>
+        {l.status === "active" && !uvr && (
+          <Link className="button button--ghost" href={href("credito-simulador-pagos", [l.id])}>
+            {dict.screens["credito-simulador-pagos"]}
+          </Link>
+        )}
         {uvr && <IndexValues indexKey="UVR_VALUE" label={dict.fin.uvr.uvrValues} />}
         {index && <IndexValues indexKey={index} label={dict.fin.uvr.indexValues} />}
         <Link className="button button--ghost" href={`${href("movimientos")}?cuenta=${encodeURIComponent(l.account_id)}`}>

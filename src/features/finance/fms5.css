@@ -17,3 +17,17 @@
 .fin-star { display: inline-flex; align-items: center; gap: var(--space-4); }
 .fin-star .icon { color: var(--color-accent, currentColor); fill: currentColor; }
 .fin-actions-end { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+
+/* Simulador de pagos y compras a cuotas vigentes (propietario, 2026-11-15). */
+.paysim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: var(--space-12); align-items: start; }
+.paysim-card { display: grid; gap: var(--space-8); padding: var(--space-16); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); }
+.paysim-card--best { border-width: 2px; border-color: var(--color-positive); }
+.paysim-metrics { display: grid; gap: var(--space-4); margin: 0; }
+.paysim-metrics > div { display: flex; justify-content: space-between; gap: var(--space-8); }
+.paysim-metrics dt { color: var(--color-text-secondary); }
+.paysim-metrics dd { margin: 0; text-align: right; }
+.paysim-fieldset { display: grid; gap: var(--space-8); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-12); }
+.paysim-terms { display: flex; flex-wrap: wrap; gap: var(--space-8) var(--space-16); }
+.paysim-table th[scope="row"] { white-space: nowrap; }
+.paysim-assumptions { padding: var(--space-8) 0; }
+@media (max-width: 480px) { .paysim-grid { grid-template-columns: 1fr; } }

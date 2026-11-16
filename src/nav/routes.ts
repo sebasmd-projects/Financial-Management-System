@@ -18,6 +18,7 @@ export const SIMULATORS = [
   { slug: "abono-extra", en: "extra-payment" },
   { slug: "comparar", en: "compare" },
   { slug: "compra-tarjeta", en: "card-purchase" },
+  { slug: "pagos", en: "payments" },
 ] as const;
 
 export const CONFIG_SCREENS = [
@@ -67,6 +68,8 @@ const STATIC_ROUTES = [
   { id: "tarjeta-tasas", section: "cuentas", es: "/tarjetas/[id]/tasas", en: "/cards/[id]/rates" },
   { id: "tarjeta-pagar", section: "cuentas", es: "/tarjetas/[id]/pagar", en: "/cards/[id]/pay" },
   { id: "tarjeta-simular", section: "cuentas", es: "/tarjetas/[id]/simular", en: "/cards/[id]/simulate" },
+  { id: "tarjeta-simulador-pagos", section: "cuentas", es: "/tarjetas/[id]/simulador-pagos", en: "/cards/[id]/payment-simulator" },
+  { id: "tarjeta-cuotas-vigentes", section: "cuentas", es: "/tarjetas/[id]/cuotas-vigentes", en: "/cards/[id]/existing-installments" },
   { id: "pagos", section: "pagos", es: "/pagos", en: "/payments" },
   { id: "pagos-fijos", section: "pagos", es: "/pagos/fijos", en: "/payments/fixed" },
   { id: "pagos-fijo-pagar", section: "pagos", es: "/pagos/fijos/[id]/pagar", en: "/payments/fixed/[id]/pay" },
@@ -81,6 +84,7 @@ const STATIC_ROUTES = [
   { id: "creditos-deudas", section: "creditos", es: "/creditos/deudas-personales", en: "/loans/personal-debts" },
   { id: "credito", section: "creditos", es: "/creditos/[id]", en: "/loans/[id]" },
   { id: "credito-tabla", section: "creditos", es: "/creditos/[id]/tabla", en: "/loans/[id]/table" },
+  { id: "credito-simulador-pagos", section: "creditos", es: "/creditos/[id]/simulador-pagos", en: "/loans/[id]/payment-simulator" },
   { id: "plan-presupuestos", section: "plan", es: "/presupuestos", en: "/budgets" },
   { id: "plan-ahorro", section: "plan", es: "/presupuestos/ahorro", en: "/budgets/savings" },
   { id: "plan-objetivos", section: "plan", es: "/presupuestos/objetivos", en: "/budgets/goals" },

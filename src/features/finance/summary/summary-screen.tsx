@@ -216,14 +216,23 @@ function Rail({ items }: { items: readonly RailItem[] }) {
   const { dict } = useI18n();
   const t = dict.fin.dash;
   const href = useHref();
+  const scope = useScope();
   return (
     <Section
       title={t.railTitle}
       aside={
-        <Link className="summary__link" href={`${href("pagos-calendario")}?rango=30`}>
-          {t.railCalendar}
-          <Icon name="chevron-right" size={16} />
-        </Link>
+        <>
+          {scope.kind === "personal" && (
+            <Link className="summary__link" href={href("simulador-pagos")}>
+              {dict.fin.paysim.fromSummary}
+              <Icon name="chevron-right" size={16} />
+            </Link>
+          )}
+          <Link className="summary__link" href={`${href("pagos-calendario")}?rango=30`}>
+            {t.railCalendar}
+            <Icon name="chevron-right" size={16} />
+          </Link>
+        </>
       }
     >
       {items.length === 0 ? (

@@ -25,6 +25,8 @@ export const paths = {
   categories: `/categories${query({ page_size: 200, archived: false })}`,
   categoriesRoot: "/categories",
   categoryDefaults: "/categories/defaults",
+  cards: `/cards${query({ page_size: 100 })}`,
+  loans: `/loans${query({ page_size: 100 })}`,
   cardsTimeline: `/cards/statements/timeline${query({ months_back: 6 })}`,
   movements: "/movements",
   movementsSearch: "/movements/search",

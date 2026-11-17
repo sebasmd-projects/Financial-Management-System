@@ -1,5 +1,5 @@
 /**
- * Tokens de diseño «Añil y Guayaba» de la web (`src/ui/tokens.css`, docs/design-spec.md §4), en valores que React Native entiende.
+ * Tokens de diseño «Añil y Blanco» de la web (`src/ui/tokens.css`, docs/design-spec.md §4), en valores que React Native entiende.
  * `tokens.test.ts` los compara con el CSS: si la web cambia un color y aquí no, falla. Los egresos NO se pintan de rojo:
  * `negative` es solo para vencido, saldo bajo cero y error (§4.1).
  */
@@ -17,14 +17,15 @@ export const lightColors = {
   onPrimary: "#ffffff",
   primaryContainer: "#e3e6fb",
   onPrimaryContainer: "#1c2580",
-  accent: "#b8324f",
+  accent: "#141311",
   onAccent: "#ffffff",
   positive: "#12704a",
   positiveContainer: "#ddf3e7",
   onPositiveContainer: "#0c5236",
-  negative: "#b3261e",
-  negativeContainer: "#fbe4e1",
-  onNegativeContainer: "#8c1d18",
+  negative: "#9a1d4b",
+  onNegative: "#ffffff",
+  negativeContainer: "#fbe4ec",
+  onNegativeContainer: "#7a1539",
   warning: "#8a5a00",
   warningContainer: "#fbefd0",
   onWarningContainer: "#6b4600",
@@ -32,12 +33,12 @@ export const lightColors = {
   infoContainer: "#e0ecfa",
   onInfoContainer: "#17497f",
   chart1: "#2f3eb8",
-  chart2: "#b8324f",
+  chart2: "#767676",
   chart3: "#0e7c86",
   chart4: "#8a5a00",
   chart5: "#6d3fb5",
   chart6: "#12704a",
-  chart7: "#a1440b",
+  chart7: "#5d6b00",
   chart8: "#55524a",
 } as const;
 
@@ -55,14 +56,15 @@ export const darkColors = {
   onPrimary: "#121a66",
   primaryContainer: "#2a3170",
   onPrimaryContainer: "#dde0ff",
-  accent: "#ff8fa3",
-  onAccent: "#4a0a1a",
+  accent: "#fbf9f4",
+  onAccent: "#141311",
   positive: "#5fd39a",
   positiveContainer: "#0f3d29",
   onPositiveContainer: "#a6ebc8",
-  negative: "#ff8a80",
-  negativeContainer: "#4a1512",
-  onNegativeContainer: "#ffc9c4",
+  negative: "#ff93b4",
+  onNegative: "#141311",
+  negativeContainer: "#4a1228",
+  onNegativeContainer: "#ffd0de",
   warning: "#f2c14e",
   warningContainer: "#453300",
   onWarningContainer: "#fbe3a6",
@@ -70,12 +72,12 @@ export const darkColors = {
   infoContainer: "#12335a",
   onInfoContainer: "#cfe4fb",
   chart1: "#a5aeff",
-  chart2: "#ff8fa3",
+  chart2: "#8a8a8a",
   chart3: "#5fd0da",
   chart4: "#f2c14e",
   chart5: "#c9a6ff",
   chart6: "#5fd39a",
-  chart7: "#ffa873",
+  chart7: "#c8d96a",
   chart8: "#b9bcc6",
 } as const;
 

@@ -8,7 +8,7 @@ horaria `America/Bogota`, semana que empieza el lunes. Este documento es una esp
 - **Usuario**: uno solo con 2FA; el modelo queda listo para «hogar» (todo registro cuelga de un `Household`).
 - **Referencias visuales del propietario** («Paier», tableros de patrimonio, pronóstico y «Prognose»): solo referencia. De ellas se
   toman tres patrones, no su aspecto: tabla de pronóstico con real frente a proyectado, corte necesario frente a discrecional y selector de
-  escenario. La identidad visual de este documento («Añil y Guayaba», §4) es propia.
+  escenario. La identidad visual de este documento («Añil y Blanco», §4) es propia.
 
 Índice: 0 Criterio rector · 1 Arquitectura de información · 2 Resumen sin scroll · 3 Pantallas y flujos · 4 Tokens · 5 Componentes ·
 6 Accesibilidad · 7 Glosario y reglas de negocio · 8 Modelo de dominio · 9 Cortes de entrega (v1, v2, v3) · 10 Preguntas abiertas.
@@ -999,9 +999,9 @@ sesión vencida (vuelve al destino tras ingresar).
 
 ---
 
-## 4. Tokens de diseño — identidad «Añil y Guayaba»
+## 4. Tokens de diseño — identidad «Añil y Blanco»
 
-Concepto: papel cálido y tinta añil para lo estructural, guayaba solo para la acción de crear («+»), y semánticos reservados para estados
+Concepto: papel cálido y tinta añil para lo estructural, blanco (en el tema claro, su contraparte, la tinta casi negra) solo para la acción de crear («+»), y semánticos reservados para estados
 financieros. Sin tarjeta-héroe oscura ni degradados: la jerarquía la dan el tamaño de la cifra y el espacio. Los contrastes de la última
 columna están calculados (WCAG 2.1) sobre el fondo indicado.
 
@@ -1021,12 +1021,13 @@ columna están calculados (WCAG 2.1) sobre el fondo indicado.
 | `primary` (añil) | `#2F3EB8` | `#A5AEFF` | Acciones, enlaces, progreso | 8,39 / 8,11 |
 | `on-primary` | `#FFFFFF` | `#121A66` | Texto sobre `primary` | 8,39 / 7,40 |
 | `primary-container` / `on-…` | `#E3E6FB` / `#1C2580` | `#2A3170` / `#DDE0FF` | Selección, ficha activa | 10,44 / 9,13 |
-| `accent` (guayaba) | `#B8324F` | `#FF8FA3` | Solo el «+» y la marca | — |
-| `on-accent` | `#FFFFFF` | `#4A0A1A` | Icono sobre `accent` | 5,82 / 7,20 |
+| `accent` (blanco; tinta en claro) | `#141311` | `#FBF9F4` | Solo el «+» y la marca | — |
+| `on-accent` | `#FFFFFF` | `#141311` | Icono sobre `accent` | 18,57 / 17,65 |
 | `positive` | `#12704A` | `#5FD39A` | Ingreso, pagado, al día | 6,10 / 9,05 |
 | `positive-container` / `on-…` | `#DDF3E7` / `#0C5236` | `#0F3D29` / `#A6EBC8` | Fondos de éxito | 7,93 / 8,92 |
-| `negative` | `#B3261E` | `#FF8A80` | Vencido, saldo negativo, error | 6,54 / 7,39 |
-| `negative-container` / `on-…` | `#FBE4E1` / `#8C1D18` | `#4A1512` / `#FFC9C4` | Fondos de vencido | 7,50 / 10,24 |
+| `negative` | `#9A1D4B` | `#FF93B4` | Vencido, saldo negativo, error | 7,92 / 8,10 |
+| `on-negative` | `#FFFFFF` | `#141311` | Texto sobre `negative` (botón de peligro) | 7,92 / 8,92 |
+| `negative-container` / `on-…` | `#FBE4EC` / `#7A1539` | `#4A1228` / `#FFD0DE` | Fondos de vencido | 8,73 / 10,88 |
 | `warning` | `#8A5A00` | `#F2C14E` | Pronto a vencer, 80 % | 5,93 / 10,05 |
 | `warning-container` / `on-…` | `#FBEFD0` / `#6B4600` | `#453300` / `#FBE3A6` | Fondos de atención | 7,34 / 9,64 |
 | `info` | `#1F5FA8` | `#8CBFF5` | Conciliado, sugerido | 6,44 / 8,74 |
@@ -1038,12 +1039,12 @@ rótulo directo o trama, nunca solo color:
 | Serie | Claro | Oscuro |
 |---|---|---|
 | 1 añil | `#2F3EB8` | `#A5AEFF` |
-| 2 guayaba | `#B8324F` | `#FF8FA3` |
+| 2 gris | `#767676` | `#8A8A8A` |
 | 3 turquesa | `#0E7C86` | `#5FD0DA` |
 | 4 ocre | `#8A5A00` | `#F2C14E` |
 | 5 violeta | `#6D3FB5` | `#C9A6FF` |
 | 6 selva | `#12704A` | `#5FD39A` |
-| 7 teja | `#A1440B` | `#FFA873` |
+| 7 oliva | `#5D6B00` | `#C8D96A` |
 | 8 piedra | `#55524A` | `#B9BCC6` |
 
 Reglas: los egresos **no** se pintan de rojo por defecto (`text-primary` con signo «−»); `negative` se reserva para vencido, saldo bajo

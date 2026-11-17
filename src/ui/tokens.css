@@ -1,5 +1,5 @@
 /*
- * Tokens de diseño «Añil y Guayaba» (docs/design-spec.md §4). Valores EXACTOS de la especificación; `tokens.test.ts` y
+ * Tokens de diseño «Añil y Blanco» (docs/design-spec.md §4). Valores EXACTOS de la especificación; `tokens.test.ts` y
  * `contrast.test.ts` los comparan con ella. 1 dp = 1 px CSS; los tamaños de texto van en rem para que escalen (§6).
  *
  * Tema: sigue al sistema (`prefers-color-scheme`) y se puede fijar con `data-theme="light|dark"` en <html>.
@@ -23,14 +23,15 @@
   --color-on-primary: #ffffff;
   --color-primary-container: #e3e6fb;
   --color-on-primary-container: #1c2580;
-  --color-accent: #b8324f;
+  --color-accent: #141311;
   --color-on-accent: #ffffff;
   --color-positive: #12704a;
   --color-positive-container: #ddf3e7;
   --color-on-positive-container: #0c5236;
-  --color-negative: #b3261e;
-  --color-negative-container: #fbe4e1;
-  --color-on-negative-container: #8c1d18;
+  --color-negative: #9a1d4b;
+  --color-on-negative: #ffffff;
+  --color-negative-container: #fbe4ec;
+  --color-on-negative-container: #7a1539;
   --color-warning: #8a5a00;
   --color-warning-container: #fbefd0;
   --color-on-warning-container: #6b4600;
@@ -40,12 +41,12 @@
 
   /* Paleta categórica de gráficas (8 series) */
   --chart-1: #2f3eb8;
-  --chart-2: #b8324f;
+  --chart-2: #767676;
   --chart-3: #0e7c86;
   --chart-4: #8a5a00;
   --chart-5: #6d3fb5;
   --chart-6: #12704a;
-  --chart-7: #a1440b;
+  --chart-7: #5d6b00;
   --chart-8: #55524a;
 
   /* Elevación (claro: sombras; oscuro: más blanco sobre surface) */
@@ -120,14 +121,15 @@
     --color-on-primary: #121a66;
     --color-primary-container: #2a3170;
     --color-on-primary-container: #dde0ff;
-    --color-accent: #ff8fa3;
-    --color-on-accent: #4a0a1a;
+    --color-accent: #fbf9f4;
+    --color-on-accent: #141311;
     --color-positive: #5fd39a;
     --color-positive-container: #0f3d29;
     --color-on-positive-container: #a6ebc8;
-    --color-negative: #ff8a80;
-    --color-negative-container: #4a1512;
-    --color-on-negative-container: #ffc9c4;
+    --color-negative: #ff93b4;
+    --color-on-negative: #141311;
+    --color-negative-container: #4a1228;
+    --color-on-negative-container: #ffd0de;
     --color-warning: #f2c14e;
     --color-warning-container: #453300;
     --color-on-warning-container: #fbe3a6;
@@ -135,12 +137,12 @@
     --color-info-container: #12335a;
     --color-on-info-container: #cfe4fb;
     --chart-1: #a5aeff;
-    --chart-2: #ff8fa3;
+    --chart-2: #8a8a8a;
     --chart-3: #5fd0da;
     --chart-4: #f2c14e;
     --chart-5: #c9a6ff;
     --chart-6: #5fd39a;
-    --chart-7: #ffa873;
+    --chart-7: #c8d96a;
     --chart-8: #b9bcc6;
     --elevation-1: 0 0 0 1px rgba(255, 255, 255, 0.04);
     --elevation-2: 0 0 0 1px rgba(255, 255, 255, 0.08);
@@ -164,14 +166,15 @@
   --color-on-primary: #121a66;
   --color-primary-container: #2a3170;
   --color-on-primary-container: #dde0ff;
-  --color-accent: #ff8fa3;
-  --color-on-accent: #4a0a1a;
+  --color-accent: #fbf9f4;
+  --color-on-accent: #141311;
   --color-positive: #5fd39a;
   --color-positive-container: #0f3d29;
   --color-on-positive-container: #a6ebc8;
-  --color-negative: #ff8a80;
-  --color-negative-container: #4a1512;
-  --color-on-negative-container: #ffc9c4;
+  --color-negative: #ff93b4;
+  --color-on-negative: #141311;
+  --color-negative-container: #4a1228;
+  --color-on-negative-container: #ffd0de;
   --color-warning: #f2c14e;
   --color-warning-container: #453300;
   --color-on-warning-container: #fbe3a6;
@@ -179,12 +182,12 @@
   --color-info-container: #12335a;
   --color-on-info-container: #cfe4fb;
   --chart-1: #a5aeff;
-  --chart-2: #ff8fa3;
+  --chart-2: #8a8a8a;
   --chart-3: #5fd0da;
   --chart-4: #f2c14e;
   --chart-5: #c9a6ff;
   --chart-6: #5fd39a;
-  --chart-7: #ffa873;
+  --chart-7: #c8d96a;
   --chart-8: #b9bcc6;
   --elevation-1: 0 0 0 1px rgba(255, 255, 255, 0.04);
   --elevation-2: 0 0 0 1px rgba(255, 255, 255, 0.08);

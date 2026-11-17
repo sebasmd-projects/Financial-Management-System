@@ -42,7 +42,7 @@ export function Button({ label, onPress, kind = "primary", busy = false, disable
   const c = useTheme();
   const off = disabled || busy;
   const bg = { primary: c.primary, secondary: c.surface2, danger: c.negative, ghost: "transparent" }[kind];
-  const fg = { primary: c.onPrimary, secondary: c.textPrimary, danger: c.canvas, ghost: c.primary }[kind];
+  const fg = { primary: c.onPrimary, secondary: c.textPrimary, danger: c.onNegative, ghost: c.primary }[kind];
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} accessibilityState={{ disabled: off, busy }} disabled={off} onPress={onPress} style={({ pressed }) => [styles.button, { backgroundColor: bg, opacity: off ? 0.55 : pressed ? 0.85 : 1 }]}>
       {busy ? <ActivityIndicator color={fg} /> : <Text style={[type.titleS, { color: fg }]}>{label}</Text>}

@@ -50,7 +50,7 @@ const config: ExpoConfig = {
     "expo-secure-store",
     // Canal por defecto de los avisos de FCM: el de vencimientos. Los cinco canales se crean al abrir la app (src/features/notifications/native.ts).
     ["expo-notifications", { defaultChannel: "due" }],
-    ["expo-splash-screen", { image: "./assets/splash-icon.png", imageWidth: 160, backgroundColor: "#f6f5f1", dark: { backgroundColor: "#111318" } }],
+    ["expo-splash-screen", { image: "./assets/splash-icon.png", imageWidth: 160, backgroundColor: "#f6f5f1", dark: { image: "./assets/splash-icon-dark.png", backgroundColor: "#111318" } }],
     ["expo-local-authentication", { faceIDPermission: false }],
     ["expo-build-properties", { android: { usesCleartextTraffic: false, minSdkVersion: 26 } }],
   ],

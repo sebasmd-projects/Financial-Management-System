@@ -2,14 +2,16 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-// Los iconos de la pestaña (public/fms-icons): el mismo sello que la app Android (añil `--color-primary` con un disco blanco).
+// Los iconos de la pestaña (public/fms-icons): el ícono de Finanzas: la F con la flecha de tendencia sobre añil (versión simplificada; la completa está en design/icons).
 const read = (name: string) => readFileSync(fileURLToPath(new URL(`../../public/fms-icons/${name}`, import.meta.url)));
 
 describe("iconos de la pestaña", () => {
   it("icon.svg es vectorial, con el añil de la marca y sin scripts", () => {
     const svg = read("icon.svg").toString("utf8");
-    expect(svg).toMatch(/<svg [^>]*viewBox="0 0 64 64"/);
-    expect(svg).toContain("#2f3eb8");
+    expect(svg).toMatch(/<svg [^>]*viewBox="0 0 512 512"/);
+    expect(svg).toContain("#2f3eb8"); // la baldosa
+    expect(svg).toContain("#fbf9f4"); // la F
+    expect(svg).toContain("#5fd39a"); // la flecha
     expect(svg).not.toMatch(/<script|onload/i);
   });
   it("favicon.ico trae 16, 32 y 48 px", () => {

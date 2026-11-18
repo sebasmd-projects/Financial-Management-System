@@ -17,7 +17,7 @@ export function generateMetadata(): Metadata {
     metadataBase: new URL(siteOrigin()),
     robots: { index: false, follow: false, nocache: true },
     referrer: "same-origin",
-    // El mismo sello de la app Android (`mobile/assets/icon.png`). Rutas bajo `/_fms/`: nginx las enruta a este contenedor.
+    // El ícono de Finanzas, el de la app Android (`mobile/assets/icon.png`); la pestaña usa la versión simplificada (F y flecha). Rutas bajo `/_fms/`: nginx las enruta a este contenedor.
     icons: {
       icon: [
         { url: `${ASSET_PREFIX}/icons/favicon.ico`, sizes: "48x48" },

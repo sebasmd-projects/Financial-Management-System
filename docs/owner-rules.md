@@ -32,6 +32,22 @@ Respuestas del propietario a las preguntas abiertas del diseño (2026-11-10):
 
 ## Registro de decisiones
 
+### 2026-11-18: CVE críticas con parche: excepción a las dos semanas
+
+Decisión del propietario (textual): «que todas las CVE críticas tengan excepción si tienen parche, que no se tenga que esperar».
+
+La regla general es que toda dependencia tenga **al menos dos semanas** de publicada. Excepción **permanente**: una vulnerabilidad
+**crítica** (CVSS ≥ 9.0, o «critical» en GHSA, `npm audit` o `pip-audit`) con versión parcheada publicada se adopta de inmediato.
+
+* Se toma la **versión más baja con parche dentro de la misma mayor**.
+* El commit y el PR nombran el aviso (GHSA y/o CVE) y su severidad.
+* Se ejecutan las comprobaciones normales; la excepción no exime de ninguna.
+* Se anota abajo, en el mismo PR. Los avisos no críticos conservan las dos semanas (el propietario puede conceder una excepción puntual).
+
+| Fecha | Paquete | Versión | Aviso | Severidad | Aprobó |
+|---|---|---|---|---|---|
+| _(sin entradas)_ | | | | | Decisión permanente del propietario, 2026-11-18 |
+
 ### 2026-11-14: eliminar es un borrado lógico con papelera de 30 días
 
 Decisión del propietario, sobre todo lo que la persona puede crear (movimientos, cuentas, tarjetas, créditos, deudas, categorías, presupuestos,

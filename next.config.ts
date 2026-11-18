@@ -31,6 +31,9 @@ const nextConfig: NextConfig = {
         // El mapa del sitio y las reglas de robots del FMS: fragmentos que el CV incluye en los suyos (README).
         { source: `${ASSET_PREFIX}/sitemap.xml`, destination: "/fms-sitemap" },
         { source: `${ASSET_PREFIX}/robots.txt`, destination: "/fms-robots" },
+        // Los iconos de la pestaña (`public/fms-icons/`): las páginas del FMS enlazan `/_fms/icons/…` (no `/icon.svg`, que en el
+        // mismo origen enruta nginx al CV). Los sirve este contenedor.
+        { source: `${ASSET_PREFIX}/icons/:file(icon\\.svg|favicon\\.ico|apple-icon\\.png)`, destination: "/fms-icons/:file" },
         // El service worker de los avisos Web Push (solo muestra avisos; no guarda nada).
         { source: `${ASSET_PREFIX}/sw.js`, destination: "/fms-sw" },
       ],

@@ -77,6 +77,11 @@ describe("next.config: reescrituras", () => {
     expect(map["/_fms/robots.txt"]).toBe("/fms-robots");
     expect(map["/_fms/sw.js"]).toBe("/fms-sw");
   });
+  it("los iconos de la pestaña se sirven bajo /_fms/icons desde public/fms-icons", async () => {
+    const rewrites = (await nextConfig.rewrites!()) as { beforeFiles: { source: string; destination: string }[] };
+    const icon = rewrites.beforeFiles.find((r) => r.destination === "/fms-icons/:file");
+    expect(icon?.source).toBe("/_fms/icons/:file(icon\\.svg|favicon\\.ico|apple-icon\\.png)");
+  });
   it("sin FMS_BACKEND_PROXY_URL no hay reescritura hacia Django", async () => {
     const rewrites = (await nextConfig.rewrites!()) as { afterFiles: unknown[] };
     expect(rewrites.afterFiles).toEqual([]);

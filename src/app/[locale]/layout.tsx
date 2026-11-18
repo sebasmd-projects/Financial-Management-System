@@ -5,6 +5,7 @@ import { SessionProvider } from "@/features/session/provider";
 import { defaultLocale, htmlLang, isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { I18nProvider } from "@/i18n/provider";
+import { ASSET_PREFIX } from "@/config/paths";
 import { siteOrigin } from "@/seo/site";
 import { inter, sora } from "@/ui/fonts/fonts";
 import { ThemeScript } from "@/ui/theme/theme-script";
@@ -16,6 +17,14 @@ export function generateMetadata(): Metadata {
     metadataBase: new URL(siteOrigin()),
     robots: { index: false, follow: false, nocache: true },
     referrer: "same-origin",
+    // El mismo sello de la app Android (`mobile/assets/icon.png`). Rutas bajo `/_fms/`: nginx las enruta a este contenedor.
+    icons: {
+      icon: [
+        { url: `${ASSET_PREFIX}/icons/favicon.ico`, sizes: "48x48" },
+        { url: `${ASSET_PREFIX}/icons/icon.svg`, type: "image/svg+xml" },
+      ],
+      apple: [{ url: `${ASSET_PREFIX}/icons/apple-icon.png`, sizes: "180x180", type: "image/png" }],
+    },
   };
 }
 

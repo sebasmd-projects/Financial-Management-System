@@ -21,6 +21,9 @@ describe("Dockerfile", () => {
   it("la salud pide /_fms/healthz en el puerto 3100", () => {
     expect(dockerfile).toMatch(/HEALTHCHECK[\s\S]*127\.0\.0\.1:3100\/_fms\/healthz/);
   });
+  it("copia public/ (los iconos de la pestaña): standalone no lo hace solo", () => {
+    expect(dockerfile).toMatch(/COPY --from=builder .*\/app\/public \.\/public/);
+  });
   it("SITE_URL no se fija al construir (las páginas lo leen al arrancar)", () => {
     expect(dockerfile).not.toMatch(/^\s*(ARG|ENV)\s+SITE_URL/m);
   });

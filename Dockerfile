@@ -36,6 +36,8 @@ ENV NODE_ENV=production \
 # (``.next/static``) se copian a mano.
 COPY --from=builder --chown=root:root /app/.next/standalone ./
 COPY --from=builder --chown=root:root /app/.next/static ./.next/static
+# Los iconos de la pestaña (``public/fms-icons``): ``standalone`` no copia ``public``.
+COPY --from=builder --chown=root:root /app/public ./public
 # Next escribe aquí su caché; en Compose es un tmpfs (``read_only: true`` en la raíz).
 RUN mkdir -p /app/.next/cache && chown node:node /app/.next/cache
 LABEL org.opencontainers.image.source="https://github.com/sebasmd-projects/financial-management-system" \

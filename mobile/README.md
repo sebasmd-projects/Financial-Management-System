@@ -154,8 +154,8 @@ Sin Firebase, el resto de la app no cambia.
   toda dependencia, directa o transitiva, con **≥ 2 semanas** de publicada. Se consigue instalando con `npm install --before=<hoy − 14 días>` (los árboles ya van
   resueltos en `package-lock.json`).
 * Versiones exactas (sin `^` ni `~`) y bloqueo versionado; **sin workspaces** (Expo fija su React y la web el suyo).
-* `expo-doctor` compara con el parche más reciente de cada paquete; los que salieron hace menos de dos semanas están en `expo.install.exclude` de `package.json` para que no
-  fallen. Al subir de parche, quítalos de esa lista a medida que cumplan las dos semanas.
+* `expo-doctor` compara con el parche más reciente de cada paquete; los que salieron hace menos de una semana están en `expo.install.exclude` de `package.json` para que no
+  fallen. Al subir de parche, quítalos de esa lista a medida que cumplan la semana.
 * El `overrides.zod` repite el de la web (aviso de memoria de `zod < 4.6.6`); `npm audit --omit=dev --audit-level=high` corre en CI.
 
 ## Qué NO se ha podido comprobar

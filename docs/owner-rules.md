@@ -32,7 +32,13 @@ Respuestas del propietario a las preguntas abiertas del diseño (2026-11-10):
 
 ## Registro de decisiones
 
-### 2026-11-18: CVE críticas con parche: excepción a las dos semanas
+### 2026-11-19: dependencias con al menos una semana de publicadas (antes dos)
+
+Decisión del propietario: la antigüedad mínima de una dependencia pasa de **dos semanas a una**. Una versión es elegible si se publicó
+hace siete días o más. Las CVE críticas con parche siguen sin espera (entrada del 2026-11-18); los avisos no críticos conservan la
+semana. Se aplica ya a `package.json` y a los bloqueos.
+
+### 2026-11-18: CVE críticas con parche: excepción a las dos semanas (hoy, una semana)
 
 Decisión del propietario (textual): «que todas las CVE críticas tengan excepción si tienen parche, que no se tenga que esperar».
 
